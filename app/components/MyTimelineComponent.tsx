@@ -5,7 +5,19 @@ import "@knight-lab/timelinejs/dist/css/timeline.css";
 import "@knight-lab/timelinejs/src/less/TL.Timeline.less";
 import "./timeline-custom.css"; // Import the custom CSS
 
-const MyTimelineComponent = ({ events }) => {
+export interface Event {
+  start_date: { year: number; month?: number; day?: number };
+  text: { headline: string; text?: string };
+  group?: string;
+  background?: { color?: string; url?: string };
+  media?: { url: string };
+}
+
+interface MyTimelineComponentProps {
+  events: Event[];
+}
+
+const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
   const timelineRef = useRef(null);
 
   useEffect(() => {
@@ -13,7 +25,7 @@ const MyTimelineComponent = ({ events }) => {
       const { Timeline } = require("@knight-lab/timelinejs");
 
       const options = {
-        initial_zoom: 1,
+        scale_factor: 5,
         timenav_position: "top",
         height: 600,
         language: "zh",
