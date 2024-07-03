@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import StaticTimeline from "./components/StaticTimeline";
+import { Event } from "./components/MyTimelineComponent";
 
 const DynamicTimeline = dynamic(
   () => import("./components/MyTimelineComponent"),
@@ -7,9 +7,9 @@ const DynamicTimeline = dynamic(
 );
 
 const HomePage = () => {
-  const events = [
+  const events: Event[] = [
     {
-      start_date: { year: 1881 },
+      start_date: { year: 1881, month: 12, day: 5 },
       text: {
         headline: "先生一岁",
         text: "八月初三，生于浙江绍兴城内东昌坊口。姓周，名树人，字豫才，小名樟寿，至三 十八岁，始用鲁迅为笔名",
