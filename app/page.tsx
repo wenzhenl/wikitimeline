@@ -28,7 +28,7 @@ const HomePage = () => {
     {
       start_date: { year: 1892 },
       text: { headline: "十二岁", text: "正月，往三味书屋从寿镜吾先生怀鉴读" },
-      group: "鲁迅",
+      group: "周树人",
       background: { color: "lightgreen" },
     },
     {
@@ -37,7 +37,7 @@ const HomePage = () => {
         headline: "十三岁",
         text: "三月祖父介孚公丁忧，自北京归。秋，介孚公因事下狱，父伯宜公又抱重病，家产中落，出入于质铺及药店者累年。",
       },
-      group: "鲁迅",
+      group: "周树人",
     },
   ];
 
