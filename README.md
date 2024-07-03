@@ -1,3 +1,17 @@
+# Project goal
+
+I want to provide an easy way to visualize the timeline of a wikipedia page. Be it a person or an event, you provide a wikipedia link, it will be sent to chatgpt to summarize
+into a timeline to record the most important life events of a person for example. And you can load multiple person's timeline, so that you can do easy comparison across different people.
+
+One example could be timeline of all US presidents.
+
+Given the high cost of chatgpt, the project should have a database to "cache" the timeline for each wikipedia, I assume most wikipedia pages should be relatively stable over time,
+so you don't really need to ask gpt every time when a different user asks for the same page, you can simply load from database instead.
+
+This project uses https://github.com/NUKnightLab/TimelineJS3 to display the timeline!
+
+# Tech stack
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
