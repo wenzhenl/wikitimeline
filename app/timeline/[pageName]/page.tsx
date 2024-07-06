@@ -17,7 +17,23 @@ async function getTimeline(pageName: string) {
   });
 }
 
-const TimelinePage = ({ params }) => {
+interface Params {
+  pageName: string;
+}
+
+const isEventArray = (data: any): data is Event[] => {
+  if (!Array.isArray(data)) return false;
+  return data.every((item) => {
+    return (
+      typeof item.start_date === "object" &&
+      typeof item.start_date.year === "number" &&
+      typeof item.text === "object" &&
+      typeof item.text.headline === "string"
+    );
+  });
+};
+
+const TimelinePage = ({ params }: { params: Params }) => {
   const timeline = use(getTimeline(params.pageName));
 
   if (!timeline) {
@@ -33,10 +49,14 @@ const TimelinePage = ({ params }) => {
     );
   }
 
+  const events: Event[] = isEventArray(timeline.timelineData)
+    ? timeline.timelineData
+    : [];
+
   return (
     <div>
       <h1>Timeline for {params.pageName}</h1>
-      <DynamicTimeline events={timeline.timelineData} />
+      <DynamicTimeline events={events} />
       <a href="/">Go back to homepage</a>
     </div>
   );
