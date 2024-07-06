@@ -15,21 +15,18 @@ const HomePage = () => {
         text: "八月初三，生于浙江绍兴城内东昌坊口。姓周，名树人，字豫才，小名樟寿，至三 十八岁，始用鲁迅为笔名",
       },
       group: "鲁迅",
-      background: { url: "https://en.wikipedia.org/wiki/File:LuXun1930.jpg" },
       media: { url: "https://en.wikipedia.org/wiki/Lu_Xun" },
     },
     {
       start_date: { year: 1888 },
       text: { headline: "六岁", text: "是年入塾，从叔祖玉田先生初诵《鉴略》" },
       group: "鲁迅",
-      background: { color: "lightblue" },
       media: { url: "https://youtu.be/ZOYrNSC3nQg?si=HwMLpWeh8_oJLfsL" },
     },
     {
       start_date: { year: 1892 },
       text: { headline: "十二岁", text: "正月，往三味书屋从寿镜吾先生怀鉴读" },
       group: "周树人",
-      background: { color: "lightgreen" },
     },
     {
       start_date: { year: 1893 },
