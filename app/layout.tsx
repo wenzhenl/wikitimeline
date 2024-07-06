@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "WIKITIMELINE",
+  title: "WikiTimeline",
   description: "Generate Timeline From Wikipedia",
 };
 
