@@ -1,48 +1,57 @@
 import { PrismaClient } from "@prisma/client";
-import { use } from "react";
+import { ParsedUrlQuery } from "querystring";
+import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { Event } from "@/app/components/MyTimelineComponent";
 
+const prisma = new PrismaClient();
 const DynamicTimeline = dynamic(
   () => import("@/app/components/MyTimelineComponent"),
   { ssr: false }
 );
 
-const prisma = new PrismaClient();
+interface Params extends ParsedUrlQuery {
+  pageName: string;
+}
 
-async function getTimeline(pageName: string) {
-  const wikipediaPage = `https://en.wikipedia.org/wiki/${pageName}`;
+interface SearchParams {
+  url: string;
+}
+
+async function getTimeline(wikipediaPage: string) {
   return await prisma.timeline.findUnique({
     where: { wikipediaPage },
   });
 }
 
-interface Params {
-  pageName: string;
-}
-
 const isEventArray = (data: any): data is Event[] => {
   if (!Array.isArray(data)) return false;
-  return data.every((item) => {
-    return (
+  return data.every(
+    (item) =>
       typeof item.start_date === "object" &&
       typeof item.start_date.year === "number" &&
       typeof item.text === "object" &&
       typeof item.text.headline === "string"
-    );
-  });
+  );
 };
 
-const TimelinePage = ({ params }: { params: Params }) => {
-  const timeline = use(getTimeline(params.pageName));
+export default async function TimelinePage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  const { pageName } = params;
+  const wikipediaPage = decodeURIComponent(searchParams.url);
+  const timeline = await getTimeline(wikipediaPage);
 
-  if (!timeline) {
+  if (!timeline || !isEventArray(timeline.timelineData)) {
     return (
       <div>
         <h1>Timeline Not Found</h1>
         <p>
-          The timeline for <strong>{params.pageName}</strong> has not been
-          created.
+          The timeline for <strong>{pageName}</strong> has not been created.
         </p>
         <a href="/">Go back to homepage</a>
       </div>
@@ -52,14 +61,11 @@ const TimelinePage = ({ params }: { params: Params }) => {
   const events: Event[] = isEventArray(timeline.timelineData)
     ? timeline.timelineData
     : [];
-
   return (
     <div>
-      <h1>Timeline for {params.pageName}</h1>
+      <h1>Timeline for {pageName}</h1>
       <DynamicTimeline events={events} />
       <a href="/">Go back to homepage</a>
     </div>
   );
-};
-
-export default TimelinePage;
+}

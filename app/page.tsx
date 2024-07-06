@@ -1,15 +1,16 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState, FormEvent } from "react";
 
-const HomePage = () => {
+export default function HomePage() {
   const router = useRouter();
   const [wikiLink, setWikiLink] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const pageName = wikiLink.split("/").pop();
-    router.push(`/timeline/${pageName}`);
+    const url = new URL(wikiLink);
+    const pageName = url.pathname.split("/").pop();
+    router.push(`/timeline/${pageName}?url=${encodeURIComponent(wikiLink)}`);
   };
 
   return (
@@ -27,6 +28,4 @@ const HomePage = () => {
       </form>
     </div>
   );
-};
-
-export default HomePage;
+}
