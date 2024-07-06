@@ -19,7 +19,7 @@ interface SearchParams {
 
 const getTimeline = async (pageName: string, language: string) => {
   return await prisma.timeline.findUnique({
-    where: { wikipediaPage: language },
+    where: { pageName_language: { pageName: pageName, language: language } },
   });
 };
 

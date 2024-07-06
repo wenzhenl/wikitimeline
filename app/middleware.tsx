@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
 
   if (["en", "de", "zh"].includes(subdomain)) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${subdomain}${request.nextUrl.pathname}`;
+    url.pathname = url.pathname.replace(`/${subdomain}`, "");
     return NextResponse.rewrite(url);
   }
 
