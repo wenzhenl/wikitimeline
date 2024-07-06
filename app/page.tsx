@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 
@@ -9,23 +10,37 @@ export default function HomePage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const url = new URL(wikiLink);
-    const pageName = url.pathname.split("/").pop();
-    router.push(`/timeline/${pageName}?url=${encodeURIComponent(wikiLink)}`);
+    const [lang, ...rest] = url.hostname.split(".");
+    const pageName = rest.join(".").split("/").pop();
+    router.push(`/timeline/${lang}/${pageName}`);
   };
 
   return (
-    <div>
-      <h1>Enter Wikipedia Link</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={wikiLink}
-          onChange={(e) => setWikiLink(e.target.value)}
-          placeholder="https://en.wikipedia.org/wiki/Lu_Xun"
-          required
-        />
-        <button type="submit">Go</button>
-      </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">
+          Wiki Timeline
+        </h1>
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center justify-center"
+        >
+          <input
+            type="text"
+            value={wikiLink}
+            onChange={(e) => setWikiLink(e.target.value)}
+            placeholder="Enter Wikipedia link"
+            className="p-2 w-96 border border-gray-300 rounded-l-lg dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+            required
+          />
+          <button
+            type="submit"
+            className="p-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600"
+          >
+            Search
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
