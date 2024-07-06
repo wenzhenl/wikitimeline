@@ -13,10 +13,10 @@ datasource db {
 model Timeline {
   pageName       String
   language       String
-  wikipediaPage  String   @unique
+  wikipediaPage  String
   timelineData   Json
   createdAt      DateTime @default(now()) @map(name: "created_at")
   updatedAt      DateTime @updatedAt @map(name: "updated_at")
 
-  @@unique([pageName, language])
+  @@unique(fields: [pageName, language], name: "pageName_language")
 }
