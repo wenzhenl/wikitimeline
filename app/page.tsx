@@ -1,12 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
 const HomePage = () => {
   const router = useRouter();
   const [wikiLink, setWikiLink] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const pageName = wikiLink.split("/").pop();
     router.push(`/timeline/${pageName}`);
