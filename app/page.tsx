@@ -10,8 +10,15 @@ export default function HomePage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const url = new URL(wikiLink);
-    const [lang, ...rest] = url.hostname.split(".");
-    const pageName = rest.join(".").split("/").pop();
+    const pathSegments = url.pathname.split("/");
+    const pageName = pathSegments[pathSegments.length - 1];
+    const subdomain = url.hostname.split(".")[0];
+
+    let lang = subdomain;
+    if (url.hostname === "wikipedia.org") {
+      lang = "en";
+    }
+
     router.push(`/timeline/${lang}/${pageName}`);
   };
 
