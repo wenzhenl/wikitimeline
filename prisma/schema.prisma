@@ -11,8 +11,13 @@ datasource db {
 }
 
 model Timeline {
-  wikipediaPage  String   @id
+  pageName       String
+  language       String
+  wikipediaPage  String   @unique
   timelineData   Json
   createdAt      DateTime @default(now()) @map(name: "created_at")
   updatedAt      DateTime @updatedAt @map(name: "updated_at")
+
+  @@id([pageName, language])
+  @@index([wikipediaPage])
 }
