@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { ParsedUrlQuery } from "querystring";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { Event } from "@/app/components/MyTimelineComponent";
@@ -10,19 +9,19 @@ const DynamicTimeline = dynamic(
   { ssr: false }
 );
 
-interface Params extends ParsedUrlQuery {
-  pageName: string;
+interface PageProps {
+  params: { lang: string; pageName: string };
 }
 
 interface SearchParams {
   url: string;
 }
 
-async function getTimeline(wikipediaPage: string) {
+const getTimeline = async (pageName: string, language: string) => {
   return await prisma.timeline.findUnique({
-    where: { wikipediaPage },
+    where: { wikipediaPage: language },
   });
-}
+};
 
 const isEventArray = (data: any): data is Event[] => {
   if (!Array.isArray(data)) return false;
@@ -35,16 +34,9 @@ const isEventArray = (data: any): data is Event[] => {
   );
 };
 
-export default async function TimelinePage({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) {
-  const { pageName } = params;
-  const wikipediaPage = decodeURIComponent(searchParams.url);
-  const timeline = await getTimeline(wikipediaPage);
+export default async function TimelinePage({ params }: PageProps) {
+  const { pageName, lang } = params;
+  const timeline = await getTimeline(pageName, lang);
 
   if (!timeline || !isEventArray(timeline.timelineData)) {
     return (

@@ -18,6 +18,5 @@ model Timeline {
   createdAt      DateTime @default(now()) @map(name: "created_at")
   updatedAt      DateTime @updatedAt @map(name: "updated_at")
 
-  @@id([pageName, language])
-  @@index([wikipediaPage])
+  @@unique([pageName, language])
 }
