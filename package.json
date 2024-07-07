@@ -23,7 +23,8 @@
     "postcss-loader": "^8.1.1",
     "react": "^18",
     "react-dom": "^18",
-    "style-loader": "^4.0.0"
+    "style-loader": "^4.0.0",
+    "wikipedia": "^2.1.2"
   },
   "devDependencies": {
     "@types/node": "^20",
