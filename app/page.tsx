@@ -20,7 +20,7 @@ export default function HomePage() {
     const isLocalhost = window.location.hostname === "localhost";
     const newUrl = isLocalhost
       ? `http://${lang}.localhost:3000/timeline/${pageName}`
-      : `https://${lang}.timeline.top/timeline/${pageName}`;
+      : `https://${lang}.wikitimeline.top/timeline/${pageName}`;
 
     window.location.href = newUrl;
   };
