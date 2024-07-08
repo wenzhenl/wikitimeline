@@ -1,28 +1,16 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 
 export default function HomePage() {
+  const router = useRouter();
   const [wikiLink, setWikiLink] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const url = new URL(wikiLink);
-    const pathSegments = url.pathname.split("/");
-    const pageName = pathSegments[pathSegments.length - 1];
-    const subdomain = url.hostname.split(".")[0];
-
-    let lang = subdomain;
-    if (url.hostname === "wikipedia.org") {
-      lang = "en";
-    }
-
-    const isLocalhost = window.location.hostname === "localhost";
-    const newUrl = isLocalhost
-      ? `http://${lang}.localhost:3000/timeline/${pageName}`
-      : `https://${lang}.wikitimeline.top/timeline/${pageName}`;
-
-    window.location.href = newUrl;
+    const pageName = url.pathname.split("/").pop();
+    router.push(`/timeline/${pageName}`);
   };
 
   return (
