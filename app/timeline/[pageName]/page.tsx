@@ -127,10 +127,14 @@ export default async function TimelinePage({ params }: PageProps) {
     ? timeline.timelineData
     : [];
   return (
-    <div>
-      <h1>Timeline for {pageName}</h1>
-      <DynamicTimeline events={events} />
-      <a href="/">Go back to homepage</a>
+    <div className="p-4">
+      <h1 className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-4">
+        Timeline for {pageName}
+      </h1>
+      <DynamicTimeline events={timeline.timelineData} />
+      <a href="/" className="text-lg text-blue-500 hover:text-blue-700 mt-4">
+        Go back to homepage
+      </a>
     </div>
   );
 }
