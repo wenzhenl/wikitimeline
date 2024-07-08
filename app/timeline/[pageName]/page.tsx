@@ -56,7 +56,18 @@ Ensure that the headline is a concise summary of the event in less than 10 words
   });
   console.log(completion.choices[0].message.content);
 
-  return completion.choices[0].message.content;
+  if (completion.choices.length === 0) {
+    throw new Error("Failed to fetch summary from OpenAI");
+  }
+
+  const content = completion.choices[0].message.content;
+
+  if (!content) return JSON.parse("{}");
+  // Assuming the content is wrapped in an object with an "events" property, we parse it and extract the events array
+  const parsedContent = JSON.parse(content);
+  const events = parsedContent.events || parsedContent;
+
+  return events;
 };
 
 const getTimeline = async (pageName: string) => {
@@ -70,14 +81,13 @@ const getTimeline = async (pageName: string) => {
     if (!wikiPage) return timeline;
     const summary = await summarizeWiki2Timeline(wikiPage, pageName);
     if (!summary) return timeline;
-    const timelineData = JSON.parse(summary);
 
     const newTimeline = await prisma.timeline.create({
       data: {
         pageName,
         language,
         wikipediaPage: `https://${language}.wikipedia.org/wiki/${pageName}`,
-        timelineData: timelineData,
+        timelineData: summary,
       },
     });
     return newTimeline;
