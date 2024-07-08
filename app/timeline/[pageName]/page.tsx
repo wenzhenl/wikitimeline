@@ -10,16 +10,16 @@ const DynamicTimeline = dynamic(
 );
 
 interface PageProps {
-  params: { lang: string; pageName: string };
+  params: { pageName: string };
 }
 
 interface SearchParams {
   url: string;
 }
 
-const getTimeline = async (pageName: string, language: string) => {
+const getTimeline = async (pageName: string) => {
   return await prisma.timeline.findUnique({
-    where: { pageName_language: { pageName: pageName, language: language } },
+    where: { pageName_language: { pageName: pageName, language: "en" } },
   });
 };
 
@@ -35,8 +35,8 @@ const isEventArray = (data: any): data is Event[] => {
 };
 
 export default async function TimelinePage({ params }: PageProps) {
-  const { pageName, lang } = params;
-  const timeline = await getTimeline(pageName, lang);
+  const { pageName } = params;
+  const timeline = await getTimeline(pageName);
 
   if (!timeline || !isEventArray(timeline.timelineData)) {
     return (
