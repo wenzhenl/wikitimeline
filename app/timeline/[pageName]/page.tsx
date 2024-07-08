@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { Event } from "@/app/components/MyTimelineComponent";
+import Loading from "@/app/components/Loading";
 import wiki from "wikipedia";
 import OpenAI from "openai";
 
@@ -9,7 +10,7 @@ const openai = new OpenAI();
 const prisma = new PrismaClient();
 const DynamicTimeline = dynamic(
   () => import("@/app/components/MyTimelineComponent"),
-  { ssr: false }
+  { ssr: false, loading: () => <Loading /> }
 );
 
 interface PageProps {
