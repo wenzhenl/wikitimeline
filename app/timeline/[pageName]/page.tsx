@@ -24,6 +24,7 @@ interface SearchParams {
 const extractWikiPage = async (pageName: string) => {
   try {
     const wikiPage = await wiki.content(pageName);
+    console.log(wikiPage);
     return wikiPage;
   } catch (error) {
     console.log(error);
@@ -54,6 +55,7 @@ Ensure that the headline is a concise summary of the event in less than 10 words
     model: "gpt-4o",
     response_format: { type: "json_object" },
   });
+  console.log(completion.choices[0].message.content);
 
   if (completion.choices.length === 0) {
     throw new Error("Failed to fetch summary from OpenAI");
