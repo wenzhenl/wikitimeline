@@ -30,12 +30,24 @@ const extractWikiPage = async (pageName: string) => {
   }
 };
 
-const summarizeWiki2Timeline = async (wikiPage: string) => {
+const summarizeWiki2Timeline = async (wikiPage: string, pageName: string) => {
+  const prompt = `
+You are a world-class expert in summarizing Wikipedia pages into timelines and outputting them in JSON format. Please read carefully the content I passed and list out the most important events of ${pageName}, not exceeding 30 events. Output this as a JSON with a list of events, where each event follows the following format:
+
+Event {
+  start_date: { year: number; month?: number; day?: number };
+  text: { headline: string; text: string };
+  group?: string;
+}
+
+Ensure that the headline is a concise summary of the event in less than 10 words, and the text provides detailed information. The group should always be ${pageName}.
+  `;
+
   const completion = await openai.chat.completions.create({
     messages: [
       {
         role: "system",
-        content: "",
+        content: prompt,
       },
       { role: "user", content: wikiPage },
     ],
@@ -56,7 +68,7 @@ const getTimeline = async (pageName: string) => {
   if (!timeline) {
     const wikiPage = await extractWikiPage(pageName);
     if (!wikiPage) return timeline;
-    const summary = await summarizeWiki2Timeline(wikiPage);
+    const summary = await summarizeWiki2Timeline(wikiPage, pageName);
     if (!summary) return timeline;
     const timelineData = JSON.parse(summary);
 
