@@ -6,13 +6,28 @@ export default function HomePage() {
   const router = useRouter();
   const [wikiLink, setWikiLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const url = new URL(wikiLink);
-    const pageName = url.pathname.split("/").pop();
-    router.push(`/timeline/${pageName}`);
+    setError("");
+    const urlPattern = /^(https?:\/\/)?(en\.)?wikipedia\.org\/wiki\/\w+/i;
+
+    if (!urlPattern.test(wikiLink)) {
+      setError("Invalid Wikipedia link. Please enter a valid link.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const url = new URL(wikiLink);
+      const pageName = url.pathname.split("/").pop();
+      router.push(`/timeline/${pageName}`);
+    } catch (error) {
+      setError("Invalid URL format.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,6 +65,7 @@ export default function HomePage() {
               Search
             </button>
           </form>
+          {error && <p className="text-red-500 mt-4">{error}</p>}
         </div>
       )}
     </div>
