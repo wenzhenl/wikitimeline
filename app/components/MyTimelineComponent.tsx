@@ -30,7 +30,7 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
         height: 600,
         language: "en",
         hash_bookmark: true,
-        marker_height_min: 30,
+        marker_height_min: 50,
         marker_padding: 5,
         start_at_slide: 0,
       };
