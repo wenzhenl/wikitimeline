@@ -12,7 +12,7 @@ export default function HomePage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const urlPattern = /^(https?:\/\/)?(en\.)?wikipedia\.org\/wiki\/\w+/i;
+    const urlPattern = /^(https?:\/\/)?((en\.)?wikipedia\.org\/wiki\/\w+)/i;
 
     if (!urlPattern.test(wikiLink)) {
       setError("Invalid Wikipedia link. Please enter a valid link.");
@@ -20,9 +20,15 @@ export default function HomePage() {
       return;
     }
 
+    setError("");
     try {
-      const url = new URL(wikiLink);
-      const pageName = url.pathname.split("/").pop();
+      let url = wikiLink;
+      if (!wikiLink.startsWith("http")) {
+        url = "https://" + wikiLink;
+      }
+
+      const parsedUrl = new URL(url);
+      const pageName = parsedUrl.pathname.split("/").pop();
       router.push(`/timeline/${pageName}`);
     } catch (error) {
       setError("Invalid URL format.");
