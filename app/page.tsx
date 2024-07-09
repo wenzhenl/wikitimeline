@@ -57,7 +57,11 @@ export default function HomePage() {
         return parsedUrl.pathname.split("/").pop();
       });
       const params = new URLSearchParams();
-      pageNames.forEach((name) => params.append("pageNames", name));
+      pageNames.forEach((name) => {
+        if (name) {
+          params.append("pageNames", name);
+        }
+      });
       router.push(`/collection?${params.toString()}`);
     }
   };
