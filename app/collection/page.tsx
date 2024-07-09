@@ -1,58 +1,56 @@
-import { PrismaClient, Timeline } from "@prisma/client";
-import { GetServerSideProps } from "next";
+"use client";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import Loading from "../components/Loading";
 
-const prisma = new PrismaClient();
 const DynamicTimeline = dynamic(
   () => import("../components/MyTimelineComponent"),
   { ssr: false }
 );
 
-interface CollectionPageProps {
-  timelineData: any[];
-  error?: string;
-}
+const CollectionPage = () => {
+  const [timelineData, setTimelineData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
-export const getServerSideProps: GetServerSideProps<
-  CollectionPageProps
-> = async (context) => {
-  const { query } = context;
-  const pageNames = query.pageNames;
+  useEffect(() => {
+    const fetchTimelines = async () => {
+      const pageNames = searchParams.getAll("pageNames");
+      if (!pageNames || pageNames.length === 0) {
+        setError("Invalid or missing pageNames parameter");
+        setLoading(false);
+        return;
+      }
 
-  if (!pageNames || !Array.isArray(pageNames)) {
-    return {
-      props: {
-        timelineData: [],
-        error: "Invalid or missing pageNames parameter",
-      },
+      try {
+        const queryParams = new URLSearchParams();
+        pageNames.forEach((name) => queryParams.append("pageNames", name));
+
+        const response = await fetch(
+          `/api/timelines?${queryParams.toString()}`
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setTimelineData(data.timelineData);
+        } else {
+          setError(data.error || "Failed to fetch timelines");
+        }
+      } catch (err) {
+        setError("Failed to fetch timelines");
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchTimelines();
+  }, [searchParams]);
+
+  if (loading) {
+    return <Loading />;
   }
 
-  try {
-    const timelines = await Promise.all(
-      pageNames.map(async (pageName) => {
-        const timeline = await prisma.timeline.findUnique({
-          where: {
-            pageName_language: { pageName: pageName as string, language: "en" },
-          },
-        });
-        return timeline ? timeline.timelineData : [];
-      })
-    );
-
-    const mergedTimelineData = timelines.flat();
-
-    return {
-      props: { timelineData: mergedTimelineData },
-    };
-  } catch (error: any) {
-    return {
-      props: { timelineData: [], error: error.message },
-    };
-  }
-};
-
-const CollectionPage = ({ timelineData, error }: CollectionPageProps) => {
   if (error) {
     return (
       <div className="p-4">
