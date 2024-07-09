@@ -25,14 +25,14 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
       const { Timeline } = require("@knight-lab/timelinejs");
 
       const options = {
-        scale_factor: 5,
+        scale_factor: 2,
         timenav_position: "bottom",
         height: 600,
         language: "en",
         hash_bookmark: true,
         marker_height_min: 50,
         marker_padding: 5,
-        start_at_slide: 0,
+        start_at_end: true,
       };
 
       new Timeline(timelineRef.current, { events }, options);
