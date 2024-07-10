@@ -32,7 +32,7 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
         hash_bookmark: true,
         marker_height_min: 50,
         marker_padding: 5,
-        start_at_end: true,
+        start_at_slide: 0,
         ga_measurement_id: "G-WPG6VTRDW9",
       };
 
