@@ -14,9 +14,13 @@ const fetchTimelines = async (
 ): Promise<{ timelineData: any[]; error?: string }> => {
   const params = new URLSearchParams();
   pageNames.forEach((name) => params.append("pageNames", name));
-  const response = await fetch(
-    `http://localhost:3000/api/timelines?${params.toString()}`
-  );
+
+  const baseUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://wikitimeline.top"
+      : "http://localhost:3000";
+
+  const response = await fetch(`${baseUrl}/api/timelines?${params.toString()}`);
   const data = await response.json();
   return data;
 };
