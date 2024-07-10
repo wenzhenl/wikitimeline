@@ -1,50 +1,27 @@
-import { PrismaClient } from "@prisma/client";
 import dynamic from "next/dynamic";
 
-const prisma = new PrismaClient();
 const DynamicTimeline = dynamic(
   () => import("../components/MyTimelineComponent"),
   { ssr: false }
 );
 
 interface CollectionPageProps {
-  timelineData: any[];
-  error?: string;
-}
-
-async function fetchTimelines(
-  pageNames: string[]
-): Promise<{ timelineData: any[]; error?: string }> {
-  if (!pageNames || pageNames.length === 0) {
-    return {
-      timelineData: [],
-      error: "Invalid or missing pageNames parameter",
-    };
-  }
-
-  try {
-    const timelines = await Promise.all(
-      pageNames.map(async (pageName) => {
-        const timeline = await prisma.timeline.findUnique({
-          where: { pageName_language: { pageName, language: "en" } },
-        });
-        return timeline ? timeline.timelineData : [];
-      })
-    );
-
-    const mergedTimelineData = timelines.flat();
-
-    return { timelineData: mergedTimelineData };
-  } catch (error: any) {
-    return { timelineData: [], error: error.message };
-  }
-}
-
-export default async function CollectionPage({
-  searchParams,
-}: {
   searchParams: { pageNames: string | string[] };
-}) {
+}
+
+const fetchTimelines = async (
+  pageNames: string[]
+): Promise<{ timelineData: any[]; error?: string }> => {
+  const params = new URLSearchParams();
+  pageNames.forEach((name) => params.append("pageNames", name));
+  const response = await fetch(
+    `http://localhost:3000/api/timelines?${params.toString()}`
+  );
+  const data = await response.json();
+  return data;
+};
+
+const CollectionPage = async ({ searchParams }: CollectionPageProps) => {
   let pageNames: string[] = [];
   if (typeof searchParams.pageNames === "string") {
     pageNames = [searchParams.pageNames];
@@ -80,4 +57,6 @@ export default async function CollectionPage({
       </a>
     </div>
   );
-}
+};
+
+export default CollectionPage;
