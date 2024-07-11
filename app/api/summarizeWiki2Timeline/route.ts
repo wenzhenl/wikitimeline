@@ -39,7 +39,10 @@ Ensure that the headline is a concise summary of the event in less than 10 words
     const events = parsedContent.events || parsedContent;
 
     return NextResponse.json({ events });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
   }
 }
