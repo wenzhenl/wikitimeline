@@ -32,6 +32,7 @@ Ensure that the headline is a concise summary of the event in less than 10 words
         { role: "user", content: wikiPage },
       ],
       model: "gpt-4o",
+      response_format: { type: "json_object" },
     });
 
     const content = completion.choices[0]?.message?.content || '{}';
