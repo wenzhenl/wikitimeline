@@ -1,7 +1,13 @@
 {
-    "functions": {
-      "app/timeline/**/*": {
-        "maxDuration": 60
-      }
+  "functions": {
+    "app/api/**/*": {
+      "maxDuration": 60
+    },
+    "app/timeline/**/*": {
+      "maxDuration": 60
+    },
+    "app/collection/**/*": {
+      "maxDuration": 60
     }
+  }
 }
