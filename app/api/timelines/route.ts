@@ -17,7 +17,30 @@ export async function GET(request: Request) {
         const timeline = await prisma.timeline.findUnique({
           where: { pageName_language: { pageName, language: 'en' } },
         });
-        return timeline ? timeline.timelineData : [];
+        if (timeline) return timeline.timelineData;
+
+        const wikiResponse = await fetch(`http://localhost:3000/api/extractWikiPage?pageName=${pageName}`);
+        const { wikiPage } = await wikiResponse.json();
+        if (!wikiPage) return [];
+
+        const summaryResponse = await fetch('http://localhost:3000/api/summarizeWiki2Timeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pageName, wikiPage }),
+        });
+        const { events } = await summaryResponse.json();
+        if (!events) return [];
+
+        await prisma.timeline.create({
+          data: {
+            pageName,
+            language: 'en',
+            wikipediaPage: `https://en.wikipedia.org/wiki/${pageName}`,
+            timelineData: events,
+          },
+        });
+
+        return events;
       })
     );
 
