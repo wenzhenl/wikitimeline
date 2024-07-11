@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { BASE_URL } from "@/config";
 
 const prisma = new PrismaClient();
 
@@ -20,11 +21,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ timelineData: timeline.timelineData });
     }
 
-    const wikiResponse = await fetch(`http://localhost:3000/api/extractWikiPage?pageName=${pageName}`);
+    const wikiResponse = await fetch(`${BASE_URL}/api/wiki?pageName=${pageName}`);
     const { wikiPage } = await wikiResponse.json();
     if (!wikiPage) return NextResponse.json({ error: 'Failed to extract wiki page' }, { status: 500 });
 
-    const summaryResponse = await fetch('http://localhost:3000/api/summarizeWiki2Timeline', {
+    const summaryResponse = await fetch(`${BASE_URL}/api/gpt`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pageName, wikiPage }),
