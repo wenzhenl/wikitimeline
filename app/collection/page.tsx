@@ -49,7 +49,8 @@ const CollectionPage = async ({ searchParams }: CollectionPageProps) => {
   return (
     <div className="p-4">
       <h1 className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-4">
-        Merged Timeline
+        Timeline for{" "}
+        {pageNames.map((name) => name.replace(/_/g, " ")).join(" | ")}
       </h1>
       <DynamicTimeline events={timelineData} />
       <a
