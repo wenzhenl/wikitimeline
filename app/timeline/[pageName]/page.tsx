@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import { BASE_URL } from "@/config";
 
 const DynamicTimeline = dynamic(
   () => import("@/app/components/MyTimelineComponent"),
@@ -12,9 +13,7 @@ interface PageProps {
 const fetchTimeline = async (
   pageName: string
 ): Promise<{ timelineData: any[]; error?: string }> => {
-  const response = await fetch(
-    `http://localhost:3000/api/timeline?pageName=${pageName}`
-  );
+  const response = await fetch(`${BASE_URL}/api/timeline?pageName=${pageName}`);
   const data = await response.json();
   return data;
 };
