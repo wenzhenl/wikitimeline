@@ -9,18 +9,12 @@ interface CollectionPageProps {
   searchParams: { pageNames: string | string[] };
 }
 
-const fetchTimelines = async (
-  pageNames: string[]
+const fetchTimeline = async (
+  pageName: string
 ): Promise<{ timelineData: any[]; error?: string }> => {
-  const params = new URLSearchParams();
-  pageNames.forEach((name) => params.append("pageNames", name));
-
-  const baseUrl =
-    process.env.NODE_ENV === "production"
-      ? "https://wikitimeline.top"
-      : "http://localhost:3000";
-
-  const response = await fetch(`${baseUrl}/api/timelines?${params.toString()}`);
+  const response = await fetch(
+    `http://localhost:3000/api/timelines?pageName=${pageName}`
+  );
   const data = await response.json();
   return data;
 };
@@ -33,7 +27,13 @@ const CollectionPage = async ({ searchParams }: CollectionPageProps) => {
     pageNames = searchParams.pageNames;
   }
 
-  const { timelineData, error } = await fetchTimelines(pageNames);
+  const timelines = await Promise.all(
+    pageNames.map((pageName) => fetchTimeline(pageName))
+  );
+
+  const timelineData = timelines.flatMap(({ timelineData }) => timelineData);
+
+  const error = timelines.find(({ error }) => error)?.error;
 
   if (error) {
     return (
