@@ -22,13 +22,13 @@ export async function GET(request: Request) {
     }
 
     const wikiResponse = await fetch(`${BASE_URL}/api/wiki?pageName=${pageName}`);
-    const { wikiPage } = await wikiResponse.json();
+    const { wikiPage, thumbnailSource } = await wikiResponse.json();
     if (!wikiPage) return NextResponse.json({ error: 'Failed to extract wiki page' }, { status: 500 });
 
     const summaryResponse = await fetch(`${BASE_URL}/api/gpt`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pageName, wikiPage }),
+      body: JSON.stringify({ pageName, wikiPage, thumbnailSource }),
     });
     const { events } = await summaryResponse.json();
     if (!events) return NextResponse.json({ error: 'Failed to summarize wiki page' }, { status: 500 });

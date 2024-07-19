@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI();
 
 export async function POST(request: Request) {
-  const { pageName, wikiPage } = await request.json();
+  const { pageName, wikiPage, thumbnailSource } = await request.json();
 
   if (!pageName || !wikiPage) {
     return NextResponse.json({ error: 'Missing pageName or wikiPage parameter' }, { status: 400 });
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   
   Each event's headline should be a concise summary of the event in less than 10 words. The text should provide detailed information. Both the headline and text fields can include HTML markup for improved display. 
   The group field should always be "${pageName}". 
-  The media field should have the url set as "https://en.wikipedia.org/wiki/${pageName}" and thumbnail set as the value of "thumbnailSource" if found in content.
+  The media field should have the url set as "https://en.wikipedia.org/wiki/${pageName}" and thumbnail set as "${thumbnailSource}".
   
   Please ensure accuracy and relevance in the timeline.
   `;
