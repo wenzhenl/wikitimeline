@@ -9,6 +9,7 @@ export async function POST(request: Request) {
   if (!pageName || !wikiPage) {
     return NextResponse.json({ error: 'Missing pageName or wikiPage parameter' }, { status: 400 });
   }
+  const polishedPageName = pageName.replace(/_/g, " ")
   const prompt = `
   You are a world-class expert in summarizing Wikipedia pages into timelines and outputting them in JSON format. I will provide you with the content of a Wikipedia page. Based on this content, identify and list the most important events related to "${pageName}", ranked by significance, not exceeding 30 entries. Output this as a JSON with a list of events, where each event follows the format:
   
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   
   Each event's headline should be a concise summary of the event in less than 10 words. The text should provide detailed information. Both the headline and text fields can include HTML markup for improved display. 
   The group field should always be "${pageName}". 
-  The media field should have the url set as "https://en.wikipedia.org/wiki/${pageName}" and thumbnail set as "${thumbnailSource}".
+  The media field should have the url set as "https://en.wikipedia.org/wiki/${polishedPageName}" and thumbnail set as "${thumbnailSource}".
   
   Please ensure accuracy and relevance in the timeline.
   `;
