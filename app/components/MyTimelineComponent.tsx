@@ -10,7 +10,7 @@ export interface Event {
   text: { headline: string; text?: string };
   group?: string;
   background?: { color?: string; url?: string };
-  media?: { url: string };
+  media?: { url: string; thumbnail?: string };
 }
 
 interface MyTimelineComponentProps {
