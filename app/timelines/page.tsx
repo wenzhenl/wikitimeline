@@ -50,7 +50,7 @@ const TimelinesPage = async ({ searchParams }: TimelinesPageProps) => {
           <thead>
             <tr>
               <th className="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">
-                Page Name
+                Timeline
               </th>
               <th className="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">
                 Wikipedia Link
