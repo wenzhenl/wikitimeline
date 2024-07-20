@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function HomePage() {
   const [wikiLinks, setWikiLinks] = useState([""]);
@@ -84,6 +85,14 @@ export default function HomePage() {
           <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">
             Wiki Timeline
           </h1>
+          <div className="absolute top-4 right-4 flex space-x-4">
+            <Link href="/timelines" legacyBehavior>
+              <a className="text-blue-500 hover:underline">Timelines</a>
+            </Link>
+            <Link href="/collections" legacyBehavior>
+              <a className="text-blue-500 hover:underline">Collections</a>
+            </Link>
+          </div>
           <p className="mb-4 text-gray-600 dark:text-gray-400">
             Enter one or more Wikipedia links. All links must be valid.
           </p>
