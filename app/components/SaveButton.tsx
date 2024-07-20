@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { BASE_URL } from "@/config";
 
@@ -10,22 +11,38 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
   const [description, setDescription] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSave = async () => {
-    const response = await fetch(`${BASE_URL}/api/collection`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        description,
-        pageNames,
-      }),
-    });
+    console.log("Save button clicked");
+    console.log("Description:", description);
+    console.log("Page Names:", pageNames);
 
-    if (response.ok) {
-      setIsSaved(true);
-      setShowModal(false);
+    try {
+      const response = await fetch(`${BASE_URL}/api/collection`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          description,
+          pageNames,
+        }),
+      });
+
+      console.log("Response status:", response.status);
+
+      if (response.ok) {
+        setIsSaved(true);
+        setShowModal(false);
+      } else {
+        const responseData = await response.json();
+        console.error("Error saving collection:", responseData.error);
+        setError(responseData.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error("Error in handleSave:", err);
+      setError(err.message || "Unknown error");
     }
   };
 
@@ -62,6 +79,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
                 >
                   Cancel
                 </button>
+                {error && <p className="text-red-500 mt-2">{error}</p>}
               </div>
             </div>
           )}
