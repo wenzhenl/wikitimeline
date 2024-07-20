@@ -17,6 +17,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
     console.log("Save button clicked");
     console.log("Description:", description);
     console.log("Page Names:", pageNames);
+    console.log("BASE_URL:", BASE_URL);
 
     try {
       const response = await fetch(`${BASE_URL}/api/collection`, {
@@ -41,7 +42,6 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
         setError(responseData.error || "Unknown error");
       }
     } catch (err: any) {
-      // <-- Fixing the type of err
       console.error("Error in handleSave:", err);
       setError(err.message || "Unknown error");
     }
