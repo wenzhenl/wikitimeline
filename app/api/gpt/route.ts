@@ -11,13 +11,19 @@ export async function POST(request: Request) {
   }
   const polishedPageName = pageName.replace(/_/g, " ")
   const prompt = `
-  You are a world-class expert in summarizing Wikipedia pages into timelines and outputting them in JSON format. I will provide you with the content of a Wikipedia page. Based on this content, identify and list the most important events related to "${pageName}", ranked by significance, not exceeding 30 entries. Output this as a JSON with a list of events, where each event follows the format:
-  
+  You are a world-class expert in summarizing Wikipedia pages into timelines and outputting them in JSON format. I will provide you with the content of a Wikipedia page.
+  Based on this content, identify and list the most important events related to "${pageName}", ranked by significance, not exceeding 30 entries. 
+  Output this as a JSON with a list of events in following format, please strictly follow the format:
   {
-    "start_date": { "year": number, "month"?: number, "day"?: number },
-    "text": { "headline": string, "text": string },
-    "group": string,
-    "media": { "url": string, "thumbnail"?: string }
+    events: [
+      {
+        "start_date": { "year": number, "month"?: number, "day"?: number },
+        "text": { "headline": string, "text": string },
+        "group": string,
+        "media": { "url": string, "thumbnail"?: string }
+      },
+      ...
+   ]
   }
   
   Guidelines:
