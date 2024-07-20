@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 1;
 
 export default function TimelinesPage() {
   const [timelines, setTimelines] = useState<
@@ -37,7 +37,11 @@ export default function TimelinesPage() {
         {timelines.map((timeline, index) => (
           <div key={index} className="flex justify-between items-center mb-4">
             <Link href={`/timeline/${timeline.pageName}`} legacyBehavior>
-              <a className="text-blue-500 hover:underline">
+              <a
+                className="text-blue-500 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {timeline.pageName.replace(/_/g, " ")}
               </a>
             </Link>
