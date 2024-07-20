@@ -6,6 +6,10 @@ const DynamicTimeline = dynamic(
   { ssr: false }
 );
 
+const DynamicSaveButton = dynamic(() => import("@/app/components/SaveButton"), {
+  ssr: false,
+});
+
 interface CollectionPageProps {
   searchParams: { pageNames: string | string[] };
 }
@@ -53,7 +57,7 @@ const CollectionPage = async ({ searchParams }: CollectionPageProps) => {
           Timeline for{" "}
           {pageNames.map((name) => name.replace(/_/g, " ")).join(" | ")}
         </h1>
-        <button className="bg-blue-500 text-white p-2 rounded">Save</button>
+        <DynamicSaveButton pageNames={pageNames} />
       </div>
       <DynamicTimeline events={timelineData} />
       <a
