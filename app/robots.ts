@@ -1,6 +1,5 @@
 import { MetadataRoute } from 'next';
-
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+import { BASE_URL } from "@/config";
 
 const getRobots = (): MetadataRoute.Robots => {
   return {
