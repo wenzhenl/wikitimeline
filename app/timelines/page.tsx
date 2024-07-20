@@ -1,77 +1,51 @@
-"use client";
-import { useEffect, useState } from "react";
+import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
+import TimelinesTable from "@/app/components/TimelinesTable";
 
-const ITEMS_PER_PAGE = 1;
+const prisma = new PrismaClient();
 
-export default function TimelinesPage() {
-  const [timelines, setTimelines] = useState<
-    { pageName: string; link: string }[]
-  >([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+const ITEMS_PER_PAGE = 10;
 
-  useEffect(() => {
-    const fetchTimelines = async (page: number) => {
-      const response = await fetch(
-        `/api/timelines?page=${page}&limit=${ITEMS_PER_PAGE}`
-      );
-      const data = await response.json();
-      setTimelines(data.items);
-      setTotalPages(data.totalPages);
-    };
+async function getTimelines(page: number) {
+  const skip = (page - 1) * ITEMS_PER_PAGE;
 
-    fetchTimelines(currentPage);
-  }, [currentPage]);
+  const [timelines, totalItems] = await Promise.all([
+    prisma.timeline.findMany({
+      skip,
+      take: ITEMS_PER_PAGE,
+      select: {
+        pageName: true,
+        wikipediaPage: true,
+      },
+    }),
+    prisma.timeline.count(),
+  ]);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  return { timelines, totalPages, currentPage: page };
+}
+
+export default async function TimelinesPage({ searchParams }) {
+  const page = parseInt(searchParams.page) || 1;
+  const { timelines, totalPages, currentPage } = await getTimelines(page);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">
-        Timelines
-      </h1>
-      <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-4">
-        {timelines.map((timeline, index) => (
-          <div key={index} className="flex justify-between items-center mb-4">
-            <Link href={`/timeline/${timeline.pageName}`} legacyBehavior>
-              <a
-                className="text-blue-500 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {timeline.pageName.replace(/_/g, " ")}
-              </a>
-            </Link>
-            <a
-              href={`https://en.wikipedia.org/wiki/${timeline.pageName}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-400"
-            >
-              {`https://en.wikipedia.org/wiki/${timeline.pageName}`}
-            </a>
-          </div>
-        ))}
-      </div>
-      <div className="flex space-x-2 mt-4">
-        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-          (page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={`px-4 py-2 border ${
-                page === currentPage
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-blue-500"
-              } rounded-lg hover:bg-blue-600 hover:text-white`}
-            >
-              {page}
-            </button>
-          )
-        )}
+      <div className="w-full max-w-3xl">
+        <div className="flex justify-between mb-8">
+          <Link href="/" legacyBehavior>
+            <a className="text-blue-500 hover:underline text-2xl">Home</a>
+          </Link>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+            Timelines
+          </h1>
+        </div>
+        <TimelinesTable
+          timelines={timelines}
+          totalPages={totalPages}
+          currentPage={currentPage}
+        />
       </div>
     </div>
   );
