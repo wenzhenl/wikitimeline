@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 export async function OPTIONS() {
   return new NextResponse(null, {
+    status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       data: pageNames.map((pageName: string) => ({
         collectionId: collection.id,
         timelinePageName: pageName,
-        timelineLanguage: 'en', // Assuming all pageNames are in English
+        timelineLanguage: 'en',
       })),
     });
 
