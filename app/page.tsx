@@ -97,7 +97,8 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mb-4 text-gray-600 dark:text-gray-400">
-            Enter one or more Wikipedia links. All links must be valid.
+            Enter one or more Wikipedia links to analyze their timelines. All
+            links must be valid.
           </p>
           <form onSubmit={handleSubmit}>
             {wikiLinks.map((link, index) => (
@@ -136,7 +137,7 @@ export default function HomePage() {
               type="submit"
               className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              Search
+              Analyze
             </button>
           </form>
           {error && <p className="text-red-500 mt-4">{error}</p>}
