@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
 import TimelinesTable from "@/app/components/TimelinesTable";
+import Pagination from "@/app/components/Pagination";
 
 const prisma = new PrismaClient();
 
@@ -27,13 +28,11 @@ async function getTimelines(page: number) {
 }
 
 interface TimelinesPageProps {
-  searchParams: URLSearchParams;
+  searchParams: { page?: string };
 }
 
-export default async function TimelinesPage({
-  searchParams,
-}: TimelinesPageProps) {
-  const page = parseInt(searchParams.get("page") || "1", 10);
+const TimelinesPage = async ({ searchParams }: TimelinesPageProps) => {
+  const page = parseInt(searchParams.page || "1", 10);
   const { timelines, totalPages, currentPage } = await getTimelines(page);
 
   return (
@@ -47,12 +46,49 @@ export default async function TimelinesPage({
             Timelines
           </h1>
         </div>
-        <TimelinesTable
-          timelines={timelines}
-          totalPages={totalPages}
-          currentPage={currentPage}
-        />
+        <table className="min-w-full bg-white dark:bg-gray-800">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">
+                Page Name
+              </th>
+              <th className="py-2 px-4 border-b border-gray-200 dark:border-gray-700 text-left">
+                Wikipedia Link
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {timelines.map((timeline, index) => (
+              <tr key={index}>
+                <td className="py-2 px-4 border-b border-gray-200 dark:border-gray-700">
+                  <Link href={`/timeline/${timeline.pageName}`} legacyBehavior>
+                    <a
+                      className="text-blue-500 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {timeline.pageName.replace(/_/g, " ")}
+                    </a>
+                  </Link>
+                </td>
+                <td className="py-2 px-4 border-b border-gray-200 dark:border-gray-700">
+                  <a
+                    href={timeline.wikipediaPage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 dark:text-gray-400"
+                  >
+                    {timeline.wikipediaPage}
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <Pagination totalPages={totalPages} currentPage={currentPage} />
       </div>
     </div>
   );
-}
+};
+
+export default TimelinesPage;
