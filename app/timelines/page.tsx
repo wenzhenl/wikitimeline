@@ -26,8 +26,14 @@ async function getTimelines(page: number) {
   return { timelines, totalPages, currentPage: page };
 }
 
-export default async function TimelinesPage({ searchParams }) {
-  const page = parseInt(searchParams.page) || 1;
+interface TimelinesPageProps {
+  searchParams: URLSearchParams;
+}
+
+export default async function TimelinesPage({
+  searchParams,
+}: TimelinesPageProps) {
+  const page = parseInt(searchParams.get("page") || "1", 10);
   const { timelines, totalPages, currentPage } = await getTimelines(page);
 
   return (
