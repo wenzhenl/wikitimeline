@@ -1,9 +1,8 @@
 import { MetadataRoute } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { BASE_URL } from "@/config";
 
 const prisma = new PrismaClient();
-
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const timelines = await prisma.timeline.findMany({
