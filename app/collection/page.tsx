@@ -48,10 +48,13 @@ const CollectionPage = async ({ searchParams }: CollectionPageProps) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-4xl font-extralight text-red-900 dark:text-gray-100 mb-8">
-        Timeline for{" "}
-        {pageNames.map((name) => name.replace(/_/g, " ")).join(" | ")}
-      </h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-4xl font-extralight text-red-900 dark:text-gray-100 mb-8">
+          Timeline for{" "}
+          {pageNames.map((name) => name.replace(/_/g, " ")).join(" | ")}
+        </h1>
+        <button className="bg-blue-500 text-white p-2 rounded">Save</button>
+      </div>
       <DynamicTimeline events={timelineData} />
       <a
         href="/"
