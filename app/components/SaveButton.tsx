@@ -40,7 +40,8 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
         console.error("Error saving collection:", responseData.error);
         setError(responseData.error || "Unknown error");
       }
-    } catch (err) {
+    } catch (err: any) {
+      // <-- Fixing the type of err
       console.error("Error in handleSave:", err);
       setError(err.message || "Unknown error");
     }
