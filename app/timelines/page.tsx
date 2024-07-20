@@ -33,9 +33,9 @@ export default function TimelinesPage() {
       <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-gray-100">
         Timelines
       </h1>
-      <div className="w-full max-w-3xl grid grid-cols-2 gap-4">
+      <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-4">
         {timelines.map((timeline, index) => (
-          <div key={index} className="flex flex-col mb-4">
+          <div key={index} className="flex justify-between items-center mb-4">
             <Link href={`/timeline/${timeline.pageName}`} legacyBehavior>
               <a className="text-blue-500 hover:underline">
                 {timeline.pageName.replace(/_/g, " ")}
@@ -47,7 +47,7 @@ export default function TimelinesPage() {
               rel="noopener noreferrer"
               className="text-gray-600 dark:text-gray-400"
             >
-              Original Wikipedia Page
+              {`https://en.wikipedia.org/wiki/${timeline.pageName}`}
             </a>
           </div>
         ))}
