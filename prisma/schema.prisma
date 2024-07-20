@@ -5,38 +5,39 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model Timeline {
-  pageName       String
-  language       String
-  wikipediaPage  String
-  timelineData   Json
-  createdAt      DateTime @default(now()) @map(name: "created_at")
-  updatedAt      DateTime @updatedAt @map(name: "updated_at")
+  pageName           String
+  language           String
+  wikipediaPage      String
+  timelineData       Json
+  createdAt          DateTime             @default(now()) @map(name: "created_at")
+  updatedAt          DateTime             @updatedAt @map(name: "updated_at")
+  CollectionTimeline CollectionTimeline[]
 
   @@unique(fields: [pageName, language], name: "pageName_language")
 }
 
 model Collection {
-  id             Int             @id @default(autoincrement())
-  description    String
-  timelines      CollectionTimeline[]
-  createdAt      DateTime @default(now()) @map(name: "created_at")
-  updatedAt      DateTime @updatedAt @map(name: "updated_at")
+  id          Int                  @id @default(autoincrement())
+  description String
+  timelines   CollectionTimeline[]
+  createdAt   DateTime             @default(now()) @map(name: "created_at")
+  updatedAt   DateTime             @updatedAt @map(name: "updated_at")
 
   @@index([description], name: "description_idx")
 }
 
 model CollectionTimeline {
-  collectionId   Int
+  collectionId     Int
   timelinePageName String
   timelineLanguage String
-  collection     Collection @relation(fields: [collectionId], references: [id])
-  timeline       Timeline @relation(fields: [timelinePageName, timelineLanguage], references: [pageName, language])
+  collection       Collection @relation(fields: [collectionId], references: [id])
+  timeline         Timeline   @relation(fields: [timelinePageName, timelineLanguage], references: [pageName, language])
 
   @@id([collectionId, timelinePageName, timelineLanguage])
 }
