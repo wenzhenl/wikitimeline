@@ -3,6 +3,16 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
 export async function POST(request: Request) {
   const { description, pageNames } = await request.json();
 
@@ -25,11 +35,26 @@ export async function POST(request: Request) {
       })),
     });
 
-    return NextResponse.json({ message: 'Collection saved successfully' });
+    return new NextResponse('Collection saved successfully', {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return new NextResponse(error.message, {
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
-    return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
+    return new NextResponse('Unknown error occurred', {
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 }
