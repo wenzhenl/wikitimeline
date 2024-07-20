@@ -92,6 +92,9 @@ export default function HomePage() {
             <Link href="/collections" legacyBehavior>
               <a className="text-blue-500 hover:underline">Collections</a>
             </Link>
+            <Link href="/about" legacyBehavior>
+              <a className="text-gray-500 hover:underline">About</a>
+            </Link>
           </div>
           <p className="mb-4 text-gray-600 dark:text-gray-400">
             Enter one or more Wikipedia links. All links must be valid.
