@@ -37,7 +37,7 @@ const TimelinePage = async ({ params }: PageProps) => {
 
   return (
     <div className="p-4">
-      <h1 className="text-4xl font-extralight text-red-900 dark:text-red-400 mb-8">
+      <h1 className="text-4xl font-extralight text-red-900 mb-8">
         Timeline for {pageName.replace(/_/g, " ")}
       </h1>
       <DynamicTimeline events={timelineData} />
