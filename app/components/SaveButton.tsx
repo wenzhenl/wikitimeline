@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BASE_URL } from "@/config";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 interface SaveButtonProps {
   pageNames: string[];
@@ -9,6 +11,7 @@ interface SaveButtonProps {
 
 const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
   const [description, setDescription] = useState("");
+  const [contributor, setContributor] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
@@ -16,34 +19,31 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
   const handleSave = async () => {
     console.log("Save button clicked");
     console.log("Description:", description);
+    console.log("Contributor:", contributor);
     console.log("Page Names:", pageNames);
-    console.log("BASE_URL:", BASE_URL);
 
     try {
-      const response = await fetch(`${BASE_URL}/api/collection`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Create the collection and link the timelines
+      const collection = await prisma.collection.create({
+        data: {
           description,
-          pageNames,
-        }),
+          contributor: contributor || null,
+          timelines: {
+            create: pageNames.map((pageName: string) => ({
+              timeline: {
+                connect: { pageName_language: { pageName, language: "en" } },
+              },
+            })),
+          },
+        },
       });
 
-      console.log("Response status:", response.status);
-
-      if (response.ok) {
-        setIsSaved(true);
-        setShowModal(false);
-      } else {
-        const responseData = await response.json();
-        console.error("Error saving collection:", responseData.error);
-        setError(responseData.error || "Unknown error");
-      }
-    } catch (err: any) {
+      console.log("Collection saved successfully", collection);
+      setIsSaved(true);
+      setShowModal(false);
+    } catch (err: unknown) {
       console.error("Error in handleSave:", err);
-      setError(err.message || "Unknown error");
+      setError(err instanceof Error ? err.message : "Unknown error");
     }
   };
 
@@ -67,6 +67,13 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
                   onChange={(e) => setDescription(e.target.value)}
                   className="border p-2 w-full mb-4"
                   placeholder="Enter description"
+                />
+                <input
+                  type="text"
+                  value={contributor}
+                  onChange={(e) => setContributor(e.target.value)}
+                  className="border p-2 w-full mb-4"
+                  placeholder="Enter contributor (optional)"
                 />
                 <button
                   onClick={handleSave}
