@@ -4,12 +4,10 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin');
-
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET,OPTIONS,PATCH,DELETE,POST,PUT',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
@@ -17,14 +15,13 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get('origin');
   const { description, pageNames } = await request.json();
 
   if (!description || !pageNames) {
     return new NextResponse(JSON.stringify({ error: 'Missing description or pageNames parameter' }), {
       status: 400,
       headers: {
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': '*',
       },
     });
   }
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(JSON.stringify({ message: 'Collection saved successfully' }), {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': '*',
       },
     });
   } catch (error: unknown) {
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
       return new NextResponse(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: {
-          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Origin': '*',
         },
       });
     }
@@ -62,7 +59,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse(JSON.stringify({ error: 'Unknown error occurred' }), {
       status: 500,
       headers: {
-        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Origin': '*',
       },
     });
   }
