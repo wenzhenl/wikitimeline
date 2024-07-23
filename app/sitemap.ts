@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   });
 
-  const staticPages: MetadataRoute.Sitemap = ['', '/timelines', '/collections', '/about'].map((path) => ({
+  const staticPages: MetadataRoute.Sitemap = ['', '/timelines', '/collections'].map((path) => ({
     url: `${BASE_URL}${path}`,
     lastModified: new Date(),
     changeFrequency: 'always' as const,
