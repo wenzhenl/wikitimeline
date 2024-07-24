@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 interface SaveButtonProps {
   pageNames: string[];
@@ -15,35 +12,39 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async () => {
-    console.log("Save button clicked");
-    console.log("Description:", description);
-    console.log("Contributor:", contributor);
-    console.log("Page Names:", pageNames);
+    setIsLoading(true);
+    setError("");
 
     try {
-      // Create the collection and link the timelines
-      const collection = await prisma.collection.create({
-        data: {
-          description,
-          contributor: contributor || null,
-          timelines: {
-            create: pageNames.map((pageName: string) => ({
-              timeline: {
-                connect: { pageName_language: { pageName, language: "en" } },
-              },
-            })),
-          },
+      const response = await fetch("/api/collection", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          description,
+          contributor,
+          pageNames,
+        }),
       });
 
-      console.log("Collection saved successfully", collection);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save collection");
+      }
+
+      console.log("Collection saved successfully", data.newCollection);
       setIsSaved(true);
       setShowModal(false);
     } catch (err: unknown) {
       console.error("Error in handleSave:", err);
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,13 +78,17 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
                 />
                 <button
                   onClick={handleSave}
-                  className="bg-green-500 text-white p-2 rounded"
+                  className={`bg-green-500 text-white p-2 rounded ${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  disabled={isLoading}
                 >
-                  Save
+                  {isLoading ? "Saving..." : "Save"}
                 </button>
                 <button
                   onClick={() => setShowModal(false)}
                   className="bg-red-500 text-white p-2 rounded ml-2"
+                  disabled={isLoading}
                 >
                   Cancel
                 </button>
@@ -92,6 +97,9 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
             </div>
           )}
         </>
+      )}
+      {isSaved && (
+        <p className="text-green-500">Collection saved successfully!</p>
       )}
     </div>
   );
