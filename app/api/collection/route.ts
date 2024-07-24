@@ -18,6 +18,8 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request) {
   const { description, contributor, pageNames } = await request.json();
 
+  console.log("Received request with pageNames:", pageNames);
+
   if (!description || !pageNames || !Array.isArray(pageNames)) {
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
   }
@@ -26,15 +28,21 @@ export async function POST(request: Request) {
     // First, check if all timelines exist
     const existingTimelines = await prisma.timeline.findMany({
       where: {
-        AND: pageNames.map(pageName => ({
+        OR: pageNames.map(pageName => ({
           pageName,
           language: 'en'
         }))
       }
     });
 
+    console.log("Found existing timelines:", existingTimelines);
+
     if (existingTimelines.length !== pageNames.length) {
-      return NextResponse.json({ error: 'One or more timelines do not exist' }, { status: 400 });
+      const missingTimelines = pageNames.filter(pageName => 
+        !existingTimelines.some(timeline => timeline.pageName === pageName)
+      );
+      console.log("Missing timelines:", missingTimelines);
+      return NextResponse.json({ error: `One or more timelines do not exist: ${missingTimelines.join(', ')}` }, { status: 400 });
     }
 
     // If all timelines exist, create the collection
@@ -57,6 +65,8 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    console.log("Created new collection:", newCollection);
 
     return NextResponse.json({ newCollection });
   } catch (error: unknown) {
