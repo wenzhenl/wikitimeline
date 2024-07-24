@@ -18,6 +18,8 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
     setIsLoading(true);
     setError("");
 
+    console.log("Attempting to save with pageNames:", pageNames);
+
     try {
       const response = await fetch("/api/collection", {
         method: "POST",
@@ -34,6 +36,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error("Server response:", data);
         throw new Error(data.error || "Failed to save collection");
       }
 
@@ -61,19 +64,19 @@ const SaveButton: React.FC<SaveButtonProps> = ({ pageNames }) => {
           {showModal && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
               <div className="bg-white p-4 rounded z-50">
-                <h2 className="text-2xl mb-4">Save Collection</h2>
+                <h2 className="text-2xl mb-4 text-gray-800">Save Collection</h2>
                 <input
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="border p-2 w-full mb-4"
+                  className="border p-2 w-full mb-4 text-gray-800"
                   placeholder="Enter description"
                 />
                 <input
                   type="text"
                   value={contributor}
                   onChange={(e) => setContributor(e.target.value)}
-                  className="border p-2 w-full mb-4"
+                  className="border p-2 w-full mb-4 text-gray-800"
                   placeholder="Enter contributor (optional)"
                 />
                 <button
