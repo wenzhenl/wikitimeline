@@ -16,30 +16,51 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { description, pageNames } = await request.json();
+  const { description, contributor, pageNames } = await request.json();
 
-  if (!description || !pageNames) {
-    return NextResponse.json({ error: 'Missing description or pageNames parameter' }, { status: 400 });
+  if (!description || !pageNames || !Array.isArray(pageNames)) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
   }
 
   try {
+    // First, check if all timelines exist
+    const existingTimelines = await prisma.timeline.findMany({
+      where: {
+        AND: pageNames.map(pageName => ({
+          pageName,
+          language: 'en'
+        }))
+      }
+    });
+
+    if (existingTimelines.length !== pageNames.length) {
+      return NextResponse.json({ error: 'One or more timelines do not exist' }, { status: 400 });
+    }
+
+    // If all timelines exist, create the collection
     const newCollection = await prisma.collection.create({
       data: {
         description,
+        contributor: contributor || null,
         timelines: {
           create: pageNames.map((pageName: string) => ({
-            pageName,
-            language: 'en',
+            timelinePageName: pageName,
+            timelineLanguage: 'en'
           })),
+        },
+      },
+      include: {
+        timelines: {
+          include: {
+            timeline: true,
+          },
         },
       },
     });
 
     return NextResponse.json({ newCollection });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Unknown error occurred' }, { status: 500 });
+    console.error('Error saving collection:', error);
+    return NextResponse.json({ error: 'Failed to save collection' }, { status: 500 });
   }
 }
