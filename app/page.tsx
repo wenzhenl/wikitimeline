@@ -28,12 +28,26 @@ export default function HomePage() {
     setError("");
 
     if (selectedPages.length === 1) {
-      const pageName = new URL(selectedPages[0].link).pathname.split("/").pop();
+      const pageName = selectedPages[0].link
+        .split("/")
+        .pop()
+        ?.split("#")[0]
+        ?.split("?")[0];
+
+      if (!pageName) {
+        setError("Invalid Wikipedia URL");
+        setLoading(false);
+        return;
+      }
+
       router.push(`/timeline/${pageName}`);
     } else {
-      const pageNames = selectedPages.map((page) => {
-        return new URL(page.link).pathname.split("/").pop();
-      });
+      const pageNames = selectedPages
+        .map((page) => {
+          return page.link.split("/").pop()?.split("#")[0]?.split("?")[0];
+        })
+        .filter(Boolean);
+
       const params = new URLSearchParams();
       pageNames.forEach((name) => {
         if (name) {
