@@ -4,6 +4,7 @@ interface SearchResult {
   title: string;
   description: string;
   pageid: number;
+  fullurl: string;
 }
 
 interface SelectedPage {
@@ -46,7 +47,7 @@ export default function WikiSearch({
           `https://en.wikipedia.org/w/api.php?` +
             `action=query&format=json&origin=*&` +
             `generator=search&gsrnamespace=0&gsrlimit=5&` +
-            `prop=extracts|description&exintro=1&explaintext=1&` +
+            `prop=extracts|description|info&inprop=url&exintro=1&explaintext=1&` +
             `gsrsearch=${encodeURIComponent(inputValue)}`
         );
 
@@ -57,6 +58,9 @@ export default function WikiSearch({
             title: page.title,
             description: page.description || page.extract || "",
             pageid: page.pageid,
+            fullurl:
+              page.fullurl ||
+              `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
           }));
           setSearchResults(results as SearchResult[]);
         } else {
@@ -87,11 +91,14 @@ export default function WikiSearch({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleResultClick = (title: string) => {
-    const wikiLink = `https://en.wikipedia.org/wiki/${encodeURIComponent(
-      title
-    )}`;
-    onPagesChange([...selectedPages, { title, link: wikiLink }]);
+  const handleResultClick = (result: SearchResult) => {
+    onPagesChange([
+      ...selectedPages,
+      {
+        title: result.title,
+        link: result.fullurl,
+      },
+    ]);
     setInputValue("");
     setShowDropdown(false);
     inputRef.current?.focus();
@@ -165,7 +172,7 @@ export default function WikiSearch({
                 <li
                   key={result.pageid}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                  onClick={() => handleResultClick(result.title)}
+                  onClick={() => handleResultClick(result)}
                 >
                   <div className="font-medium">{result.title}</div>
                   {result.description && (
