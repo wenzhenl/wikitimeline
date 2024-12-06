@@ -6,29 +6,36 @@ interface SearchResult {
   pageid: number;
 }
 
+interface SelectedPage {
+  title: string;
+  link: string;
+}
+
 interface WikiSearchProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSelect: (wikiLink: string) => void;
+  selectedPages: SelectedPage[];
+  onPagesChange: (pages: SelectedPage[]) => void;
+  onSubmit: () => void;
   placeholder?: string;
   className?: string;
 }
 
 export default function WikiSearch({
-  value,
-  onChange,
-  onSelect,
+  selectedPages,
+  onPagesChange,
+  onSubmit,
   placeholder,
   className,
 }: WikiSearchProps) {
+  const [inputValue, setInputValue] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (!value.trim()) {
+      if (!inputValue.trim()) {
         setSearchResults([]);
         return;
       }
@@ -40,7 +47,7 @@ export default function WikiSearch({
             `action=query&format=json&origin=*&` +
             `generator=search&gsrnamespace=0&gsrlimit=5&` +
             `prop=extracts|description&exintro=1&explaintext=1&` +
-            `gsrsearch=${encodeURIComponent(value)}`
+            `gsrsearch=${encodeURIComponent(inputValue)}`
         );
 
         const data = await response.json();
@@ -64,7 +71,7 @@ export default function WikiSearch({
 
     const timeoutId = setTimeout(fetchResults, 300);
     return () => clearTimeout(timeoutId);
-  }, [value]);
+  }, [inputValue]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -84,25 +91,69 @@ export default function WikiSearch({
     const wikiLink = `https://en.wikipedia.org/wiki/${encodeURIComponent(
       title
     )}`;
-    onSelect(wikiLink);
+    onPagesChange([...selectedPages, { title, link: wikiLink }]);
+    setInputValue("");
     setShowDropdown(false);
+    inputRef.current?.focus();
+  };
+
+  const removePage = (indexToRemove: number) => {
+    onPagesChange(selectedPages.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !showDropdown) {
+      e.preventDefault();
+      onSubmit();
+    } else if (
+      e.key === "Backspace" &&
+      !inputValue &&
+      selectedPages.length > 0
+    ) {
+      removePage(selectedPages.length - 1);
+    }
   };
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setShowDropdown(true);
-        }}
-        onFocus={() => setShowDropdown(true)}
-        placeholder={placeholder}
-        className={className}
-      />
+      <div
+        className={`flex flex-wrap items-center gap-2 p-2 border rounded-lg ${className}`}
+        onClick={() => inputRef.current?.focus()}
+      >
+        {selectedPages.map((page, index) => (
+          <span
+            key={index}
+            className="flex items-center gap-1 px-2 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md"
+          >
+            {page.title}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                removePage(index);
+              }}
+              className="ml-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            setShowDropdown(true);
+          }}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setShowDropdown(true)}
+          placeholder={selectedPages.length === 0 ? placeholder : ""}
+          className="flex-1 min-w-[200px] bg-transparent outline-none dark:text-gray-100"
+        />
+      </div>
 
-      {showDropdown && value.trim() && (
+      {showDropdown && inputValue.trim() && (
         <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg">
           {isLoading ? (
             <div className="p-2 text-gray-500 dark:text-gray-400">

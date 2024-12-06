@@ -5,60 +5,34 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import WikiSearch from "./components/WikiSearch";
 
+interface SelectedPage {
+  title: string;
+  link: string;
+}
+
 export default function HomePage() {
-  const [searchInputs, setSearchInputs] = useState<string[]>([""]);
-  const [wikiLinks, setWikiLinks] = useState<string[]>([""]);
+  const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSearchChange = (index: number, value: string) => {
-    const newSearchInputs = [...searchInputs];
-    newSearchInputs[index] = value;
-    setSearchInputs(newSearchInputs);
-  };
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
 
-  const handleWikiSelect = (index: number, wikiLink: string) => {
-    const newWikiLinks = [...wikiLinks];
-    newWikiLinks[index] = wikiLink;
-    setWikiLinks(newWikiLinks);
-
-    const newSearchInputs = [...searchInputs];
-    newSearchInputs[index] = new URL(wikiLink).pathname.split("/").pop() || "";
-    setSearchInputs(newSearchInputs);
-  };
-
-  const addWikiLink = () => {
-    setSearchInputs([...searchInputs, ""]);
-    setWikiLinks([...wikiLinks, ""]);
-  };
-
-  const removeWikiLink = (index: number) => {
-    const newSearchInputs = searchInputs.filter((_, i) => i !== index);
-    const newWikiLinks = wikiLinks.filter((_, i) => i !== index);
-    setSearchInputs(newSearchInputs);
-    setWikiLinks(newWikiLinks);
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    const validWikiLinks = wikiLinks.filter((link) => link.trim() !== "");
-
-    if (validWikiLinks.length === 0) {
+    if (selectedPages.length === 0) {
       setError("Please select at least one Wikipedia page.");
-      setLoading(false);
       return;
     }
 
-    if (validWikiLinks.length === 1) {
-      const pageName = new URL(validWikiLinks[0]).pathname.split("/").pop();
+    setLoading(true);
+    setError("");
+
+    if (selectedPages.length === 1) {
+      const pageName = new URL(selectedPages[0].link).pathname.split("/").pop();
       router.push(`/timeline/${pageName}`);
     } else {
-      const pageNames = validWikiLinks.map((link) => {
-        return new URL(link).pathname.split("/").pop();
+      const pageNames = selectedPages.map((page) => {
+        return new URL(page.link).pathname.split("/").pop();
       });
       const params = new URLSearchParams();
       pageNames.forEach((name) => {
@@ -98,41 +72,19 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mb-4 text-gray-600 dark:text-gray-400">
-            Enter one or more Wikipedia links to analyze their timelines. All
-            links must be valid.
+            Search and select Wikipedia pages to analyze their timelines.
           </p>
-          <form onSubmit={handleSubmit}>
-            {searchInputs.map((input, index) => (
-              <div key={index} className="flex items-center mb-2">
-                <WikiSearch
-                  value={input}
-                  onChange={(value) => handleSearchChange(index, value)}
-                  onSelect={(wikiLink) => handleWikiSelect(index, wikiLink)}
-                  placeholder="Search Wikipedia pages..."
-                  className="p-2 w-full border border-gray-300 rounded-l-lg dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
-                />
-                {index === 0 ? (
-                  <button
-                    type="button"
-                    onClick={addWikiLink}
-                    className="p-2 bg-green-500 text-white rounded-r-lg hover:bg-green-600"
-                  >
-                    +
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => removeWikiLink(index)}
-                    className="p-2 bg-red-500 text-white rounded-r-lg hover:bg-red-600"
-                  >
-                    -
-                  </button>
-                )}
-              </div>
-            ))}
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <WikiSearch
+              selectedPages={selectedPages}
+              onPagesChange={setSelectedPages}
+              onSubmit={handleSubmit}
+              placeholder="Search Wikipedia pages..."
+              className="flex-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800"
+            />
             <button
               type="submit"
-              className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Analyze
             </button>
