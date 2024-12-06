@@ -3,31 +3,41 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import WikiSearch from "./components/WikiSearch";
 
 export default function HomePage() {
-  const [wikiLinks, setWikiLinks] = useState([""]);
+  const [searchInputs, setSearchInputs] = useState<string[]>([""]);
+  const [wikiLinks, setWikiLinks] = useState<string[]>([""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleInputChange = (index: number, value: string) => {
+  const handleSearchChange = (index: number, value: string) => {
+    const newSearchInputs = [...searchInputs];
+    newSearchInputs[index] = value;
+    setSearchInputs(newSearchInputs);
+  };
+
+  const handleWikiSelect = (index: number, wikiLink: string) => {
     const newWikiLinks = [...wikiLinks];
-    newWikiLinks[index] = value;
+    newWikiLinks[index] = wikiLink;
     setWikiLinks(newWikiLinks);
+
+    const newSearchInputs = [...searchInputs];
+    newSearchInputs[index] = new URL(wikiLink).pathname.split("/").pop() || "";
+    setSearchInputs(newSearchInputs);
   };
 
   const addWikiLink = () => {
+    setSearchInputs([...searchInputs, ""]);
     setWikiLinks([...wikiLinks, ""]);
   };
 
   const removeWikiLink = (index: number) => {
+    const newSearchInputs = searchInputs.filter((_, i) => i !== index);
     const newWikiLinks = wikiLinks.filter((_, i) => i !== index);
+    setSearchInputs(newSearchInputs);
     setWikiLinks(newWikiLinks);
-  };
-
-  const validateLinks = () => {
-    const urlPattern = /^(https?:\/\/)?((en\.)?wikipedia\.org\/wiki\/\w+)/i;
-    return wikiLinks.map((link) => urlPattern.test(link));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -35,27 +45,20 @@ export default function HomePage() {
     setLoading(true);
     setError("");
 
-    const validLinks = validateLinks();
-    if (validLinks.includes(false)) {
-      setError("Please ensure all links are valid Wikipedia links.");
+    const validWikiLinks = wikiLinks.filter((link) => link.trim() !== "");
+
+    if (validWikiLinks.length === 0) {
+      setError("Please select at least one Wikipedia page.");
       setLoading(false);
       return;
     }
 
-    const validWikiLinks = wikiLinks.filter((_, index) => validLinks[index]);
-
     if (validWikiLinks.length === 1) {
-      const url = validWikiLinks[0].startsWith("http")
-        ? validWikiLinks[0]
-        : `https://${validWikiLinks[0]}`;
-      const parsedUrl = new URL(url);
-      const pageName = parsedUrl.pathname.split("/").pop();
+      const pageName = new URL(validWikiLinks[0]).pathname.split("/").pop();
       router.push(`/timeline/${pageName}`);
     } else {
       const pageNames = validWikiLinks.map((link) => {
-        const url = link.startsWith("http") ? link : `https://${link}`;
-        const parsedUrl = new URL(url);
-        return parsedUrl.pathname.split("/").pop();
+        return new URL(link).pathname.split("/").pop();
       });
       const params = new URLSearchParams();
       pageNames.forEach((name) => {
@@ -66,8 +69,6 @@ export default function HomePage() {
       router.push(`/collection?${params.toString()}`);
     }
   };
-
-  const validLinks = validateLinks();
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
@@ -101,19 +102,16 @@ export default function HomePage() {
             links must be valid.
           </p>
           <form onSubmit={handleSubmit}>
-            {wikiLinks.map((link, index) => (
+            {searchInputs.map((input, index) => (
               <div key={index} className="flex items-center mb-2">
-                <input
-                  type="text"
-                  value={link}
-                  onChange={(e) => handleInputChange(index, e.target.value)}
-                  placeholder="Enter Wikipedia link"
-                  className={`p-2 w-full border ${
-                    validLinks[index] ? "border-gray-300" : "border-red-500"
-                  } rounded-l-lg dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600`}
-                  required
+                <WikiSearch
+                  value={input}
+                  onChange={(value) => handleSearchChange(index, value)}
+                  onSelect={(wikiLink) => handleWikiSelect(index, wikiLink)}
+                  placeholder="Search Wikipedia pages..."
+                  className="p-2 w-full border border-gray-300 rounded-l-lg dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
                 />
-                {index === 0 && (
+                {index === 0 ? (
                   <button
                     type="button"
                     onClick={addWikiLink}
@@ -121,8 +119,7 @@ export default function HomePage() {
                   >
                     +
                   </button>
-                )}
-                {index > 0 && (
+                ) : (
                   <button
                     type="button"
                     onClick={() => removeWikiLink(index)}
