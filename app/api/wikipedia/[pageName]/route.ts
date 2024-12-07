@@ -9,26 +9,39 @@ export async function GET(
   { params }: { params: { pageName: string } }
 ) {
   try {
-    const pageName = decodeURIComponent(params.pageName).replace(/_/g, ' ');
+    // Handle multiple page names separated by comma
+    const pageNames = decodeURIComponent(params.pageName).split(',');
+    let allEvents = [];
 
-    const completion = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "You are a timeline generator. Create a chronological timeline of major events for the given subject. Return a JSON object with a 'timeline' array containing events with 'date' (YYYY-MM-DD format) and 'text' (event description) properties. Focus on significant events and ensure dates are accurate."
-        },
-        {
-          role: "user",
-          content: `Create a timeline for ${pageName}`
-        }
-      ],
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      temperature: 0,
-    });
+    for (const pageName of pageNames) {
+      const completion = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: "You are a timeline generator. Create a chronological timeline of major events for the given subject. Return a JSON object with a 'timeline' array containing events with 'date' (YYYY-MM-DD format) and 'text' (event description) properties. Focus on significant events and ensure dates are accurate."
+          },
+          {
+            role: "user",
+            content: `Create a timeline for ${pageName.trim()}`
+          }
+        ],
+        model: "gpt-4o-mini",
+        response_format: { type: "json_object" },
+        temperature: 0,
+      });
 
-    const parsedContent = JSON.parse(completion.choices[0].message.content!);
-    return Response.json({ timeline: parsedContent.timeline || [] });
+      const parsedContent = JSON.parse(completion.choices[0].message.content!);
+      const eventsWithGroup = parsedContent.timeline.map((event: any) => ({
+        ...event,
+        group: pageName.trim()
+      }));
+      allEvents.push(...eventsWithGroup);
+    }
+
+    // Sort all events chronologically
+    allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return Response.json({ timeline: allEvents });
   } catch (error) {
     console.error('Error processing request:', error);
     return Response.json(

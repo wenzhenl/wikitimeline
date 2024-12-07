@@ -7,6 +7,7 @@ import Link from "next/link";
 interface TimelineEvent {
   date: string;
   text: string;
+  group: string;
 }
 
 export default function TimelinePage({
@@ -129,6 +130,7 @@ export default function TimelinePage({
                 return {
                   start_date: { year, month, day },
                   text: { headline: event.text },
+                  group: event.group,
                 };
               })}
             />
