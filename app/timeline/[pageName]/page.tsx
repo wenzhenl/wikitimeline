@@ -20,16 +20,16 @@ interface TimelineEvent {
 // Define background colors for different groups with better contrast
 const GROUP_COLORS = {
   0: {
-    color: "#EFF6FF",
-    darkColor: "#1E3A8A",
-    textColor: "#1E40AF", // blue-800
-    darkTextColor: "#DBEAFE", // blue-100
+    color: "#F0F9FF",
+    darkColor: "#0C4A6E",
+    textColor: "#000000",
+    darkTextColor: "#FFFFFF",
   },
   1: {
     color: "#FFF1F2",
     darkColor: "#881337",
-    textColor: "#9F1239", // rose-800
-    darkTextColor: "#FFE4E6", // rose-100
+    textColor: "#000000",
+    darkTextColor: "#FFFFFF",
   },
   2: {
     color: "#ECFDF5",
@@ -230,12 +230,14 @@ export default function TimelinePage({
                     window.matchMedia("(prefers-color-scheme: dark)").matches
                       ? colors.darkTextColor
                       : colors.textColor
-                  }; font-weight: 600;">${event.text.headline}</span>`,
+                  }; font-weight: 600; text-shadow: none;">${
+                    event.text.headline
+                  }</span>`,
                   text: `<span style="color: ${
                     window.matchMedia("(prefers-color-scheme: dark)").matches
                       ? colors.darkTextColor
                       : colors.textColor
-                  };">${event.text.text}</span>`,
+                  }; text-shadow: none;">${event.text.text}</span>`,
                 },
                 group: event.group,
                 media: event.media,
