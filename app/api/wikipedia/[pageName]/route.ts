@@ -19,20 +19,20 @@ export async function GET(
       messages: [
         {
           role: "system",
-          content: "Extract dates and events from the text and format them as a chronological timeline. Return only a JSON array where each object has 'date' (in YYYY-MM-DD format) and 'text' (describing the event) properties."
+          content: "Extract a chronological timeline from the text. Return a JSON object with a 'timeline' array containing events with 'date' (YYYY-MM-DD format) and 'text' (event description) properties."
         },
         {
           role: "user",
           content: content
         }
       ],
-      model: "gpt-3.5-turbo-16k",
+      model: "gpt-4o-mini",
       response_format: { type: "json_object" },
+      temperature: 0,
     });
 
-    const timeline = JSON.parse(completion.choices[0].message.content || '{"timeline": []}').timeline;
-
-    return Response.json({ timeline });
+    const parsedContent = JSON.parse(completion.choices[0].message.content!);
+    return Response.json({ timeline: parsedContent.timeline || [] });
   } catch (error) {
     console.error('Error processing request:', error);
     return Response.json(
