@@ -6,7 +6,10 @@ import Link from "next/link";
 
 interface TimelineEvent {
   date: string;
-  text: string;
+  text: {
+    headline: string;
+    text: string;
+  };
   group: string;
   media: {
     url: string;
@@ -227,12 +230,12 @@ export default function TimelinePage({
                     window.matchMedia("(prefers-color-scheme: dark)").matches
                       ? colors.darkTextColor
                       : colors.textColor
-                  }; font-weight: 600;">${event.text}</span>`,
+                  }; font-weight: 600;">${event.text.headline}</span>`,
                   text: `<span style="color: ${
                     window.matchMedia("(prefers-color-scheme: dark)").matches
                       ? colors.darkTextColor
                       : colors.textColor
-                  };">${event.text}</span>`,
+                  };">${event.text.text}</span>`,
                 },
                 group: event.group,
                 media: event.media,
