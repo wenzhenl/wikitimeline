@@ -63,7 +63,6 @@ export async function GET(
         ...event,
         group: formatGroupName(pageName.trim()),
         media: {
-          url: pageUrl,
           thumbnail: thumbnail,
         }
       }));
