@@ -66,7 +66,6 @@ export async function GET(
         },
         group: formatGroupName(pageName.trim()),
         media: {
-          url: pageUrl,
           thumbnail: thumbnail,
         }
       }));
