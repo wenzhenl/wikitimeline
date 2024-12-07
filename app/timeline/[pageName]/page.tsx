@@ -14,13 +14,68 @@ interface TimelineEvent {
   };
 }
 
-// Define background colors for different groups
+// Define background colors for different groups with better contrast
 const GROUP_COLORS = {
-  0: { color: "#EFF6FF", darkColor: "#1E3A8A" }, // blue-50 and blue-900
-  1: { color: "#F3F4F6", darkColor: "#1F2937" }, // gray-50 and gray-900
-  2: { color: "#FEF2F2", darkColor: "#7F1D1D" }, // red-50 and red-900
-  3: { color: "#F0FDF4", darkColor: "#14532D" }, // green-50 and green-900
-  4: { color: "#FAF5FF", darkColor: "#581C87" }, // purple-50 and purple-900
+  0: {
+    color: "#EFF6FF",
+    darkColor: "#1E3A8A",
+    textColor: "#1E40AF", // blue-800
+    darkTextColor: "#DBEAFE", // blue-100
+  },
+  1: {
+    color: "#FFF1F2",
+    darkColor: "#881337",
+    textColor: "#9F1239", // rose-800
+    darkTextColor: "#FFE4E6", // rose-100
+  },
+  2: {
+    color: "#ECFDF5",
+    darkColor: "#064E3B",
+    textColor: "#065F46", // green-800
+    darkTextColor: "#D1FAE5", // green-100
+  },
+  3: {
+    color: "#F5F3FF",
+    darkColor: "#5B21B6",
+    textColor: "#6D28D9", // violet-800
+    darkTextColor: "#EDE9FE", // violet-100
+  },
+  4: {
+    color: "#FFFBEB",
+    darkColor: "#92400E",
+    textColor: "#B45309", // amber-800
+    darkTextColor: "#FEF3C7", // amber-100
+  },
+  5: {
+    color: "#EEF2FF",
+    darkColor: "#3730A3",
+    textColor: "#4338CA", // indigo-800
+    darkTextColor: "#E0E7FF", // indigo-100
+  },
+  6: {
+    color: "#F0FDFA",
+    darkColor: "#134E4A",
+    textColor: "#115E59", // teal-800
+    darkTextColor: "#CCFBF1", // teal-100
+  },
+  7: {
+    color: "#FDF2F8",
+    darkColor: "#9D174D",
+    textColor: "#BE185D", // pink-800
+    darkTextColor: "#FCE7F3", // pink-100
+  },
+  8: {
+    color: "#FAF5FF",
+    darkColor: "#6B21A8",
+    textColor: "#7E22CE", // purple-800
+    darkTextColor: "#F3E8FF", // purple-100
+  },
+  9: {
+    color: "#F8FAFC",
+    darkColor: "#0F172A",
+    textColor: "#1E293B", // slate-800
+    darkTextColor: "#F1F5F9", // slate-100
+  },
 };
 
 export default function TimelinePage({
@@ -167,7 +222,18 @@ export default function TimelinePage({
 
               return {
                 start_date: { year, month, day },
-                text: { headline: event.text },
+                text: {
+                  headline: `<span style="color: ${
+                    window.matchMedia("(prefers-color-scheme: dark)").matches
+                      ? colors.darkTextColor
+                      : colors.textColor
+                  }; font-weight: 600;">${event.text}</span>`,
+                  text: `<span style="color: ${
+                    window.matchMedia("(prefers-color-scheme: dark)").matches
+                      ? colors.darkTextColor
+                      : colors.textColor
+                  };">${event.text}</span>`,
+                },
                 group: event.group,
                 media: event.media,
                 background: {
