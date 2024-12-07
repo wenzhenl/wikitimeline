@@ -43,7 +43,7 @@ Key learnings from building with AI:
 
 ## 🎮 Demo
 
-Visit [WikiTimeline](https://wikitimeline.top) to try it out!
+Visit [WikiTimeline](https://wikitimeline-nu.vercel.app) to try it out!
 
 ## 🚀 Installation
 
