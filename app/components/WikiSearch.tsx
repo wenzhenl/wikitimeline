@@ -46,7 +46,7 @@ export default function WikiSearch({
         const response = await fetch(
           `https://en.wikipedia.org/w/api.php?` +
             `action=query&format=json&origin=*&` +
-            `generator=search&gsrnamespace=0&gsrlimit=5&` +
+            `generator=search&gsrnamespace=0&gsrlimit=10&` +
             `prop=extracts|description|info&inprop=url&exintro=1&explaintext=1&` +
             `gsrsearch=${encodeURIComponent(inputValue)}`
         );
