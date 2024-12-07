@@ -40,6 +40,26 @@
 
 .tl-timegroup .tl-timegroup-message {
   color: rgba(255, 255, 255, 0.7) !important;
+  text-transform: capitalize !important;
+  font-weight: 600 !important;
+  background: rgba(
+    59,
+    130,
+    246,
+    0.1
+  ) !important; /* blue-500 with low opacity */
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Make group labels more visible */
+.tl-timeaxis-tick-text {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.tl-timegroup:hover .tl-timegroup-message {
+  background: rgba(59, 130, 246, 0.2) !important;
 }
 
 .tl-text-content-container {

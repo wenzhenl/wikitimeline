@@ -4,6 +4,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+function formatGroupName(name: string): string {
+  return name
+    .replace(/_/g, ' ')          // Replace underscores with spaces
+    .split(' ')                  // Split into words
+    .map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()  // Capitalize first letter
+    )
+    .join(' ');
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
@@ -33,7 +43,7 @@ export async function GET(
       const parsedContent = JSON.parse(completion.choices[0].message.content!);
       const eventsWithGroup = parsedContent.timeline.map((event: any) => ({
         ...event,
-        group: pageName.trim()
+        group: formatGroupName(pageName.trim())
       }));
       allEvents.push(...eventsWithGroup);
     }
