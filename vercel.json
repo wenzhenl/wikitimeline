@@ -5,9 +5,6 @@
     },
     "app/timeline/**/*": {
       "maxDuration": 60
-    },
-    "app/collection/**/*": {
-      "maxDuration": 60
     }
   }
 }
