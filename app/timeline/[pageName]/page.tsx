@@ -35,6 +35,7 @@ export default function TimelinePage({
         }
 
         const data = await response.json();
+        console.log("Received timeline data:", JSON.stringify(data, null, 2));
         if (data.error) {
           throw new Error(data.error);
         }
@@ -142,11 +143,17 @@ export default function TimelinePage({
           <MyTimelineComponent
             events={events.map((event) => {
               const [year, month, day] = event.date.split("-").map(Number);
-              return {
+              const mappedEvent = {
                 start_date: { year, month, day },
                 text: { headline: event.text },
                 group: event.group,
+                media: event.media,
               };
+              console.log(
+                "Mapped event:",
+                JSON.stringify(mappedEvent, null, 2)
+              );
+              return mappedEvent;
             })}
           />
         </div>
