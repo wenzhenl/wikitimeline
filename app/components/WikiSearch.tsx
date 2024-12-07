@@ -77,12 +77,12 @@ export default function WikiSearch({
                   page.title
                 )}`,
               thumbnail: page.thumbnail,
-              pageviews: Object.values(page.pageviews || {}).reduce(
-                (a: number, b: number) => a + b,
+              pageviews: Object.values(page.pageviews || {}).reduce<number>(
+                (a, b) => a + (typeof b === "number" ? b : 0),
                 0
               ),
             }))
-            .sort((a, b) => (b.pageviews || 0) - (a.pageviews || 0));
+            .sort((a, b) => (b.pageviews ?? 0) - (a.pageviews ?? 0));
           setSearchResults(results as SearchResult[]);
         } else {
           setSearchResults([]);
