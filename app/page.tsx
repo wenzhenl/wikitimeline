@@ -25,35 +25,21 @@ export default function HomePage() {
     setLoading(true);
     setError("");
 
-    if (selectedPages.length === 1) {
-      const pageName = selectedPages[0].link
-        .split("/")
-        .pop()
-        ?.split("#")[0]
-        ?.split("?")[0];
+    // Get all page names
+    const pageNames = selectedPages
+      .map((page) => {
+        return page.link.split("/").pop()?.split("#")[0]?.split("?")[0];
+      })
+      .filter(Boolean);
 
-      if (!pageName) {
-        setError("Invalid Wikipedia URL");
-        setLoading(false);
-        return;
-      }
-
-      router.push(`/timeline/${pageName}`);
-    } else {
-      const pageNames = selectedPages
-        .map((page) => {
-          return page.link.split("/").pop()?.split("#")[0]?.split("?")[0];
-        })
-        .filter(Boolean);
-
-      const params = new URLSearchParams();
-      pageNames.forEach((name) => {
-        if (name) {
-          params.append("pageNames", name);
-        }
-      });
-      router.push(`/collection?${params.toString()}`);
+    if (!pageNames.length) {
+      setError("Invalid Wikipedia URL");
+      setLoading(false);
+      return;
     }
+
+    // Join all page names with commas and redirect to timeline page
+    router.push(`/timeline/${pageNames.join(",")}`);
   };
 
   return (
