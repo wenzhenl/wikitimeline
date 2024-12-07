@@ -71,6 +71,7 @@ export async function GET(
     }
 
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    console.log('Generated events:', JSON.stringify(allEvents, null, 2));
     return Response.json({ timeline: allEvents });
   } catch (error) {
     console.error('Error processing request:', error);
