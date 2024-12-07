@@ -11,6 +11,7 @@ interface SearchResult {
     width: number;
     height: number;
   };
+  pageviews: number;
 }
 
 interface SelectedPage {
@@ -52,24 +53,36 @@ export default function WikiSearch({
         const response = await fetch(
           `https://en.wikipedia.org/w/api.php?` +
             `action=query&format=json&origin=*&` +
-            `generator=search&gsrnamespace=0&gsrlimit=10&` +
-            `prop=extracts|description|info|pageimages&inprop=url&exintro=1&explaintext=1&` +
+            `generator=prefixsearch&` +
+            `gpssearch=${encodeURIComponent(inputValue)}&` +
+            `gpsnamespace=0&` +
+            `gpslimit=10&` +
+            `prop=extracts|description|info|pageimages|pageviews&` +
+            `inprop=url&exintro=1&explaintext=1&` +
             `pithumbsize=80&pilimit=10&` +
-            `gsrsearch=${encodeURIComponent(inputValue)}`
+            `pvipdays=30`
         );
 
         const data = await response.json();
 
         if (data.query && data.query.pages) {
-          const results = Object.values(data.query.pages).map((page: any) => ({
-            title: page.title,
-            description: page.description || page.extract || "",
-            pageid: page.pageid,
-            fullurl:
-              page.fullurl ||
-              `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
-            thumbnail: page.thumbnail,
-          }));
+          const results = Object.values(data.query.pages)
+            .map((page: any) => ({
+              title: page.title,
+              description: page.description || page.extract || "",
+              pageid: page.pageid,
+              fullurl:
+                page.fullurl ||
+                `https://en.wikipedia.org/wiki/${encodeURIComponent(
+                  page.title
+                )}`,
+              thumbnail: page.thumbnail,
+              pageviews: Object.values(page.pageviews || {}).reduce(
+                (a: number, b: number) => a + b,
+                0
+              ),
+            }))
+            .sort((a, b) => (b.pageviews || 0) - (a.pageviews || 0));
           setSearchResults(results as SearchResult[]);
         } else {
           setSearchResults([]);
