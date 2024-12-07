@@ -14,6 +14,15 @@ interface TimelineEvent {
   };
 }
 
+// Define background colors for different groups
+const GROUP_COLORS = {
+  0: { color: "#EFF6FF", darkColor: "#1E3A8A" }, // blue-50 and blue-900
+  1: { color: "#F3F4F6", darkColor: "#1F2937" }, // gray-50 and gray-900
+  2: { color: "#FEF2F2", darkColor: "#7F1D1D" }, // red-50 and red-900
+  3: { color: "#F0FDF4", darkColor: "#14532D" }, // green-50 and green-900
+  4: { color: "#FAF5FF", darkColor: "#581C87" }, // purple-50 and purple-900
+};
+
 export default function TimelinePage({
   params,
 }: {
@@ -22,6 +31,9 @@ export default function TimelinePage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
+
+  // Create a map to store group indices
+  const groupIndices = new Map<string, number>();
 
   useEffect(() => {
     const fetchTimelineData = async () => {
@@ -143,17 +155,28 @@ export default function TimelinePage({
           <MyTimelineComponent
             events={events.map((event) => {
               const [year, month, day] = event.date.split("-").map(Number);
-              const mappedEvent = {
+
+              // Assign a consistent index to each group
+              if (!groupIndices.has(event.group)) {
+                groupIndices.set(event.group, groupIndices.size);
+              }
+              const groupIndex = groupIndices.get(event.group)!;
+              const colors =
+                GROUP_COLORS[groupIndex as keyof typeof GROUP_COLORS] ||
+                GROUP_COLORS[0];
+
+              return {
                 start_date: { year, month, day },
                 text: { headline: event.text },
                 group: event.group,
                 media: event.media,
+                background: {
+                  color: window.matchMedia("(prefers-color-scheme: dark)")
+                    .matches
+                    ? colors.darkColor
+                    : colors.color,
+                },
               };
-              console.log(
-                "Mapped event:",
-                JSON.stringify(mappedEvent, null, 2)
-              );
-              return mappedEvent;
             })}
           />
         </div>
