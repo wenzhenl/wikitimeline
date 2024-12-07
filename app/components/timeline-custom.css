@@ -39,27 +39,50 @@
 }
 
 .tl-timegroup .tl-timegroup-message {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: #1e40af !important; /* blue-800 for stronger contrast */
   text-transform: capitalize !important;
-  font-weight: 600 !important;
-  background: rgba(
-    59,
-    130,
-    246,
-    0.1
-  ) !important; /* blue-500 with low opacity */
-  padding: 4px 12px !important;
+  font-weight: 700 !important; /* Increased font weight */
+  font-size: 14px !important; /* Slightly larger text */
+  background: rgba(255, 255, 255, 0.95) !important; /* More solid background */
+  padding: 6px 16px !important; /* Larger padding */
   border-radius: 9999px !important;
   backdrop-filter: blur(8px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; /* Stronger shadow */
+  border: 1px solid rgba(59, 130, 246, 0.1) !important; /* Subtle border */
+  letter-spacing: 0.02em !important; /* Improved letter spacing */
 }
 
-/* Make group labels more visible */
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .tl-timegroup .tl-timegroup-message {
+    color: #93c5fd !important; /* blue-300 for better contrast in dark mode */
+    background: rgba(
+      15,
+      23,
+      42,
+      0.95
+    ) !important; /* slate-900 with high opacity */
+    border: 1px solid rgba(59, 130, 246, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+/* Timeline tick text */
 .tl-timeaxis-tick-text {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: #374151 !important; /* gray-700 */
 }
 
+@media (prefers-color-scheme: dark) {
+  .tl-timeaxis-tick-text {
+    color: #e5e7eb !important; /* gray-200 */
+  }
+}
+
+/* Hover effect */
 .tl-timegroup:hover .tl-timegroup-message {
-  background: rgba(59, 130, 246, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease !important;
 }
 
 .tl-text-content-container {
