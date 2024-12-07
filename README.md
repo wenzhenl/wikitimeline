@@ -104,5 +104,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  Built with AI 🤖 by [Your Name]
+  Built with AI 🤖 by [Wenzheng Li](https://github.com/wenzhenl)
 </div>
