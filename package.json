@@ -11,7 +11,6 @@
   "dependencies": {
     "@knight-lab/timelinejs": "^3.9.3",
     "@next/third-parties": "^14.2.4",
-    "@prisma/client": "^5.17.0",
     "autoprefixer": "^10.4.19",
     "cheerio": "^1.0.0-rc.12",
     "css-loader": "^7.1.2",
