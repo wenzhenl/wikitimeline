@@ -1,16 +1,54 @@
 #timeline-embed {
-    height: 600px; /* Adjust height as needed */
-  }
-  
-  .tl-timeline .tl-timeline-slides .tl-slide {
-    min-height: 400px; /* Adjust height of each slide */
-  }
-  
-  .tl-storyslider {
-    height: 400px; /* Adjust height of the story slider */
-  }
-  
-  .tl-timemarker {
-    height: 400px; /* Adjust height of the time markers */
-  }
-  
+  height: 600px; /* Adjust height as needed */
+}
+
+.tl-timeline .tl-timeline-slides .tl-slide {
+  min-height: 400px; /* Adjust height of each slide */
+}
+
+.tl-storyslider {
+  height: 400px; /* Adjust height of the story slider */
+}
+
+.tl-timemarker {
+  height: 400px; /* Adjust height of the time markers */
+}
+
+/* Custom styles for TimelineJS */
+.tl-timeline {
+  min-height: 80vh !important;
+  background: transparent !important;
+}
+
+.tl-timenav {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.tl-slidenav-next,
+.tl-slidenav-previous {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 50% !important;
+  backdrop-filter: blur(8px);
+}
+
+.tl-headline-date,
+.tl-headline {
+  color: inherit !important;
+}
+
+.tl-timegroup .tl-timegroup-message {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.tl-text-content-container {
+  padding: 1.5rem !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px);
+  border-radius: 1rem !important;
+}
+
+.tl-storyslider {
+  background: transparent !important;
+}
