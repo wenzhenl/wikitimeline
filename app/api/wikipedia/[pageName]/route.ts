@@ -1,5 +1,4 @@
 import { OpenAI } from 'openai';
-import wiki from 'wikipedia';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,20 +9,17 @@ export async function GET(
   { params }: { params: { pageName: string } }
 ) {
   try {
-    // Fetch Wikipedia content
-    const page = await wiki.page(params.pageName);
-    const content = await page.content();
+    const pageName = decodeURIComponent(params.pageName).replace(/_/g, ' ');
 
-    // Get timeline from GPT
     const completion = await openai.chat.completions.create({
       messages: [
         {
           role: "system",
-          content: "Extract a chronological timeline from the text. Return a JSON object with a 'timeline' array containing events with 'date' (YYYY-MM-DD format) and 'text' (event description) properties."
+          content: "You are a timeline generator. Create a chronological timeline of major events for the given subject. Return a JSON object with a 'timeline' array containing events with 'date' (YYYY-MM-DD format) and 'text' (event description) properties. Focus on significant events and ensure dates are accurate."
         },
         {
           role: "user",
-          content: content
+          content: `Create a timeline for ${pageName}`
         }
       ],
       model: "gpt-4o-mini",
@@ -36,7 +32,7 @@ export async function GET(
   } catch (error) {
     console.error('Error processing request:', error);
     return Response.json(
-      { error: 'Failed to process Wikipedia content' },
+      { error: 'Failed to generate timeline' },
       { status: 500 }
     );
   }
