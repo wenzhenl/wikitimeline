@@ -1,15 +1,31 @@
 import { OpenAI } from 'openai';
+import wiki from 'wikipedia';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string }> {
+  try {
+    const summary = await wiki.summary(title);
+    return {
+      pageUrl: `https://en.wikipedia.org/wiki/${title}`,
+      thumbnail: summary.thumbnail?.source
+    };
+  } catch (error) {
+    console.error('Error fetching Wikipedia info:', error);
+    return {
+      pageUrl: `https://en.wikipedia.org/wiki/${title}`
+    };
+  }
+}
+
 function formatGroupName(name: string): string {
   return name
-    .replace(/_/g, ' ')          // Replace underscores with spaces
-    .split(' ')                  // Split into words
+    .replace(/_/g, ' ')
+    .split(' ')
     .map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()  // Capitalize first letter
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     )
     .join(' ');
 }
@@ -19,11 +35,13 @@ export async function GET(
   { params }: { params: { pageName: string } }
 ) {
   try {
-    // Handle multiple page names separated by comma
     const pageNames = decodeURIComponent(params.pageName).split(',');
     let allEvents = [];
 
     for (const pageName of pageNames) {
+      // Get Wikipedia info including thumbnail
+      const { pageUrl, thumbnail } = await getWikipediaInfo(pageName.trim());
+
       const completion = await openai.chat.completions.create({
         messages: [
           {
@@ -43,14 +61,16 @@ export async function GET(
       const parsedContent = JSON.parse(completion.choices[0].message.content!);
       const eventsWithGroup = parsedContent.timeline.map((event: any) => ({
         ...event,
-        group: formatGroupName(pageName.trim())
+        group: formatGroupName(pageName.trim()),
+        media: {
+          url: pageUrl,
+          thumbnail: thumbnail,
+        }
       }));
       allEvents.push(...eventsWithGroup);
     }
 
-    // Sort all events chronologically
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
     return Response.json({ timeline: allEvents });
   } catch (error) {
     console.error('Error processing request:', error);

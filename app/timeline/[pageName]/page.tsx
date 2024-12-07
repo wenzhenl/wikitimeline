@@ -8,6 +8,10 @@ interface TimelineEvent {
   date: string;
   text: string;
   group: string;
+  media: {
+    url: string;
+    thumbnail?: string;
+  };
 }
 
 export default function TimelinePage({
