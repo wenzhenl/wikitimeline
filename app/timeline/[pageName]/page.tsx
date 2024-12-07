@@ -112,29 +112,39 @@ export default function TimelinePage({
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      <main className="relative">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
+        </div>
+
+        {/* Title Section */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-8">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
-              {decodeURIComponent(params.pageName).replace(/_/g, " ")}
+              {decodeURIComponent(params.pageName)
+                .replace(/_/g, " ")
+                .replace(/,/g, ", ")}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Interactive timeline generated from Wikipedia content
             </p>
           </div>
+        </div>
 
-          <div className="p-6">
-            <MyTimelineComponent
-              events={events.map((event) => {
-                const [year, month, day] = event.date.split("-").map(Number);
-                return {
-                  start_date: { year, month, day },
-                  text: { headline: event.text },
-                  group: event.group,
-                };
-              })}
-            />
-          </div>
+        {/* Timeline Section - Full width */}
+        <div className="w-full h-[800px]">
+          <MyTimelineComponent
+            events={events.map((event) => {
+              const [year, month, day] = event.date.split("-").map(Number);
+              return {
+                start_date: { year, month, day },
+                text: { headline: event.text },
+                group: event.group,
+              };
+            })}
+          />
         </div>
       </main>
     </div>
