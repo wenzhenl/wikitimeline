@@ -43,13 +43,13 @@ Key learnings from building with AI:
 
 ## 🎮 Demo
 
-Visit [WikiTimeline](https://your-demo-url.com) to try it out!
+Visit [WikiTimeline](https://wikitimeline.top) to try it out!
 
 ## 🚀 Installation
 
 1. Clone the repository:
    bash
-   git clone https://github.com/yourusername/wikitimeline.git
+   git clone https://github.com/wenzhenl/wikitimeline.git
    cd wikitimeline
 
 ````
@@ -106,4 +106,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <div align="center">
   Built with AI 🤖 by [Your Name]
 </div>
-```
