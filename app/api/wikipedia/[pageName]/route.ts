@@ -39,14 +39,13 @@ export async function GET(
     let allEvents = [];
 
     for (const pageName of pageNames) {
-      // Get Wikipedia info including thumbnail
       const { pageUrl, thumbnail } = await getWikipediaInfo(pageName.trim());
 
       const completion = await openai.chat.completions.create({
         messages: [
           {
             role: "system",
-            content: "You are a timeline generator. Create a chronological timeline of major events for the given subject. Return a JSON object with a 'timeline' array containing events with 'date' (YYYY-MM-DD format) and 'text' (event description) properties. Focus on significant events and ensure dates are accurate."
+            content: "You are a timeline generator. Create a chronological timeline of major events. Return a JSON object with a 'timeline' array. Each event should have: 'date' (YYYY-MM-DD format), 'headline' (brief title), and 'text' (detailed description). Make headlines concise and impactful, while the text should provide more context and details."
           },
           {
             role: "user",
@@ -60,9 +59,14 @@ export async function GET(
 
       const parsedContent = JSON.parse(completion.choices[0].message.content!);
       const eventsWithGroup = parsedContent.timeline.map((event: any) => ({
-        ...event,
+        date: event.date,
+        text: {
+          headline: event.headline,
+          text: event.text
+        },
         group: formatGroupName(pageName.trim()),
         media: {
+          url: pageUrl,
           thumbnail: thumbnail,
         }
       }));
