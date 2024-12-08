@@ -14,7 +14,7 @@
   height: 400px; /* Adjust height of the time markers */
 }
 
-/* Custom styles for TimelineJS */
+/* Base timeline styles */
 .tl-timeline {
   min-height: 80vh !important;
   background: transparent !important;
@@ -22,10 +22,50 @@
 
 .tl-timenav {
   background-color: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(8px);
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Content styling */
+.tl-text-content-container {
+  padding: 1.5rem !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px);
+  border-radius: 1rem !important;
+}
+
+/* Group label styling */
+.tl-timegroup .tl-timegroup-message {
+  text-transform: capitalize !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  padding: 6px 16px !important;
+  border-radius: 9999px !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Group colors */
+.tl-timegroup:nth-of-type(1) .tl-timegroup-message {
+  color: #065f46 !important; /* green-800 */
+}
+
+.tl-timegroup:nth-of-type(2) .tl-timegroup-message {
+  color: #0369a1 !important; /* sky-600 */
+}
+
+.tl-timegroup:nth-of-type(3) .tl-timegroup-message {
+  color: #6d28d9 !important; /* violet-800 */
+}
+
+.tl-timegroup:nth-of-type(4) .tl-timegroup-message {
+  color: #b45309 !important; /* amber-800 */
+}
+
+.tl-timegroup:nth-of-type(5) .tl-timegroup-message {
+  color: #e11d48 !important; /* rose-600 */
+}
+
+/* Navigation styling */
 .tl-slidenav-next,
 .tl-slidenav-previous {
   background-color: rgba(255, 255, 255, 0.1) !important;
@@ -33,65 +73,13 @@
   backdrop-filter: blur(8px);
 }
 
+/* Date styling */
 .tl-headline-date,
 .tl-headline {
   color: inherit !important;
 }
 
-.tl-timegroup .tl-timegroup-message {
-  color: #1e40af !important; /* blue-800 for stronger contrast */
-  text-transform: capitalize !important;
-  font-weight: 700 !important; /* Increased font weight */
-  font-size: 14px !important; /* Slightly larger text */
-  background: rgba(255, 255, 255, 0.95) !important; /* More solid background */
-  padding: 6px 16px !important; /* Larger padding */
-  border-radius: 9999px !important;
-  backdrop-filter: blur(8px) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; /* Stronger shadow */
-  border: 1px solid rgba(59, 130, 246, 0.1) !important; /* Subtle border */
-  letter-spacing: 0.02em !important; /* Improved letter spacing */
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .tl-timegroup .tl-timegroup-message {
-    color: #93c5fd !important; /* blue-300 for better contrast in dark mode */
-    background: rgba(
-      15,
-      23,
-      42,
-      0.95
-    ) !important; /* slate-900 with high opacity */
-    border: 1px solid rgba(59, 130, 246, 0.2) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-  }
-}
-
-/* Timeline tick text */
+/* Timeline axis */
 .tl-timeaxis-tick-text {
   color: #374151 !important; /* gray-700 */
-}
-
-@media (prefers-color-scheme: dark) {
-  .tl-timeaxis-tick-text {
-    color: #e5e7eb !important; /* gray-200 */
-  }
-}
-
-/* Hover effect */
-.tl-timegroup:hover .tl-timegroup-message {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  transition: all 0.2s ease !important;
-}
-
-.tl-text-content-container {
-  padding: 1.5rem !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(8px);
-  border-radius: 1rem !important;
-}
-
-.tl-storyslider {
-  background: transparent !important;
 }

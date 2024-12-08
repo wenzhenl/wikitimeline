@@ -21,63 +21,43 @@ interface TimelineEvent {
 const GROUP_COLORS = {
   0: {
     color: "#ECFDF5",
-    darkColor: "#064E3B",
     textColor: "#065F46", // green-800
-    darkTextColor: "#D1FAE5", // green-100
   },
   1: {
     color: "#F0F9FF",
-    darkColor: "#0C4A6E",
-    textColor: "#0369A1",
-    darkTextColor: "#7DD3FC",
+    textColor: "#0369A1", // sky-600
   },
   2: {
     color: "#F5F3FF",
-    darkColor: "#5B21B6",
     textColor: "#6D28D9", // violet-800
-    darkTextColor: "#EDE9FE", // violet-100
   },
   3: {
     color: "#FFFBEB",
-    darkColor: "#92400E",
     textColor: "#B45309", // amber-800
-    darkTextColor: "#FEF3C7", // amber-100
   },
   4: {
     color: "#FFF1F2",
-    darkColor: "#881337",
-    textColor: "#E11D48",
-    darkTextColor: "#FDA4AF",
+    textColor: "#E11D48", // rose-600
   },
   5: {
     color: "#EEF2FF",
-    darkColor: "#3730A3",
     textColor: "#4338CA", // indigo-800
-    darkTextColor: "#E0E7FF", // indigo-100
   },
   6: {
     color: "#F0FDFA",
-    darkColor: "#134E4A",
     textColor: "#115E59", // teal-800
-    darkTextColor: "#CCFBF1", // teal-100
   },
   7: {
     color: "#FDF2F8",
-    darkColor: "#9D174D",
     textColor: "#BE185D", // pink-800
-    darkTextColor: "#FCE7F3", // pink-100
   },
   8: {
     color: "#FAF5FF",
-    darkColor: "#6B21A8",
     textColor: "#7E22CE", // purple-800
-    darkTextColor: "#F3E8FF", // purple-100
   },
   9: {
     color: "#F8FAFC",
-    darkColor: "#0F172A",
     textColor: "#1E293B", // slate-800
-    darkTextColor: "#F1F5F9", // slate-100
   },
 };
 
@@ -226,26 +206,13 @@ export default function TimelinePage({
               return {
                 start_date: { year, month, day },
                 text: {
-                  headline: `<span style="color: ${
-                    window.matchMedia("(prefers-color-scheme: dark)").matches
-                      ? colors.darkTextColor
-                      : colors.textColor
-                  }; font-weight: 600; text-shadow: none;">${
-                    event.text.headline
-                  }</span>`,
-                  text: `<span style="color: ${
-                    window.matchMedia("(prefers-color-scheme: dark)").matches
-                      ? colors.darkTextColor
-                      : colors.textColor
-                  }; text-shadow: none;">${event.text.text}</span>`,
+                  headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.text.headline}</span>`,
+                  text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text.text}</span>`,
                 },
                 group: event.group,
                 media: event.media,
                 background: {
-                  color: window.matchMedia("(prefers-color-scheme: dark)")
-                    .matches
-                    ? colors.darkColor
-                    : colors.color,
+                  color: colors.color,
                 },
               };
             })}
