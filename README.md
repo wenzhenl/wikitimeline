@@ -103,6 +103,8 @@ The WikiTimeline app allows you to compare multiple timelines side by side. In t
 
 Simply enter multiple names in the search bar to create comparative timelines. The events are color-coded by person and arranged chronologically, making it easy to see how different lives and events intersected through time.
 
+Check out the [Timeline Comparison Example](https://wikitimeline-nu.vercel.app/timeline/Steve_Jobs,Bill_Gates) to see it in action!
+
 ## 🤝 Contributing
 
 This project demonstrates how to effectively use AI tools in development. Feel free to:
