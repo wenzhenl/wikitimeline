@@ -7,7 +7,7 @@
 }
 
 .tl-storyslider {
-  height: 400px; /* Adjust height of the story slider */
+  height: 400px !important;
 }
 
 .tl-timemarker {
@@ -27,10 +27,13 @@
 
 /* Content styling */
 .tl-text-content-container {
-  padding: 1.5rem !important;
+  padding: 1rem !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
   background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(8px);
   border-radius: 1rem !important;
+  width: 100% !important;
 }
 
 /* Group label styling */
