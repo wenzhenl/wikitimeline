@@ -42,7 +42,7 @@
   padding: 6px 16px !important;
   border-radius: 9999px !important;
   letter-spacing: 0.02em !important;
-  color: #065f46 !important; /* green-800 */
+  color: #000000 !important; /* Change to black */
 }
 
 /* Navigation styling */
