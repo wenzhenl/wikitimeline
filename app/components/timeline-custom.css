@@ -7,7 +7,7 @@
 }
 
 .tl-storyslider {
-  height: 60vh !important; /* Reduce from default height */
+  height: 400px; /* Adjust height of the story slider */
 }
 
 .tl-timemarker {
@@ -18,14 +18,12 @@
 .tl-timeline {
   min-height: 80vh !important;
   background: transparent !important;
-  height: 800px !important; /* Set fixed height */
 }
 
 .tl-timenav {
   background-color: rgba(255, 255, 255, 0.05) !important;
   backdrop-filter: blur(8px);
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-  height: 200px !important; /* Increase timeline height */
 }
 
 .tl-slidenav-next,
@@ -88,9 +86,7 @@
 }
 
 .tl-text-content-container {
-  padding: 1rem !important; /* Reduce padding */
-  max-height: 40vh !important; /* Limit maximum height */
-  overflow-y: auto !important; /* Add scroll if needed */
+  padding: 1.5rem !important;
   background: rgba(255, 255, 255, 0.05) !important;
   backdrop-filter: blur(8px);
   border-radius: 1rem !important;
@@ -98,17 +94,4 @@
 
 .tl-storyslider {
   background: transparent !important;
-}
-
-/* Make the date more visible */
-.tl-headline-date {
-  color: #6b7280 !important; /* gray-500 */
-  font-weight: 600 !important;
-  margin-bottom: 0.5rem !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  .tl-headline-date {
-    color: #d1d5db !important; /* gray-300 */
-  }
 }
