@@ -37,9 +37,9 @@ export async function GET(
 ) {
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
-    let allEvents = [];
-
-    for (const pageName of pageNames) {
+    
+    // Convert the sequential loop into parallel promises
+    const eventPromises = pageNames.map(async (pageName) => {
       const { pageUrl, thumbnail, summary } = await getWikipediaInfo(pageName.trim());
 
       const completion = await openai.chat.completions.create({
@@ -65,7 +65,7 @@ export async function GET(
       });
 
       const parsedContent = JSON.parse(completion.choices[0].message.content!);
-      const eventsWithGroup = parsedContent.timeline.map((event: any) => ({
+      return parsedContent.timeline.map((event: any) => ({
         date: event.date,
         text: {
           headline: event.headline,
@@ -76,9 +76,12 @@ export async function GET(
           thumbnail: thumbnail,
         }
       }));
-      allEvents.push(...eventsWithGroup);
-    }
+    });
 
+    // Wait for all promises to resolve
+    const allEventsArrays = await Promise.all(eventPromises);
+    const allEvents = allEventsArrays.flat();
+    
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     console.log('Generated events:', JSON.stringify(allEvents, null, 2));
     return Response.json({ timeline: allEvents });
