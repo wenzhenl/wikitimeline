@@ -89,6 +89,20 @@ npm run dev
   - [Claude](https://anthropic.com/claude) for development assistance
   - [Cursor](https://cursor.sh/) for AI-powered coding
 
+## Timeline Comparison Example
+
+![Timeline Comparison of Steve Jobs and Bill Gates](public/Steve_Jobs_Bill_Gates.png)
+
+The WikiTimeline app allows you to compare multiple timelines side by side. In this example, we can see the parallel life events of tech pioneers Steve Jobs and Bill Gates, making it easy to visualize:
+
+- Their early beginnings in technology
+- Key milestones in their careers
+- Major product launches
+- Business achievements
+- Personal life events
+
+Simply enter multiple names in the search bar to create comparative timelines. The events are color-coded by person and arranged chronologically, making it easy to see how different lives and events intersected through time.
+
 ## 🤝 Contributing
 
 This project demonstrates how to effectively use AI tools in development. Feel free to:
