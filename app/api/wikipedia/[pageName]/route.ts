@@ -5,12 +5,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string }> {
+async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string }> {
   try {
     const summary = await wiki.summary(title);
     return {
       pageUrl: `https://en.wikipedia.org/wiki/${title}`,
-      thumbnail: summary.thumbnail?.source
+      thumbnail: summary.thumbnail?.source,
+      summary: summary.extract
     };
   } catch (error) {
     console.error('Error fetching Wikipedia info:', error);
@@ -39,7 +40,7 @@ export async function GET(
     let allEvents = [];
 
     for (const pageName of pageNames) {
-      const { pageUrl, thumbnail } = await getWikipediaInfo(pageName.trim());
+      const { pageUrl, thumbnail, summary } = await getWikipediaInfo(pageName.trim());
 
       const completion = await openai.chat.completions.create({
         messages: [
@@ -49,7 +50,7 @@ export async function GET(
           },
           {
             role: "user",
-            content: `Create a timeline for ${pageName.trim()}`
+            content: `Create a timeline for ${pageName.trim()}${summary ? ` (${summary})` : ''}. Focus on the most significant events and milestones.`
           }
         ],
         model: "gpt-4o-mini",
