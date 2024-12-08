@@ -54,6 +54,9 @@
   background-color: rgba(255, 255, 255, 0.1) !important;
   border-radius: 50% !important;
   backdrop-filter: blur(8px);
+  top: 50% !important; /* Position at 50% from the top */
+  transform: translateY(-50%) !important; /* Center vertically */
+  margin-top: 0 !important; /* Reset any margin that might affect positioning */
 }
 
 /* Date styling */
