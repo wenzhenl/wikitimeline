@@ -91,9 +91,9 @@ npm run dev
 
 ## Timeline Comparison Example
 
-![Timeline Comparison of Steve Jobs and Bill Gates](public/Steve_Jobs_Bill_Gates.png)
+![Timeline Comparison of last 10 US Presidents](public/example-timelines.png)
 
-The WikiTimeline app allows you to compare multiple timelines side by side. In this example, we can see the parallel life events of tech pioneers Steve Jobs and Bill Gates, making it easy to visualize:
+The WikiTimeline app allows you to compare multiple timelines side by side. In this example, we can see the parallel life events of last 10 US Presidents, making it easy to visualize:
 
 - Their early beginnings in technology
 - Key milestones in their careers
@@ -103,7 +103,7 @@ The WikiTimeline app allows you to compare multiple timelines side by side. In t
 
 Simply enter multiple names in the search bar to create comparative timelines. The events are color-coded by person and arranged chronologically, making it easy to see how different lives and events intersected through time.
 
-Check out the [Timeline Comparison Example](https://wikitimeline-nu.vercel.app/timeline/Steve_Jobs,Bill_Gates) to see it in action!
+Check out the [Timeline Comparison Example](https://www.wikitimeline.top/timeline/Joe_Biden,Donald_Trump,Barack_Obama,George_W._Bush,Bill_Clinton,George_H._W._Bush,Ronald_Reagan,Jimmy_Carter,Gerald_Ford,Richard_Nixon) to see it in action!
 
 ## 🤝 Contributing
 
