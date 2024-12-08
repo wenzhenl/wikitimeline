@@ -46,11 +46,17 @@ export async function GET(
         messages: [
           {
             role: "system",
-            content: "You are a timeline generator. Create a chronological timeline of major events. Return a JSON object with a 'timeline' array. Each event should have: 'date' (YYYY-MM-DD format), 'headline' (brief title), and 'text' (detailed description). Make headlines concise and impactful, while the text should provide more context and details."
+            content: 
+              "You are a timeline generator that extracts events directly from Wikipedia articles. " +
+              "Create a chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
+              "Return a JSON object with a 'timeline' array. Each event should have: " +
+              "'date' (YYYY-MM-DD format), 'headline' (brief title), and 'text' (detailed description). " +
+              "Ensure all dates and events are factually accurate and sourced from Wikipedia. " +
+              "Do not skip significant life events or major milestones."
           },
           {
             role: "user",
-            content: `Create a timeline for ${pageName.trim()}${summary ? ` (${summary})` : ''}. Focus on the most significant events and milestones.`
+            content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
           }
         ],
         model: "gpt-4o-mini",
