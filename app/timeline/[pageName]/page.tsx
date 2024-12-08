@@ -20,34 +20,34 @@ interface TimelineEvent {
 // Define background colors for different groups with better contrast
 const GROUP_COLORS = {
   0: {
-    color: "#F0F9FF",
-    darkColor: "#0C4A6E",
-    textColor: "#000000",
-    darkTextColor: "#FFFFFF",
-  },
-  1: {
-    color: "#FFF1F2",
-    darkColor: "#881337",
-    textColor: "#000000",
-    darkTextColor: "#FFFFFF",
-  },
-  2: {
     color: "#ECFDF5",
     darkColor: "#064E3B",
     textColor: "#065F46", // green-800
     darkTextColor: "#D1FAE5", // green-100
   },
-  3: {
+  1: {
+    color: "#F0F9FF",
+    darkColor: "#0C4A6E",
+    textColor: "#0369A1",
+    darkTextColor: "#7DD3FC",
+  },
+  2: {
     color: "#F5F3FF",
     darkColor: "#5B21B6",
     textColor: "#6D28D9", // violet-800
     darkTextColor: "#EDE9FE", // violet-100
   },
-  4: {
+  3: {
     color: "#FFFBEB",
     darkColor: "#92400E",
     textColor: "#B45309", // amber-800
     darkTextColor: "#FEF3C7", // amber-100
+  },
+  4: {
+    color: "#FFF1F2",
+    darkColor: "#881337",
+    textColor: "#E11D48",
+    darkTextColor: "#FDA4AF",
   },
   5: {
     color: "#EEF2FF",
