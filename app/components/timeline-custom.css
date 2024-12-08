@@ -42,47 +42,7 @@
   padding: 6px 16px !important;
   border-radius: 9999px !important;
   letter-spacing: 0.02em !important;
-}
-
-/* Group colors - match exactly with GROUP_COLORS from the timeline page */
-.tl-timegroup:nth-of-type(1) .tl-timegroup-message {
   color: #065f46 !important; /* green-800 */
-}
-
-.tl-timegroup:nth-of-type(2) .tl-timegroup-message {
-  color: #0369a1 !important; /* sky-600 */
-}
-
-.tl-timegroup:nth-of-type(3) .tl-timegroup-message {
-  color: #6d28d9 !important; /* violet-800 */
-}
-
-.tl-timegroup:nth-of-type(4) .tl-timegroup-message {
-  color: #b45309 !important; /* amber-800 */
-}
-
-.tl-timegroup:nth-of-type(5) .tl-timegroup-message {
-  color: #e11d48 !important; /* rose-600 */
-}
-
-.tl-timegroup:nth-of-type(6) .tl-timegroup-message {
-  color: #4338ca !important; /* indigo-800 */
-}
-
-.tl-timegroup:nth-of-type(7) .tl-timegroup-message {
-  color: #115e59 !important; /* teal-800 */
-}
-
-.tl-timegroup:nth-of-type(8) .tl-timegroup-message {
-  color: #be185d !important; /* pink-800 */
-}
-
-.tl-timegroup:nth-of-type(9) .tl-timegroup-message {
-  color: #7e22ce !important; /* purple-800 */
-}
-
-.tl-timegroup:nth-of-type(10) .tl-timegroup-message {
-  color: #1e293b !important; /* slate-800 */
 }
 
 /* Navigation styling */
