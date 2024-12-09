@@ -18,29 +18,41 @@ interface PageStats {
   appearances: number;
 }
 
-async function getTopWikipediaPages(year: number, month: number, limit: number = 1000) {
+async function getTopWikipediaPages(year: number, month: number, limit: number = 100000) {
   const monthStr = month.toString().padStart(2, '0');
-  const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${year}/${monthStr}/all-days`;
+  const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/${year}/${monthStr}/all-days`;
   
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'WikiTimeline/1.0 (https://wikitimeline.top/; leeyukuang@gmail.com)'  // Required by Wikimedia
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json() as WikiResponse;
+    
+    const data = await response.json();
     
     if (!data.items?.[0]?.articles) {
       throw new Error('Invalid API response structure');
     }
 
-    const articles = data.items[0].articles
+    return data.items[0].articles
       .filter((article: WikiPageView) => {
         const title = article.article;
-        return !title.startsWith('Special:');
+        return !title.startsWith('Special:') &&
+               !title.startsWith('File:') &&
+               !title.startsWith('Wikipedia:') &&
+               !title.startsWith('Template:') &&
+               !title.startsWith('Category:') &&
+               !title.startsWith('Help:') &&
+               !title.startsWith('Draft:') &&
+               !title.startsWith('Portal:') &&
+               !title.startsWith('Talk:');
       })
       .slice(0, limit);
-
-    return articles;
   } catch (error) {
     console.error('Error fetching top pages:', error);
     return [];
@@ -55,7 +67,7 @@ async function main() {
     console.log(`Fetching data for month ${month}...`);
     const monthlyPages = await getTopWikipediaPages(2024, month, 10000);
     
-    monthlyPages.forEach((page) => {
+    monthlyPages.forEach((page: WikiPageView) => {
       if (!pages.has(page.article)) {
         pages.set(page.article, {
           title: page.article,
