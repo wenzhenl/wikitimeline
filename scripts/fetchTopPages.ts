@@ -1,5 +1,22 @@
-import fetch from 'node-fetch';
-import fs from 'fs/promises';
+const fs = require('fs/promises');
+
+interface WikiPageView {
+  article: string;
+  views: number;
+  rank: number;
+}
+
+interface WikiResponse {
+  items: Array<{
+    articles: WikiPageView[];
+  }>;
+}
+
+interface PageStats {
+  title: string;
+  totalViews: number;
+  appearances: number;
+}
 
 async function getTopWikipediaPages(year: number, month: number, limit: number = 1000) {
   // Format month to 2 digits
@@ -9,11 +26,11 @@ async function getTopWikipediaPages(year: number, month: number, limit: number =
   
   try {
     const response = await fetch(url);
-    const data = await response.json();
+    const data = await response.json() as WikiResponse;
     
     // Filter out special pages, files, etc.
     const articles = data.items[0].articles
-      .filter((article: any) => {
+      .filter((article: WikiPageView) => {
         const title = article.article;
         return !title.startsWith('Special:') &&
                !title.startsWith('File:') &&
@@ -25,7 +42,7 @@ async function getTopWikipediaPages(year: number, month: number, limit: number =
       })
       .slice(0, limit);
 
-    return articles.map((article: any) => ({
+    return articles.map((article: WikiPageView) => ({
       title: article.article,
       views: article.views,
       rank: article.rank
@@ -38,13 +55,13 @@ async function getTopWikipediaPages(year: number, month: number, limit: number =
 
 async function main() {
   // Get top pages for the last 12 months
-  const pages = new Map(); // Use Map to deduplicate
+  const pages = new Map<string, PageStats>(); // Use Map to deduplicate
 
   for (let month = 1; month <= 12; month++) {
     console.log(`Fetching data for month ${month}...`);
     const monthlyPages = await getTopWikipediaPages(2024, month, 10000);
     
-    monthlyPages.forEach(page => {
+    monthlyPages.forEach((page) => {
       if (!pages.has(page.title)) {
         pages.set(page.title, {
           title: page.title,
