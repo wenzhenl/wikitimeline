@@ -1,6 +1,7 @@
 import { OpenAI } from 'openai';
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
+import { CACHE_CONFIG } from '@/app/config/cache';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -74,9 +75,9 @@ async function getCachedCompletion(pageName: string, summary?: string) {
 
   const result = JSON.parse(completion.choices[0].message.content!);
   
-  // Store in cache (7 days expiration)
+  // Store in cache using TTL from config
   try {
-    await redis.set(cacheKey, result, { ex: 60 * 60 * 24 * 7 });
+    await redis.set(cacheKey, result, { ex: CACHE_CONFIG.TIMELINE.TTL });
     console.log(`Cached timeline for ${pageName}`);
   } catch (error) {
     console.warn('Cache write error:', error);
