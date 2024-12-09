@@ -1,9 +1,13 @@
 import { OpenAI } from 'openai';
 import wiki from 'wikipedia';
+import { Redis } from '@upstash/redis';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Initialize Redis
+const redis = Redis.fromEnv();
 
 async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string }> {
   try {
@@ -31,6 +35,56 @@ function formatGroupName(name: string): string {
     .join(' ');
 }
 
+async function getCachedCompletion(pageName: string, summary?: string) {
+  const cacheKey = `timeline:${pageName}`;
+  
+  // Try to get from cache first
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log(`Cache hit for ${pageName}`);
+      return cached;
+    }
+  } catch (error) {
+    console.warn('Cache read error:', error);
+  }
+
+  // If not in cache, fetch from OpenAI
+  const completion = await openai.chat.completions.create({
+    messages: [
+      {
+        role: "system",
+        content: 
+          "You are a timeline generator that extracts events directly from Wikipedia articles. " +
+          "Create a chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
+          "Return a JSON object with a 'timeline' array. Each event should have: " +
+          "'date' (YYYY-MM-DD format), 'headline' (brief title), and 'text' (detailed description). " +
+          "Ensure all dates and events are factually accurate and sourced from Wikipedia. " +
+          "Do not skip significant life events or major milestones."
+      },
+      {
+        role: "user",
+        content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
+      }
+    ],
+    model: "gpt-4o-mini",
+    response_format: { type: "json_object" },
+    temperature: 0,
+  });
+
+  const result = JSON.parse(completion.choices[0].message.content!);
+  
+  // Store in cache (7 days expiration)
+  try {
+    await redis.set(cacheKey, result, { ex: 60 * 60 * 24 * 7 });
+    console.log(`Cached timeline for ${pageName}`);
+  } catch (error) {
+    console.warn('Cache write error:', error);
+  }
+
+  return result;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
@@ -38,33 +92,10 @@ export async function GET(
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
     
-    // Convert the sequential loop into parallel promises
     const eventPromises = pageNames.map(async (pageName) => {
       const { pageUrl, thumbnail, summary } = await getWikipediaInfo(pageName.trim());
-
-      const completion = await openai.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: 
-              "You are a timeline generator that extracts events directly from Wikipedia articles. " +
-              "Create a chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
-              "Return a JSON object with a 'timeline' array. Each event should have: " +
-              "'date' (YYYY-MM-DD format), 'headline' (brief title), and 'text' (detailed description). " +
-              "Ensure all dates and events are factually accurate and sourced from Wikipedia. " +
-              "Do not skip significant life events or major milestones."
-          },
-          {
-            role: "user",
-            content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
-          }
-        ],
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        temperature: 0,
-      });
-
-      const parsedContent = JSON.parse(completion.choices[0].message.content!);
+      const parsedContent = await getCachedCompletion(pageName.trim(), summary);
+      
       return parsedContent.timeline.map((event: any) => ({
         date: event.date,
         text: {
@@ -83,7 +114,6 @@ export async function GET(
     const allEvents = allEventsArrays.flat();
     
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    // console.log('Generated events:', JSON.stringify(allEvents, null, 2));
     return Response.json({ timeline: allEvents });
   } catch (error) {
     console.error('Error processing request:', error);
