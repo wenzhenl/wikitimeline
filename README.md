@@ -103,7 +103,7 @@ The WikiTimeline app allows you to compare multiple timelines side by side. In t
 
 Simply enter multiple names in the search bar to create comparative timelines. The events are color-coded by person and arranged chronologically, making it easy to see how different lives and events intersected through time.
 
-Check out the [Timeline Comparison Example](https://www.wikitimeline.top/timeline/Joe_Biden,Donald_Trump,Barack_Obama,George_W._Bush,Bill_Clinton,George_H._W._Bush,Ronald_Reagan,Jimmy_Carter,Gerald_Ford,Richard_Nixon) to see it in action!
+Check out the [The last 10 US Presidents](https://www.wikitimeline.top/timeline/Joe_Biden,Donald_Trump,Barack_Obama,George_W._Bush,Bill_Clinton,George_H._W._Bush,Ronald_Reagan,Jimmy_Carter,Gerald_Ford,Richard_Nixon) and [The founding fathers of United States](https://www.wikitimeline.top/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison) to see it in action!
 
 ## 🤝 Contributing
 
