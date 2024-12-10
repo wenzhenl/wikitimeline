@@ -3,7 +3,6 @@ const bz2 = require('unbzip2-stream');
 const readline = require('readline');
 const https = require('https');
 const { IncomingMessage } = require('http');
-const zlib = require('zlib');
 
 async function downloadFile(url: string): Promise<NodeJS.ReadableStream> {
   return new Promise((resolve, reject) => {
@@ -17,37 +16,7 @@ async function downloadFile(url: string): Promise<NodeJS.ReadableStream> {
   });
 }
 
-async function loadBiographyPages(): Promise<Set<string>> {
-  const biographyPages = new Set<string>();
-  
-  // Download latest category dumps
-  const url = 'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-category.sql.gz';
-  const stream = await downloadFile(url);
-  const gunzip = stream.pipe(zlib.createGunzip());
-
-  const rl = readline.createInterface({
-    input: gunzip,
-    crlfDelay: Infinity
-  });
-
-  // Look for categories that indicate biographical articles
-  for await (const line of rl) {
-    if (line.includes('Category:Living_people') || 
-        line.includes('Category:Year_of_death_missing') ||
-        /Category:[0-9]{4}_births/.test(line)) {
-      const match = line.match(/\[\[(.*?)\]\]/);
-      if (match) {
-        biographyPages.add(match[1].replace(/ /g, '_'));
-      }
-    }
-  }
-
-  return biographyPages;
-}
-
 async function processDailyDump(date: string) {
-  const biographyPages = await loadBiographyPages();
-  
   // Extract year, month, day from the date string (format: YYYYMMDD)
   const year = date.slice(0, 4);
   const month = date.slice(4, 6);
@@ -75,8 +44,7 @@ async function processDailyDump(date: string) {
           !article.startsWith('Special:') &&
           !article.startsWith('File:') &&
           !article.startsWith('Category:') &&
-          !article.startsWith('Template:') &&
-          biographyPages.has(article)) {
+          !article.startsWith('Template:')) {
         
         const views = parseInt(count) || 0;
         pageViews.set(article, (pageViews.get(article) || 0) + views);
