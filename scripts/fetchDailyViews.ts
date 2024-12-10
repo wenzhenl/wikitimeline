@@ -65,16 +65,24 @@ async function processDailyDump(date: string) {
 }
 
 // Process last 30 days
-async function main() {
-  const today = new Date();
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+async function main(yearMonth?: string) {
+  // If no yearMonth provided, use current month
+  if (!yearMonth) {
+    const today = new Date();
+    yearMonth = today.toISOString().slice(0, 7);
+  }
+
+  const [year, month] = yearMonth.split('-');
+  const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}${month}${day.toString().padStart(2, '0')}`;
     await processDailyDump(dateStr);
     // Wait between requests to be nice to the server
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
 }
 
-main().catch(console.error); 
+// Update the script execution to accept command line argument
+const yearMonth = process.argv[2]; // e.g., "2024-11"
+main(yearMonth).catch(console.error); 
