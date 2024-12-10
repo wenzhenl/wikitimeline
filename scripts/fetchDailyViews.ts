@@ -54,7 +54,8 @@ async function processDailyDump(date: string) {
     // Convert Map to array of objects, sort by views descending
     const allPages = Array.from(pageViews.entries())
       .map(([title, views]) => ({ title, views }))
-      .sort((a, b) => b.views - a.views);
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 100000);
 
     // Log interesting rank positions
     const logRank = (rank: number) => {
@@ -67,32 +68,40 @@ async function processDailyDump(date: string) {
     [1, 10, 100, 1000, 10000, 100000, 1000000].forEach(rank => logRank(rank - 1));
 
     await fs.promises.writeFile(outputPath, JSON.stringify(allPages, null, 2));
-    console.log(`Processed ${date}, saved ${allPages.length} pages`);
+    //console.log(`Processed ${date}, saved ${allPages.length} pages`);
     
   } catch (error) {
     console.error(`Error processing ${date}:`, error);
   }
 }
 
-// Process last 30 days
-async function main(yearMonth?: string) {
-  // If no yearMonth provided, use current month
-  if (!yearMonth) {
-    const today = new Date();
-    yearMonth = today.toISOString().slice(0, 7);
-  }
-
-  const [year, month] = yearMonth.split('-');
+// Helper function to get random days from a month
+function getRandomDays(year: string, month: string, count: number): string[] {
   const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+  const days = Array.from({length: daysInMonth}, (_, i) => i + 1);
   
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}${month}${day.toString().padStart(2, '0')}`;
-    await processDailyDump(dateStr);
-    // Wait between requests to be nice to the server
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  // Shuffle array and take first 'count' elements
+  return days
+    .sort(() => Math.random() - 0.5)
+    .slice(0, count)
+    .map(day => `${year}${month}${day.toString().padStart(2, '0')}`)
+    .sort(); // Sort dates for chronological processing
+}
+
+// Modify main function to handle date ranges
+async function main() {
+  // Process months from January 2024 to November 2024
+  for (let month = 1; month <= 11; month++) {
+    const monthStr = month.toString().padStart(2, '0');
+    const randomDates = getRandomDays('2024', monthStr, 3);
+    
+    for (const dateStr of randomDates) {
+      await processDailyDump(dateStr);
+      // Wait between requests to be nice to the server
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 }
 
-// Update the script execution to accept command line argument
-const yearMonth = process.argv[2]; // e.g., "2024-11"
-main(yearMonth).catch(console.error); 
+// Remove command line argument handling since we're using fixed date range
+main().catch(console.error); 
