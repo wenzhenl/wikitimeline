@@ -82,7 +82,6 @@
     Barry_Keoghan
     Biggest_ball_of_twine
     2024_ICC_Men's_T20_World_Cup
-    Help:IPA/English
     Lady_Gaga
     Usha_Vance
     2004_United_States_presidential_election
@@ -122,7 +121,6 @@
     Caitlin_Clark
     The_Beekeeper_(2024_film)
     Manjummel_Boys
-    Wikipedia:Contact_us
     Bob_Marley
     The_Bear_(TV_series)
     Iran
