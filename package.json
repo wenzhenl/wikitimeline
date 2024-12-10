@@ -25,6 +25,7 @@
     "react": "^18",
     "react-dom": "^18",
     "style-loader": "^4.0.0",
+    "unbzip2-stream": "^1.4.3",
     "wikipedia": "^2.1.2"
   },
   "devDependencies": {
