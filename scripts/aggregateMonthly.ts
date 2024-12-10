@@ -10,16 +10,18 @@ async function aggregateMonthlyData() {
     const data = JSON.parse(await fs.promises.readFile(`.data/daily/${file}`, 'utf8'));
     
     data.forEach((page: { title: string; views: number }) => {
-      if (!monthlyViews.has(page.title)) {
-        monthlyViews.set(page.title, {
-          title: page.title,
-          totalViews: page.views,
-          appearances: 1
-        });
-      } else {
-        const existing = monthlyViews.get(page.title)!;
-        existing.totalViews += page.views;
-        existing.appearances += 1;
+      if (page.views >= 10000) {
+        if (!monthlyViews.has(page.title)) {
+          monthlyViews.set(page.title, {
+            title: page.title,
+            totalViews: page.views,
+            appearances: 1
+          });
+        } else {
+          const existing = monthlyViews.get(page.title)!;
+          existing.totalViews += page.views;
+          existing.appearances += 1;
+        }
       }
     });
   }
