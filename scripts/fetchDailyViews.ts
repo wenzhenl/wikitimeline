@@ -1,3 +1,4 @@
+const fs = require('fs/promises');
 const bz2 = require('unbzip2-stream');
 const readline = require('readline');
 const https = require('https');
