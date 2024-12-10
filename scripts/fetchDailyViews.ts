@@ -51,9 +51,20 @@ async function processDailyDump(date: string) {
       }
     }
 
-    // Convert Map to array of objects without sorting or slicing
+    // Convert Map to array of objects, sort by views descending
     const allPages = Array.from(pageViews.entries())
-      .map(([title, views]) => ({ title, views }));
+      .map(([title, views]) => ({ title, views }))
+      .sort((a, b) => b.views - a.views);
+
+    // Log interesting rank positions
+    const logRank = (rank: number) => {
+      if (rank < allPages.length) {
+        console.log(`Rank ${rank}: ${allPages[rank].title} (${allPages[rank].views.toLocaleString()} views)`);
+      }
+    };
+
+    // Log ranks: 1, 10, 100, 1000, 10000, 100000, 1000000
+    [1, 10, 100, 1000, 10000, 100000, 1000000].forEach(rank => logRank(rank - 1));
 
     await fs.promises.writeFile(outputPath, JSON.stringify(allPages, null, 2));
     console.log(`Processed ${date}, saved ${allPages.length} pages`);
