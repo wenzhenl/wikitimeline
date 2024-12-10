@@ -59,7 +59,7 @@ async function getTopWikipediaPages(year: number, month: number, limit: number =
   }
 }
 
-async function main() {
+async function fetchTopPages() {
   // Get top pages for the last 12 months
   const pages = new Map<string, PageStats>(); // Use Map to deduplicate
 
@@ -99,4 +99,4 @@ async function main() {
   console.log(`Saved ${sortedPages.length} pages to top_wikipedia_pages.json`);
 }
 
-main().catch(console.error); 
+fetchTopPages().catch(console.error); 
