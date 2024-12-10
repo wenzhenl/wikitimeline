@@ -1,5 +1,3 @@
-const fs = require('fs/promises');
-
 interface WikiPageView {
   article: string;
   views: number;

@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 async function aggregateMonthlyData() {
   const monthlyViews = new Map<string, { title: string; totalViews: number; appearances: number }>();
   const dailyFiles = await fs.promises.readdir('.data/daily');
