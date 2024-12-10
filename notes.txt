@@ -1,0 +1,12 @@
+https://dumps.wikimedia.org/other/pageview_complete/2024/2024-10/pageviews-20241001-user.bz2
+Downloading 20241001...
+Rank 0: Main_Page (4,713,553 views)
+Rank 9: Gavin_Creel (236,011 views)
+Rank 99: Joker_(2019_film) (39,161 views)
+Rank 999: Help:Pronunciation_respelling_key (9,325 views)
+Rank 9999: The_Bronx (2,273 views)
+Rank 99999: RP_FLIP (363 views)
+Rank 999999: Kitty_Kirkpatrick (23 views)
+Processed 20241001, saved 7767851 pages
+
+
