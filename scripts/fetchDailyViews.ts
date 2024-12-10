@@ -88,20 +88,24 @@ function getRandomDays(year: string, month: string, count: number): string[] {
     .sort(); // Sort dates for chronological processing
 }
 
-// Modify main function to handle date ranges
+// Modify main function to handle a single month
 async function main() {
-  // Process months from January 2024 to November 2024
-  for (let month = 1; month <= 11; month++) {
-    const monthStr = month.toString().padStart(2, '0');
-    const randomDates = getRandomDays('2024', monthStr, 3);
-    
-    for (const dateStr of randomDates) {
-      await processDailyDump(dateStr);
-      // Wait between requests to be nice to the server
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+  const month = process.argv[2];
+  
+  // Validate month input
+  if (!month || !/^(0[1-9]|1[0-1])$/.test(month)) {
+    console.error('Please provide a valid month (01-11)');
+    process.exit(1);
+  }
+
+  const randomDates = getRandomDays('2024', month, 3);
+  
+  for (const dateStr of randomDates) {
+    await processDailyDump(dateStr);
+    // Wait between requests to be nice to the server
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 }
 
-// Remove command line argument handling since we're using fixed date range
+// Run with month argument
 main().catch(console.error); 
