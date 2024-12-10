@@ -1,12 +1,12 @@
-const fs = require('fs/promises');
+const fs = require('fs');
 const bz2 = require('unbzip2-stream');
 const readline = require('readline');
 const https = require('https');
-import { IncomingMessage } from 'http';
+const { IncomingMessage } = require('http');
 
 async function downloadFile(url: string): Promise<NodeJS.ReadableStream> {
   return new Promise((resolve, reject) => {
-    https.get(url, (response: IncomingMessage) => {
+    https.get(url, (response: typeof IncomingMessage) => {
       if (response.statusCode === 200) {
         resolve(response);
       } else {
@@ -17,7 +17,13 @@ async function downloadFile(url: string): Promise<NodeJS.ReadableStream> {
 }
 
 async function processDailyDump(date: string) {
-  const url = `https://dumps.wikimedia.org/other/pageview_complete/2024/2024-11/pageviews-${date}-user.bz2`;
+  // Extract year, month, day from the date string (format: YYYYMMDD)
+  const year = date.slice(0, 4);
+  const month = date.slice(4, 6);
+  const day = date.slice(6, 8);
+  
+  const url = `https://dumps.wikimedia.org/other/pageview_complete/${year}/${year}-${month}/pageviews-${date}-user.bz2`;
+  console.log(url);
   const outputPath = `.data/daily/pageviews-${date}.json`;
   const pageViews = new Map<string, number>();
 
