@@ -51,13 +51,12 @@ async function processDailyDump(date: string) {
       }
     }
 
-    const sortedPages = Array.from(pageViews.entries())
-      .map(([title, views]) => ({ title, views }))
-      .sort((a, b) => b.views - a.views)
-      .slice(0, 100000);
+    // Convert Map to array of objects without sorting or slicing
+    const allPages = Array.from(pageViews.entries())
+      .map(([title, views]) => ({ title, views }));
 
-    await fs.promises.writeFile(outputPath, JSON.stringify(sortedPages, null, 2));
-    console.log(`Processed ${date}, saved ${sortedPages.length} pages`);
+    await fs.promises.writeFile(outputPath, JSON.stringify(allPages, null, 2));
+    console.log(`Processed ${date}, saved ${allPages.length} pages`);
     
   } catch (error) {
     console.error(`Error processing ${date}:`, error);
