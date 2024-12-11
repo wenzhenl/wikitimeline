@@ -1,4 +1,6 @@
 export const SITE_CONFIG = {
-  DOMAIN: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-  URLS_PER_SITEMAP: 5, // change back to 40000 when launched
+  DOMAIN: process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'http://localhost:3000',
+  URLS_PER_SITEMAP: 5,
 } as const 
