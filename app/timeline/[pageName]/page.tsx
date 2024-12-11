@@ -230,9 +230,13 @@ export default function TimelinePage({
                 const normalizedDate = isNegativeYear
                   ? event.date.slice(1)
                   : event.date;
-                const [initialYear, month, day] = normalizedDate
-                  .split("-")
-                  .map(Number);
+                const dateParts = normalizedDate.split("-");
+
+                // Handle partial dates (year only or year-month)
+                const initialYear = parseInt(dateParts[0]) || 0;
+                const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
+                const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
+
                 // Convert year back to negative if needed
                 const year = isNegativeYear ? -initialYear : initialYear;
 
