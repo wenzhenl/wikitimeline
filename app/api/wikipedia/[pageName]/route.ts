@@ -60,7 +60,8 @@ async function getCachedCompletion(pageName: string, summary?: string) {
           "You are a timeline generator that extracts events directly from Wikipedia articles. " +
           "Create a chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
           "Return a JSON object with a 'timeline' array. Each event should have: " +
-          "'date' (YYYY-MM-DD format), 'headline' (brief title), and 'text' (detailed description). " +
+          "'date' (YYYY-MM-DD format, use negative years for BC/BCE dates), 'headline' (brief title), and 'text' (detailed description). " +
+          "For example, 30 BC August 10 should be '-0030-08-10'. " +
           "Ensure all dates and events are factually accurate and sourced from Wikipedia. " +
           "Do not skip significant life events or major milestones."
       },
@@ -84,6 +85,7 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   });
 
   const result = JSON.parse(completion.choices[0].message.content!);
+  console.log(result);
   
   // Store in cache using TTL from config
   try {
