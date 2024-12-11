@@ -2,6 +2,7 @@ import { OpenAI } from 'openai';
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import { CACHE_CONFIG } from '@/app/config/cache';
+import logger from '@/app/utils/logger';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -85,7 +86,7 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   });
 
   const result = JSON.parse(completion.choices[0].message.content!);
-  console.log(result);
+  logger.debug(result);
   
   // Store in cache using TTL from config
   try {
