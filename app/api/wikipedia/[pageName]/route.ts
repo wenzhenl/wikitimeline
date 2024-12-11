@@ -10,7 +10,7 @@ const openai = new OpenAI({
 // Initialize Redis
 const redis = Redis.fromEnv();
 
-async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string }> {
+async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string; error?: string }> {
   try {
     const summary = await wiki.summary(title);
     return {
@@ -21,7 +21,8 @@ async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumb
   } catch (error) {
     console.error('Error fetching Wikipedia info:', error);
     return {
-      pageUrl: `https://en.wikipedia.org/wiki/${title}`
+      pageUrl: `https://en.wikipedia.org/wiki/${title}`,
+      error: 'Could not fetch Wikipedia information'
     };
   }
 }
@@ -101,10 +102,17 @@ export async function GET(
 ) {
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
+    const failedPages: string[] = [];
     
     const eventPromises = pageNames.map(async (pageName) => {
-      const { pageUrl, thumbnail, summary } = await getWikipediaInfo(pageName.trim());
-      const parsedContent = await getCachedCompletion(pageName.trim(), summary);
+      const wikiInfo = await getWikipediaInfo(pageName.trim());
+      
+      if (wikiInfo.error) {
+        failedPages.push(pageName.trim());
+        return [];
+      }
+      
+      const parsedContent = await getCachedCompletion(pageName.trim(), wikiInfo.summary);
       
       return parsedContent.timeline.map((event: any) => ({
         date: event.date,
@@ -114,7 +122,7 @@ export async function GET(
         },
         group: formatGroupName(pageName.trim()),
         media: {
-          thumbnail: thumbnail,
+          thumbnail: wikiInfo.thumbnail,
         }
       }));
     });
@@ -124,7 +132,16 @@ export async function GET(
     const allEvents = allEventsArrays.flat();
     
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    return Response.json({ timeline: allEvents });
+    
+    const response: any = { timeline: allEvents };
+    if (failedPages.length > 0) {
+      response.errors = {
+        message: 'Some pages could not be fetched from Wikipedia',
+        failedPages
+      };
+    }
+    
+    return Response.json(response);
   } catch (error) {
     console.error('Error processing request:', error);
     return Response.json(
