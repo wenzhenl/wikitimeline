@@ -20,7 +20,7 @@ async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumb
       summary: summary.extract
     };
   } catch (error) {
-    console.error('Error fetching Wikipedia info:', error);
+    logger.error('Error fetching Wikipedia info:', error);
     return {
       pageUrl: `https://en.wikipedia.org/wiki/${title}`,
       error: 'Could not fetch Wikipedia information'
@@ -45,11 +45,11 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      console.log(`Cache hit for ${pageName}`);
+      logger.info(`Cache hit for ${pageName}`);
       return cached;
     }
   } catch (error) {
-    console.warn('Cache read error:', error);
+    logger.warn('Cache read error:', error);
   }
 
   // If not in cache, fetch from OpenAI
@@ -77,7 +77,7 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   });
 
   // Log token usage
-  console.log(`Token usage for ${pageName}:`, {
+  logger.info(`Token usage for ${pageName}:`, {
     prompt_tokens: completion.usage?.prompt_tokens,
     completion_tokens: completion.usage?.completion_tokens,
     total_tokens: completion.usage?.total_tokens,
@@ -91,9 +91,9 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   // Store in cache using TTL from config
   try {
     await redis.set(cacheKey, result, { ex: CACHE_CONFIG.TIMELINE.TTL });
-    console.log(`Cached timeline for ${pageName}`);
+    logger.info(`Cached timeline for ${pageName}`);
   } catch (error) {
-    console.warn('Cache write error:', error);
+    logger.warn('Cache write error:', error);
   }
 
   return result;
@@ -159,7 +159,7 @@ export async function GET(
     
     return Response.json(response);
   } catch (error) {
-    console.error('Error processing request:', error);
+    logger.error('Error processing request:', error);
     return Response.json(
       { error: 'Failed to generate timeline' },
       { status: 500 }
