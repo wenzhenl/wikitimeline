@@ -61,6 +61,15 @@ const GROUP_COLORS = {
   },
 };
 
+// Add new interface for API response
+interface TimelineResponse {
+  timeline: TimelineEvent[];
+  errors?: {
+    message: string;
+    failedPages: string[];
+  };
+}
+
 export default function TimelinePage({
   params,
 }: {
@@ -69,6 +78,7 @@ export default function TimelinePage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [failedPages, setFailedPages] = useState<string[]>([]);
 
   // Create a map to store group indices
   const groupIndices = new Map<string, number>();
@@ -84,13 +94,19 @@ export default function TimelinePage({
           throw new Error("Failed to fetch timeline data");
         }
 
-        const data = await response.json();
+        const data: TimelineResponse = await response.json();
         console.log("Received timeline data:", JSON.stringify(data, null, 2));
-        if (data.error) {
-          throw new Error(data.error);
+
+        if (data.timeline.length === 0) {
+          throw new Error(
+            data.errors?.message || "No timeline events could be generated"
+          );
         }
 
         setEvents(data.timeline);
+        if (data.errors?.failedPages) {
+          setFailedPages(data.errors.failedPages);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -185,39 +201,53 @@ export default function TimelinePage({
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Interactive timeline generated from Wikipedia content
             </p>
+            {failedPages.length > 0 && (
+              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
+                <p className="text-yellow-800 dark:text-yellow-200">
+                  Note: Could not fetch data for: {failedPages.join(", ")}
+                  <br />
+                  <span className="text-sm">
+                    These pages might not exist on Wikipedia or may be
+                    temporarily unavailable.
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Timeline Section - Full width */}
-        <div className="w-full h-[800px]">
-          <MyTimelineComponent
-            events={events.map((event) => {
-              const [year, month, day] = event.date.split("-").map(Number);
+        {events.length > 0 && (
+          <div className="w-full h-[800px]">
+            <MyTimelineComponent
+              events={events.map((event) => {
+                const [year, month, day] = event.date.split("-").map(Number);
 
-              // Assign a consistent index to each group
-              if (!groupIndices.has(event.group)) {
-                groupIndices.set(event.group, groupIndices.size);
-              }
-              const groupIndex = groupIndices.get(event.group)!;
-              const colors =
-                GROUP_COLORS[groupIndex as keyof typeof GROUP_COLORS] ||
-                GROUP_COLORS[0];
+                // Assign a consistent index to each group
+                if (!groupIndices.has(event.group)) {
+                  groupIndices.set(event.group, groupIndices.size);
+                }
+                const groupIndex = groupIndices.get(event.group)!;
+                const colors =
+                  GROUP_COLORS[groupIndex as keyof typeof GROUP_COLORS] ||
+                  GROUP_COLORS[0];
 
-              return {
-                start_date: { year, month, day },
-                text: {
-                  headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.text.headline}</span>`,
-                  text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text.text}</span>`,
-                },
-                group: event.group,
-                media: event.media,
-                background: {
-                  color: colors.color,
-                },
-              };
-            })}
-          />
-        </div>
+                return {
+                  start_date: { year, month, day },
+                  text: {
+                    headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.text.headline}</span>`,
+                    text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text.text}</span>`,
+                  },
+                  group: event.group,
+                  media: event.media,
+                  background: {
+                    color: colors.color,
+                  },
+                };
+              })}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
