@@ -103,6 +103,7 @@ export async function GET(
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
     const failedPages: string[] = [];
+    const noTimelinePages: string[] = [];
     
     const eventPromises = pageNames.map(async (pageName) => {
       const wikiInfo = await getWikipediaInfo(pageName.trim());
@@ -113,6 +114,12 @@ export async function GET(
       }
       
       const parsedContent = await getCachedCompletion(pageName.trim(), wikiInfo.summary);
+      
+      // Check if timeline was generated
+      if (!parsedContent.timeline || parsedContent.timeline.length === 0) {
+        noTimelinePages.push(pageName.trim());
+        return [];
+      }
       
       return parsedContent.timeline.map((event: any) => ({
         date: event.date,
@@ -127,17 +134,23 @@ export async function GET(
       }));
     });
 
-    // Wait for all promises to resolve
     const allEventsArrays = await Promise.all(eventPromises);
     const allEvents = allEventsArrays.flat();
     
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
     const response: any = { timeline: allEvents };
-    if (failedPages.length > 0) {
+    
+    // Combine both types of failures in the error message
+    const problemPages = [...failedPages, ...noTimelinePages];
+    if (problemPages.length > 0) {
       response.errors = {
-        message: `Could not fetch Wikipedia data for: ${failedPages.join(', ')}`,
-        failedPages
+        message: `Could not generate timeline for: ${problemPages.join(', ')}`,
+        failedPages: problemPages,
+        details: {
+          noWikipediaData: failedPages,
+          noTimelineGenerated: noTimelinePages
+        }
       };
     }
     
