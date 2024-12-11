@@ -67,6 +67,10 @@ interface TimelineResponse {
   errors?: {
     message: string;
     failedPages: string[];
+    details?: {
+      noWikipediaData: string[];
+      noTimelineGenerated: string[];
+    };
   };
 }
 
@@ -78,7 +82,7 @@ export default function TimelinePage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [failedPages, setFailedPages] = useState<string[]>([]);
+  const [skippedPages, setSkippedPages] = useState<string[]>([]);
 
   // Create a map to store group indices
   const groupIndices = new Map<string, number>();
@@ -95,7 +99,6 @@ export default function TimelinePage({
         }
 
         const data: TimelineResponse = await response.json();
-        console.log("Received timeline data:", JSON.stringify(data, null, 2));
 
         if (data.timeline.length === 0) {
           throw new Error(
@@ -105,7 +108,7 @@ export default function TimelinePage({
 
         setEvents(data.timeline);
         if (data.errors?.failedPages) {
-          setFailedPages(data.errors.failedPages);
+          setSkippedPages(data.errors.failedPages);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -201,14 +204,14 @@ export default function TimelinePage({
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Interactive timeline generated from Wikipedia content
             </p>
-            {failedPages.length > 0 && (
+            {skippedPages.length > 0 && (
               <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
                 <p className="text-yellow-800 dark:text-yellow-200">
-                  Note: Could not fetch data for: {failedPages.join(", ")}
+                  Could not generate timeline for: {skippedPages.join(", ")}
                   <br />
                   <span className="text-sm">
-                    These pages might not exist on Wikipedia or may be
-                    temporarily unavailable.
+                    These pages might not exist on Wikipedia or might not
+                    contain enough timeline data.
                   </span>
                 </p>
               </div>
