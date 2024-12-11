@@ -224,7 +224,17 @@ export default function TimelinePage({
           <div className="w-full h-[800px]">
             <MyTimelineComponent
               events={events.map((event) => {
-                const [year, month, day] = event.date.split("-").map(Number);
+                // Check if it's a negative year first
+                const isNegativeYear = event.date.startsWith("-");
+                // Remove the negative sign and process as normal YYYY-MM-DD
+                const normalizedDate = isNegativeYear
+                  ? event.date.slice(1)
+                  : event.date;
+                const [initialYear, month, day] = normalizedDate
+                  .split("-")
+                  .map(Number);
+                // Convert year back to negative if needed
+                const year = isNegativeYear ? -initialYear : initialYear;
 
                 // Assign a consistent index to each group
                 if (!groupIndices.has(event.group)) {
