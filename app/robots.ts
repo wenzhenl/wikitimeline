@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { SITE_CONFIG } from './config/site'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/api/',
     },
-    sitemap: 'https://wikitimeline-nu.vercel.app/sitemap.xml',
+    sitemap: `${SITE_CONFIG.DOMAIN}/sitemap.xml`,
   }
 } 
