@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import logger from "@/app/utils/logger";
 
 interface SearchResult {
   title: string;
@@ -88,7 +89,7 @@ export default function WikiSearch({
           setSearchResults([]);
         }
       } catch (error) {
-        console.error("Error fetching Wikipedia search results:", error);
+        logger.error("Error fetching Wikipedia search results:", error);
         setSearchResults([]);
       }
       setIsLoading(false);
