@@ -1,8 +1,9 @@
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
 import { NextResponse } from 'next/server'
 
-const URLS_PER_SITEMAP = 40000 // Keep under 50,000 limit
+const URLS_PER_SITEMAP = 40000
 const DOMAIN = 'https://wikitimeline-nu.vercel.app'
+const redis = Redis.fromEnv()
 
 export async function GET(
   request: Request,
@@ -24,14 +25,12 @@ export async function GET(
       const page = parseInt(pageMatch[1])
       const start = (page - 1) * URLS_PER_SITEMAP
       
-      // Get paginated keys from KV
-      // Using SCAN instead of KEYS for pagination
-      const { keys, cursor } = await kv.scan(start, { 
-        match: 'timeline:*', 
-        count: URLS_PER_SITEMAP 
-      })
+      // Get all keys and paginate in memory
+      // Note: For very large datasets, you might want to implement a different strategy
+      const allKeys = await redis.keys('timeline:*')
+      const paginatedKeys = allKeys.slice(start, start + URLS_PER_SITEMAP)
 
-      const xml = generateTimelineSitemap(keys)
+      const xml = generateTimelineSitemap(paginatedKeys)
       return new NextResponse(xml, {
         headers: { 'Content-Type': 'application/xml' },
       })
