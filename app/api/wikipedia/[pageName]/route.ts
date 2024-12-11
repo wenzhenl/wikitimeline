@@ -136,7 +136,7 @@ export async function GET(
     const response: any = { timeline: allEvents };
     if (failedPages.length > 0) {
       response.errors = {
-        message: 'Some pages could not be fetched from Wikipedia',
+        message: `Could not fetch Wikipedia data for: ${failedPages.join(', ')}`,
         failedPages
       };
     }
