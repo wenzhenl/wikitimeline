@@ -59,12 +59,17 @@ async function getCachedCompletion(pageName: string, summary?: string) {
         role: "system",
         content: 
           "You are a timeline generator that extracts events directly from Wikipedia articles. " +
-          "Create a chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
+          "Create a comprehensive chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
           "Return a JSON object with a 'timeline' array. Each event should have: " +
-          "'date' (YYYY-MM-DD format, use negative years for BC/BCE dates), 'headline' (brief title), and 'text' (detailed description). " +
-          "For example, 30 BC August 10 should be '-0030-08-10'. " +
-          "Ensure all dates and events are factually accurate and sourced from Wikipedia. " +
-          "Do not skip significant life events or major milestones."
+          "'date' (use the most precise date available, following these formats: " +
+          "- YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)" +
+          "- YYYY-MM for year and month" +
+          "- YYYY-MM-DD for full dates), " +
+          "'headline' (brief title), and 'text' (detailed description). " +
+          "IMPORTANT: For dates before year 0 (BCE/BC), always use negative years (e.g., '-0221' for 221 BCE). " +
+          "Include as many significant events as possible, especially for historical figures. " +
+          "For ancient historical figures, include major accomplishments, reforms, battles, political changes, and cultural impacts. " +
+          "Ensure all dates and events are factually accurate and sourced from Wikipedia."
       },
       {
         role: "user",
