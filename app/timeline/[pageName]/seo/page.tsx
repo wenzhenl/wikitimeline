@@ -5,13 +5,30 @@ import logger from "@/app/utils/logger";
 // Initialize Redis
 const redis = Redis.fromEnv();
 
+// Define a TypeScript interface for the timeline data
+interface TimelineEvent {
+  date: string;
+  headline: string;
+  text?: string;
+}
+
 export default async function TimelineSEOPage({
   params,
 }: {
   params: { pageName: string };
 }) {
   const cacheKey = `timeline:${params.pageName}`;
-  const data = (await redis.get(cacheKey)) as { timeline: any[] };
+  let data: { timeline: TimelineEvent[] } | null = null;
+
+  try {
+    data = (await redis.get(cacheKey)) as { timeline: TimelineEvent[] };
+  } catch (error) {
+    logger.error(
+      `Failed to fetch timeline data for ${params.pageName}:`,
+      error
+    );
+    return <div>Error loading timeline data.</div>;
+  }
 
   if (!data || !data.timeline || data.timeline.length === 0) {
     return <div>No timeline data available.</div>;
@@ -28,6 +45,10 @@ export default async function TimelineSEOPage({
       <Link
         href={`/timeline/${params.pageName}`}
         className="text-blue-600 hover:underline mb-8 block"
+        aria-label={`View interactive timeline for ${params.pageName.replace(
+          /_/g,
+          " "
+        )}`}
       >
         View Interactive Timeline
       </Link>
