@@ -22,15 +22,8 @@ const nextConfig = {
         use: [
           'style-loader',
           'css-loader',
-          {
-            loader: 'less-loader',
-            options: {
-              lessOptions: {
-                javascriptEnabled: true,
-              },
-            },
-          },
-        ],
+          'less-loader'
+        ]
       },
       {
         test: /\.css$/,
