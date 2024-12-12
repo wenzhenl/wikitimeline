@@ -20,7 +20,7 @@ export async function GET(
     const pageMatch = slug.match(/timelines-(\d+)/)
     if (pageMatch) {
       const page = parseInt(pageMatch[1])
-      const start = (page - 1) * SITE_CONFIG.URLS_PER_SITEMAP
+      const start = (page - 1) * (SITE_CONFIG.URLS_PER_SITEMAP / 2)
       
       const allKeys = await redis.keys('timeline:*')
       const paginatedKeys = allKeys.slice(start, start + (SITE_CONFIG.URLS_PER_SITEMAP / 2))
