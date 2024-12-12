@@ -59,6 +59,12 @@ function generateTimelineSitemap(keys: string[]) {
         <lastmod>${new Date().toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
+      </url>
+      <url>
+        <loc>${SITE_CONFIG.DOMAIN}/timeline/${timelineName}/text</loc>
+        <lastmod>${new Date().toISOString()}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
       </url>`
   }).join('')
 
