@@ -12,7 +12,7 @@ const openai = new OpenAI({
 const redis = Redis.fromEnv();
 
 async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string; error?: string }> {
-  const cacheKey = `wiki_page:${title}`;
+  const cacheKey = `summary:${title}`;
   
   // Try to get from cache first
   try {
@@ -63,7 +63,7 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
-      logger.info(`Cache hit for ${pageName}`);
+      logger.info(`Cache hit for timeline: ${pageName}`);
       return cached;
     }
   } catch (error) {
