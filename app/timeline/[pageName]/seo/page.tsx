@@ -1,5 +1,6 @@
 import { Redis } from "@upstash/redis";
 import Link from "next/link";
+import logger from "@/app/utils/logger";
 
 // Initialize Redis
 const redis = Redis.fromEnv();
@@ -16,10 +17,12 @@ export default async function TimelineSEOPage({
     return <div>No timeline data available.</div>;
   }
 
+  logger.info(`Timeline data for ${params.pageName}:`, data);
+
   return (
     <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">
-        Timeline: {decodeURIComponent(params.pageName).replace(/_/g, " ")}
+      <h1 className="text-3xl text-gray-600 font-bold mb-8">
+        Timeline: {params.pageName.replace(/_/g, " ")}
       </h1>
 
       <Link
@@ -46,32 +49,11 @@ export default async function TimelineSEOPage({
                 {dateParts[2] && `-${dateParts[2]}`}
               </time>
 
-              <h2 className="text-xl font-semibold mb-2">
-                {event.text.headline}
+              <h2 className="text-xl text-gray-600 font-semibold mb-2">
+                {event.headline}
               </h2>
 
-              {event.text.text && (
-                <p className="text-gray-700 mb-4">{event.text.text}</p>
-              )}
-
-              {event.group && (
-                <div className="text-sm text-gray-500">
-                  Category: {event.group}
-                </div>
-              )}
-
-              {event.media?.url && (
-                <div className="mt-4">
-                  <a
-                    href={event.media.url}
-                    className="text-blue-600 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Related Media
-                  </a>
-                </div>
-              )}
+              {event.text && <p className="text-gray-700 mb-4">{event.text}</p>}
             </article>
           );
         })}
