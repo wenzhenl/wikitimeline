@@ -176,7 +176,7 @@ export default function TimelinePage({
             </Link>
             <div className="flex items-center gap-4">
               <Link
-                href={`/timeline/${params.pageName}/seo`}
+                href={`/timeline/${params.pageName}/text`}
                 className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition"
               >
                 Text Version
