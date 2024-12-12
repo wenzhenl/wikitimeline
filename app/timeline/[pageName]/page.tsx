@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import MyTimelineComponent from "../../components/MyTimelineComponent";
 import Link from "next/link";
-import TimelineSEOContent from "@/app/components/TimelineSEOContent";
 
 interface TimelineEvent {
   date: string;
@@ -219,29 +218,6 @@ export default function TimelinePage({
             )}
           </div>
         </div>
-
-        {/* SEO Content - This will be hidden visually but available to search engines */}
-        {events.length > 0 && (
-          <TimelineSEOContent
-            events={events.map((event) => ({
-              start_date: {
-                year: parseInt(event.date.replace(/^-/, "")),
-                month: event.date.split("-")[1]
-                  ? parseInt(event.date.split("-")[1])
-                  : undefined,
-                day: event.date.split("-")[2]
-                  ? parseInt(event.date.split("-")[2])
-                  : undefined,
-              },
-              text: {
-                headline: event.text.headline,
-                text: event.text.text,
-              },
-              group: event.group,
-              media: event.media,
-            }))}
-          />
-        )}
 
         {/* Timeline Section - Full width */}
         {events.length > 0 && (
