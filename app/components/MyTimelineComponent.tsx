@@ -2,8 +2,7 @@
 import { useEffect, useRef } from "react";
 import { Timeline } from "@knight-lab/timelinejs";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
-import "@knight-lab/timelinejs/src/less/TL.Timeline.less";
-import "./timeline-custom.css"; // Import the custom CSS
+import "./timeline-custom.css";
 
 export interface Event {
   start_date: { year: number; month?: number; day?: number };
