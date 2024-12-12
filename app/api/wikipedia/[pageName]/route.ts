@@ -12,13 +12,31 @@ const openai = new OpenAI({
 const redis = Redis.fromEnv();
 
 async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string; error?: string }> {
+  const cacheKey = `wiki_page:${title}`;
+  
+  // Try to get from cache first
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached && typeof cached === 'object' && 'pageUrl' in cached) {
+      logger.info(`Cache hit for Wikipedia page ${title}`);
+      return cached as { pageUrl: string; thumbnail?: string; summary?: string; error?: string };
+    }
+  } catch (error) {
+    logger.warn('Cache read error:', error);
+  }
+
   try {
     const summary = await wiki.summary(title);
-    return {
+    const result = {
       pageUrl: `https://en.wikipedia.org/wiki/${title}`,
       thumbnail: summary.thumbnail?.source,
       summary: summary.extract
     };
+
+    // Cache for 24 hours
+    await redis.set(cacheKey, result, { ex: 86400 });
+    
+    return result;
   } catch (error) {
     logger.error('Error fetching Wikipedia info:', error);
     return {
