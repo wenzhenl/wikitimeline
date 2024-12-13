@@ -122,34 +122,26 @@ export default function TimelinePage({
   }, [params.pageName]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      logger.info(
-        "Current localStorage value:",
-        localStorage.getItem("hasSeenSwipeTip")
-      );
-
-      const hasSeenSwipeTip = localStorage.getItem("hasSeenSwipeTip");
+    if (typeof window !== 'undefined') {
+      const hasSeenSwipeTip = localStorage.getItem('hasSeenSwipeTip');
       if (!hasSeenSwipeTip) {
-        logger.info("First time visit - setting localStorage");
-        localStorage.setItem("hasSeenSwipeTip", "true");
-      } else {
-        // Initial delay to let TimelineJS initialize
+        // For first-time users, wait for OK click
         setTimeout(() => {
-          // Check every 100ms for up to 5 seconds
-          let attempts = 0;
-          const checkInterval = setInterval(() => {
-            const messageContainer = document.querySelector(".tl-message-full");
-            if (messageContainer) {
-              (messageContainer as HTMLElement).style.display = "none";
-              logger.info("Message container hidden");
-              clearInterval(checkInterval);
-            } else if (attempts++ > 50) {
-              // 5 seconds max
-              logger.info("No message elements found after 5 seconds");
-              clearInterval(checkInterval);
-            }
-          }, 100);
-        }, 1000); // 1 second initial delay
+          const messageContainer = document.querySelector('.tl-message-full');
+          if (messageContainer) {
+            messageContainer.addEventListener('click', () => {
+              localStorage.setItem('hasSeenSwipeTip', 'true');
+            });
+          }
+        }, 1000);
+      } else {
+        // For returning users, hide the tip
+        setTimeout(() => {
+          const messageContainer = document.querySelector('.tl-message-full');
+          if (messageContainer) {
+            (messageContainer as HTMLElement).style.display = 'none';
+          }
+        }, 1000);
       }
     }
   }, []);
