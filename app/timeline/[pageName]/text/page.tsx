@@ -50,6 +50,37 @@ async function TimelineContent({ pageName }: { pageName: string }) {
   try {
     data = await redis.get(cacheKey) as { timeline: TimelineEvent[], errors?: { failedPages: string[] } };
     logger.info(`Fetched timeline data for ${pageName}`);
+
+    // Sort the timeline events
+    if (data?.timeline) {
+      data.timeline.sort((a, b) => {
+        // Handle negative years (BC)
+        const aIsNegative = a.date.startsWith('-');
+        const bIsNegative = b.date.startsWith('-');
+        
+        // Remove negative sign and split into parts
+        const aParts = (aIsNegative ? a.date.slice(1) : a.date).split('-').map(Number);
+        const bParts = (bIsNegative ? b.date.slice(1) : b.date).split('-').map(Number);
+        
+        // Compare years first (considering BC)
+        const aYear = aParts[0] * (aIsNegative ? -1 : 1);
+        const bYear = bParts[0] * (bIsNegative ? -1 : 1);
+        if (aYear !== bYear) return aYear - bYear;
+        
+        // If years are equal, compare months (if they exist)
+        if (aParts[1] && bParts[1] && aParts[1] !== bParts[1]) {
+          return aParts[1] - bParts[1];
+        }
+        
+        // If months are equal or non-existent, compare days (if they exist)
+        if (aParts[2] && bParts[2]) {
+          return aParts[2] - bParts[2];
+        }
+        
+        // If one date has more precision than the other, put the less precise one first
+        return (aParts.length - bParts.length);
+      });
+    }
   } catch (error) {
     logger.error(`Failed to fetch timeline data for ${pageName}:`, error);
     return <div>Error loading timeline data.</div>;
