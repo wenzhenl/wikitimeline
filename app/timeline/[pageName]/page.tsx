@@ -33,8 +33,10 @@ interface TimelineResponse {
   };
 }
 
-const EmbedDialog = ({ isOpen, onClose, pageName }: { isOpen: boolean; onClose: () => void; pageName: string }) => {
+const ShareDialog = ({ isOpen, onClose, pageName }: { isOpen: boolean; onClose: () => void; pageName: string }) => {
   const embedCode = `<iframe width="560" height="315" src="${window.location.origin}/timeline/${pageName}/embed" title="Timeline player" frameborder="0"></iframe>`;
+  const pageUrl = `${window.location.origin}/timeline/${pageName}`;
+  const shareText = `Check out this interactive timeline about ${decodeURIComponent(pageName).replace(/_/g, " ")}!`;
 
   return isOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
@@ -45,21 +47,49 @@ const EmbedDialog = ({ isOpen, onClose, pageName }: { isOpen: boolean; onClose: 
             ✕
           </button>
         </div>
-        <div className="mb-4">
+        
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <a
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 p-3 bg-black text-white rounded-lg hover:bg-gray-800"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+            </svg>
+            Share on X
+          </a>
+          
+          <a
+            href={`https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(shareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 p-3 bg-[#0088cc] text-white rounded-lg hover:bg-[#0077b3]"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.37-.49 1.03-.74 4.03-1.75 6.72-2.91 8.07-3.48 3.85-1.63 4.64-1.91 5.17-1.92.11 0 .37.03.54.18.17.15.21.36.23.5-.01.14.01.51-.01.51z"/>
+            </svg>
+            Telegram
+          </a>
+        </div>
+
+        <div className="border-t dark:border-gray-700 pt-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Embed this timeline</p>
           <input
             type="text"
             value={embedCode}
             readOnly
             onClick={(e) => e.currentTarget.select()}
-            className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-sm font-mono"
+            className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-sm font-mono mb-2"
           />
+          <button
+            onClick={() => navigator.clipboard.writeText(embedCode)}
+            className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Copy embed code
+          </button>
         </div>
-        <button
-          onClick={() => navigator.clipboard.writeText(embedCode)}
-          className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Copy embed code
-        </button>
       </div>
     </div>
   ) : null;
@@ -200,7 +230,7 @@ export default function TimelinePage({
                 onClick={() => setShowEmbed(true)}
                 className="text-blue-600 hover:text-blue-800"
               >
-                Embed
+                Share
               </button>
             </div>
           </div>
@@ -264,7 +294,7 @@ export default function TimelinePage({
         }
       `}</style>
 
-      <EmbedDialog
+      <ShareDialog
         isOpen={showEmbed}
         onClose={() => setShowEmbed(false)}
         pageName={params.pageName}
