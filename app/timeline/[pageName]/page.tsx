@@ -203,13 +203,7 @@ export default function TimelinePage({
                 href={`/timeline/${params.pageName}/text`}
                 className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition"
               >
-                Text Version
-              </Link>
-              <Link
-                href="/"
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition"
-              >
-                New Timeline
+                View Text Version
               </Link>
             </div>
           </div>
@@ -298,9 +292,13 @@ export default function TimelinePage({
       </main>
 
       <style jsx global>{`
-        .tl-slide-content .tl-text .tl-text-content-container .tl-text-headline-container .tl-headline-date,
+        .tl-slide-content
+          .tl-text
+          .tl-text-content-container
+          .tl-text-headline-container
+          .tl-headline-date,
         .tl-text .tl-headline-date {
-          color: #4B5563 !important; /* gray-600 for better visibility */
+          color: #4b5563 !important; /* gray-600 for better visibility */
           text-shadow: none !important;
           font-weight: 500 !important;
           opacity: 0.9 !important;
