@@ -203,6 +203,7 @@ export default function WikiSearch({
                         src={result.thumbnail.source}
                         alt={result.title}
                         fill
+                        unoptimized={true}
                         className="object-cover"
                       />
                     ) : (
