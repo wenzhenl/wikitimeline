@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import MyTimelineComponent from "../../../components/MyTimelineComponent";
-import { TimelineEvent } from "../page";
+import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
+import { useEffect, useState } from "react";
+import type { TimelineEvent } from "../page";
 
-export default function EmbedTimelinePage({
+export default function EmbedPage({
   params,
 }: {
   params: { pageName: string };
@@ -23,8 +23,12 @@ export default function EmbedTimelinePage({
   }, [params.pageName]);
 
   return (
-    <div className="h-full w-full">
-      <MyTimelineComponent events={formatTimelineEvents(events)} />
+    <div className="w-full h-screen">
+      {events.length > 0 && (
+        <MyTimelineComponent
+          events={formatTimelineEvents(events)}
+        />
+      )}
     </div>
   );
 }
