@@ -1,13 +1,13 @@
 #timeline-embed {
-  height: 600px; /* Adjust height as needed */
+  height: 500px !important; /* Reduced from default */
 }
 
 .tl-timeline .tl-timeline-slides .tl-slide {
-  min-height: 400px; /* Adjust height of each slide */
+  min-height: 240px !important; /* Match storyslider height */
 }
 
 .tl-storyslider {
-  height: 400px !important;
+  height: 240px !important; /* Reduced height */
 }
 
 .tl-timemarker {
@@ -57,6 +57,8 @@
   top: 50% !important; /* Position at 50% from the top */
   transform: translateY(-50%) !important; /* Center vertically */
   margin-top: 0 !important; /* Reset any margin that might affect positioning */
+  height: 40px !important;
+  width: 40px !important;
 }
 
 /* Date styling */
@@ -68,4 +70,25 @@
 /* Timeline axis */
 .tl-timeaxis-tick-text {
   color: #374151 !important; /* gray-700 */
+}
+
+/* Adjust slide container heights */
+.tl-storyslider {
+  height: 240px !important; /* Reduced height */
+}
+
+.tl-slide {
+  min-height: 240px !important; /* Match storyslider height */
+}
+
+/* Center the content vertically */
+.tl-slide-content-container {
+  display: flex !important;
+  align-items: center !important;
+  height: 100% !important;
+}
+
+/* Optional: adjust content width if needed */
+.tl-slide-content {
+  margin: 0 auto !important;
 }
