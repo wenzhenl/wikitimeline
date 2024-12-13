@@ -117,8 +117,8 @@ async function TimelineContent({ pageName }: { pageName: string }) {
         const year = parseInt(dateParts[0]);
 
         return (
-          <article key={index} className="border-b pb-6">
-            <time className="text-gray-600 block mb-2">
+          <article key={index} className="border-b border-gray-200 dark:border-gray-700 pb-6">
+            <time className="text-gray-600 dark:text-gray-400 block mb-2">
               {year} {isNegativeYear ? "BC" : ""}
               {dateParts[1] &&
                 ` ${new Date(2000, parseInt(dateParts[1]) - 1).toLocaleString(
@@ -128,18 +128,18 @@ async function TimelineContent({ pageName }: { pageName: string }) {
               {dateParts[2] && ` ${parseInt(dateParts[2])}`}
             </time>
 
-            <h2 className="text-xl font-semibold mb-2 text-gray-900">
+            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
               {event.headline}
             </h2>
 
-            {event.text && <p className="text-gray-700 mb-4">{event.text}</p>}
+            {event.text && <p className="text-gray-700 dark:text-gray-300 mb-4">{event.text}</p>}
           </article>
         );
       })}
 
       {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
-        <div className="mt-8 p-4 bg-yellow-50 rounded">
-          <p className="text-yellow-800">
+        <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
+          <p className="text-yellow-800 dark:text-yellow-200">
             Note: Could not include data from:{" "}
             {data.errors.failedPages.join(", ")}
           </p>
@@ -190,10 +190,10 @@ export default function TimelineTextPage({
 
       <main className="max-w-4xl mx-auto p-8 pt-24">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             {decodeURIComponent(activePage).replace(/_/g, " ")}
           </h1>
-          <p className="text-gray-600">Timeline events</p>
+          <p className="text-gray-600 dark:text-gray-400">Timeline events</p>
         </div>
 
         {/* Always show tabs if there are multiple pages */}
