@@ -26,14 +26,14 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
       const options = {
         scale_factor: 2,
         timenav_position: "top",
-        height: '80vh',
+        height: "600px",
         language: "en",
         hash_bookmark: true,
         marker_height_min: 50,
         marker_padding: 5,
         start_at_slide: 0,
         ga_measurement_id: "G-WPG6VTRDW9",
-        timenav_height_percentage: 40,
+        timenav_height_percentage: 20,
       };
 
       new Timeline(timelineRef.current, { events }, options);
