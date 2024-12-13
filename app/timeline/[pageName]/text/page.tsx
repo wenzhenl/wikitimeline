@@ -96,14 +96,14 @@ async function TimelineContent({ pageName }: { pageName: string }) {
         const isNegativeYear = event.date.startsWith("-");
         const normalizedDate = isNegativeYear ? event.date.slice(1) : event.date;
         const dateParts = normalizedDate.split("-");
-        const year = parseInt(dateParts[0]) * (isNegativeYear ? -1 : 1);
+        const year = parseInt(dateParts[0]);
         
         return (
           <article key={index} className="border-b pb-6">
             <time className="text-gray-600 block mb-2">
-              {year} 
-              {dateParts[1] && `-${dateParts[1]}`}
-              {dateParts[2] && `-${dateParts[2]}`}
+              {year} {isNegativeYear ? 'BC' : ''} 
+              {dateParts[1] && ` ${new Date(2000, parseInt(dateParts[1])-1).toLocaleString('default', { month: 'long' })}`}
+              {dateParts[2] && ` ${parseInt(dateParts[2])}`}
             </time>
             
             <h2 className="text-xl font-semibold mb-2 text-gray-900">
