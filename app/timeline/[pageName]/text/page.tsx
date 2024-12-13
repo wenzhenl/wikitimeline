@@ -146,7 +146,7 @@ export default async function TimelinePage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <Link
@@ -165,7 +165,7 @@ export default async function TimelinePage({
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto p-8">
+      <main className="max-w-4xl mx-auto p-8 pt-24">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             {decodeURIComponent(activePage).replace(/_/g, " ")}
