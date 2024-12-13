@@ -122,24 +122,22 @@ export default function TimelinePage({
   }, [params.pageName]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasSeenSwipeTip = localStorage.getItem('hasSeenSwipeTip');
+    if (typeof window !== "undefined") {
+      const hasSeenSwipeTip = localStorage.getItem("hasSeenSwipeTip");
       if (!hasSeenSwipeTip) {
-        // For first-time users, wait for OK click
-        setTimeout(() => {
-          const messageContainer = document.querySelector('.tl-message-full');
-          if (messageContainer) {
-            messageContainer.addEventListener('click', () => {
-              localStorage.setItem('hasSeenSwipeTip', 'true');
-            });
-          }
-        }, 1000);
+        // For first-time users, add click listener immediately
+        const messageContainer = document.querySelector(".tl-message-full");
+        if (messageContainer) {
+          messageContainer.addEventListener("click", () => {
+            localStorage.setItem("hasSeenSwipeTip", "true");
+          });
+        }
       } else {
-        // For returning users, hide the tip
+        // For returning users, hide the tip with minimal delay
         setTimeout(() => {
-          const messageContainer = document.querySelector('.tl-message-full');
+          const messageContainer = document.querySelector(".tl-message-full");
           if (messageContainer) {
-            (messageContainer as HTMLElement).style.display = 'none';
+            (messageContainer as HTMLElement).style.display = "none";
           }
         }, 1000);
       }
