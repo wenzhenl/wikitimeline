@@ -19,6 +19,12 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
       description,
       type: 'website',
       url,
+      videos: [{
+        url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/embed`,
+        width: 560,
+        height: 315,
+        type: 'text/html',
+      }],
     },
     alternates: {
       types: {
@@ -26,10 +32,10 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
       },
     },
     other: {
+      'twitter:card': 'player',
       'twitter:player': `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/embed`,
       'twitter:player:width': '560',
       'twitter:player:height': '315',
-      'twitter:card': 'player',
     }
   };
 }
