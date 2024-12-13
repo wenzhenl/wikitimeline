@@ -1,5 +1,8 @@
 #timeline-embed {
-  height: 500px !important; /* Reduced from default */
+  position: relative !important;
+  z-index: 1 !important;
+  min-height: 80vh !important;
+  width: 100% !important;
 }
 
 .tl-timeline .tl-timeline-slides .tl-slide {
@@ -7,7 +10,7 @@
 }
 
 .tl-storyslider {
-  height: 240px !important; /* Reduced height */
+  height: 60% !important;
 }
 
 .tl-timemarker {
@@ -16,13 +19,15 @@
 
 /* Base timeline styles */
 .tl-timeline {
-  min-height: 80vh !important;
+  position: relative !important;
+  z-index: 2 !important; /* Above the glass effect background */
   background: transparent !important;
 }
 
 .tl-timenav {
   background-color: rgba(255, 255, 255, 0.05) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  height: 40% !important;
 }
 
 /* Content styling */
