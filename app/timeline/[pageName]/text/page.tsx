@@ -75,7 +75,7 @@ async function TimelineContent({ pageName }: { pageName: string }) {
               {dateParts[2] && `-${dateParts[2]}`}
             </time>
             
-            <h2 className="text-xl font-semibold mb-2">
+            <h2 className="text-xl font-semibold mb-2 text-gray-900">
               {event.headline}
             </h2>
             
@@ -97,7 +97,7 @@ async function TimelineContent({ pageName }: { pageName: string }) {
   );
 }
 
-export default async function TimelineSEOPage({
+export default async function TimelinePage({
   params,
   searchParams,
 }: {
@@ -136,11 +136,11 @@ export default async function TimelineSEOPage({
 
       <main className="max-w-4xl mx-auto p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
             {decodeURIComponent(activePage).replace(/_/g, " ")}
           </h1>
           <p className="text-gray-600">
-            Timeline events from Wikipedia
+            Timeline events
           </p>
         </div>
 
