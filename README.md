@@ -105,10 +105,6 @@ Simply enter multiple names in the search bar to create comparative timelines. T
 
 Check out the [The last 10 US Presidents](https://wikitimeline-nu.vercel.app/timeline/Joe_Biden,Donald_Trump,Barack_Obama,George_W._Bush,Bill_Clinton,George_H._W._Bush,Ronald_Reagan,Jimmy_Carter,Gerald_Ford,Richard_Nixon) and [The founding fathers of United States](https://wikitimeline-nu.vercel.app/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison) to see it in action!
 
-<p align="center">
-<iframe width="560" height="315" src="https://wikitimeline-nu.vercel.app/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison/embed" title="Timeline player" frameborder="0"></iframe>
-</p>
-
 ## 🤝 Contributing
 
 This project demonstrates how to effectively use AI tools in development. Feel free to:
