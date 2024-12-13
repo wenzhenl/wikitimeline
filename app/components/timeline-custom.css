@@ -9,10 +9,6 @@
   min-height: 240px !important; /* Match storyslider height */
 }
 
-.tl-storyslider {
-  height: 60% !important;
-}
-
 .tl-timemarker {
   height: 400px; /* Adjust height of the time markers */
 }
@@ -27,7 +23,6 @@
 .tl-timenav {
   background-color: rgba(255, 255, 255, 0.05) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-  height: 40% !important;
 }
 
 /* Content styling */
