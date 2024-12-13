@@ -179,9 +179,9 @@ export default function TimelineTextPage({
             <div className="flex items-center gap-4">
               <Link
                 href={`/timeline/${params.pageName}`}
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition"
+                className="text-blue-600 hover:text-blue-800"
               >
-                View Interactive Version
+                View Interactive Timeline
               </Link>
             </div>
           </div>
