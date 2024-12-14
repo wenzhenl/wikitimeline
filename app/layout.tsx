@@ -23,7 +23,7 @@ export default function RootLayout({
         <GoogleAnalytics gaId="G-WPG6VTRDW9" />
         <Script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pubxxx"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
