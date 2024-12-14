@@ -47,19 +47,5 @@ export default function Layout({
   children: React.ReactNode;
   params: { pageName: string };
 }) {
-  const url = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`;
-  
-  return (
-    <>
-      <head>
-        <link 
-          rel="alternate" 
-          type="application/json+oembed" 
-          href={`${SITE_CONFIG.DOMAIN}/api/oembed?url=${encodeURIComponent(url)}`}
-          title={decodeURIComponent(params.pageName).replace(/_/g, " ")}
-        />
-      </head>
-      <div>{children}</div>
-    </>
-  );
+  return <div>{children}</div>;
 }
