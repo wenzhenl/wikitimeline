@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Timeline } from "@knight-lab/timelinejs";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import "./timeline-custom.css";
+import { SITE_CONFIG } from "../config/site";
 
 export interface Event {
   start_date: { year: number; month?: number; day?: number };
@@ -32,7 +33,7 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
         marker_height_min: 50,
         marker_padding: 5,
         start_at_slide: 0,
-        ga_measurement_id: "G-WPG6VTRDW9",
+        ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? '',
         timenav_height_percentage: 20,
       };
 

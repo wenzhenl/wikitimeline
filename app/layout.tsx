@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
 import "./globals.css";
+import { SITE_CONFIG } from "./config/site";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
+  children, 
 }: Readonly<{
   children: React.ReactNode;
 }>) {
@@ -20,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-        <GoogleAnalytics gaId="G-WPG6VTRDW9" />
+        <GoogleAnalytics gaId={SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? ''  } />
       </body>
     </html>
   );
