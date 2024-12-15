@@ -1,3 +1,12 @@
+function validateEnvVars() {
+  if (!process.env.GOOGLE_ANALYTICS_ID) {
+    throw new Error('GOOGLE_ANALYTICS_ID environment variable is not set');
+  }
+}
+
+// Run validation immediately
+validateEnvVars();
+
 export const SITE_CONFIG = {
   DOMAIN: process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
