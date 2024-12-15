@@ -3,8 +3,9 @@ import { SITE_CONFIG } from '@/app/config/site'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const url = searchParams.get('url')
+  console.log('url', url)
   const pageName = url?.split('/timeline/')[1]?.split('?')[0]
-
+  console.log('pageName', pageName)
   if (!pageName) {
     return Response.json({ error: 'Invalid URL' }, { status: 400 })
   }
