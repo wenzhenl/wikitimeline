@@ -51,13 +51,6 @@ export async function generateMetadata({
   return {
     title: `Timeline of ${title}`,
     description: `Historical timeline of events related to ${title}, generated from Wikipedia content.`,
-    openGraph: {
-      title: `Timeline of ${title}`,
-      description: `Historical timeline of events related to ${title}, generated from Wikipedia content.`,
-      images: images.length > 0 ? images : undefined,
-      type: "article",
-      url,
-    },
     twitter: {
       card: "summary_large_image",
       title: `Timeline of ${title}`,
