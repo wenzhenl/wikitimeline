@@ -16,7 +16,7 @@ export async function generateMetadata({
 
   const url = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`;
 
-  const previewImageUrl = `${SITE_CONFIG.DOMAIN}/example-timelines.png`;
+  const previewImageUrl = `${SITE_CONFIG.DOMAIN}/preview.png`;
 
   return {
     title: `Timeline of ${title}`,
