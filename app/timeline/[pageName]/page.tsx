@@ -41,7 +41,7 @@ const ShareDialog = ({
   onClose: () => void;
   pageName: string;
 }) => {
-  const embedCode = `<iframe width="560" height="315" src="${window.location.origin}/timeline/${pageName}/embed" title="Timeline player" frameborder="0"></iframe>`;
+  const embedCode = `<iframe width="1200" height="600" src="${window.location.origin}/timeline/${pageName}/embed" title="Timeline player" frameborder="0"></iframe>`;
   const pageUrl = `${window.location.origin}/timeline/${pageName}`;
   const shareText = `Check out this interactive timeline about ${decodeURIComponent(
     pageName
