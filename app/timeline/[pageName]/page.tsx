@@ -41,6 +41,23 @@ const ShareDialog = ({
   onClose: () => void;
   pageName: string;
 }) => {
+  const [copyStatus, setCopyStatus] = useState('Copy embed code');
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      setCopyStatus('Copied!');
+      setTimeout(() => {
+        setCopyStatus('Copy embed code');
+      }, 2000); // Reset after 2 seconds
+    } catch (err) {
+      setCopyStatus('Failed to copy');
+      setTimeout(() => {
+        setCopyStatus('Copy embed code');
+      }, 2000);
+    }
+  };
+
   const embedCode = `<iframe width="1200" height="600" src="${window.location.origin}/timeline/${pageName}/embed" title="Timeline player" frameborder="0"></iframe>`;
   const pageUrl = `${window.location.origin}/timeline/${pageName}`;
   const shareText = `Check out this interactive timeline about ${decodeURIComponent(
@@ -118,10 +135,16 @@ const ShareDialog = ({
             className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-sm font-mono mb-2"
           />
           <button
-            onClick={() => navigator.clipboard.writeText(embedCode)}
-            className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={handleCopy}
+            className={`w-full py-2 ${
+              copyStatus === 'Copied!' 
+                ? 'bg-green-500 hover:bg-green-600' 
+                : copyStatus === 'Failed to copy'
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-blue-500 hover:bg-blue-600'
+            } text-white rounded transition-colors duration-200`}
           >
-            Copy embed code
+            {copyStatus}
           </button>
         </div>
       </div>
