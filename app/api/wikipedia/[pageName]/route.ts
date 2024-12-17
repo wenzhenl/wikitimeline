@@ -3,6 +3,8 @@ import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import { CACHE_CONFIG } from '@/app/config/cache';
 import logger from '@/app/utils/logger';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,6 +12,24 @@ const openai = new OpenAI({
 
 // Initialize Redis
 const redis = Redis.fromEnv();
+
+let cachedSystemPrompt: string | null = null;
+
+async function getSystemPrompt(): Promise<string> {
+  if (cachedSystemPrompt) {
+    return cachedSystemPrompt;
+  }
+
+  const promptPath = path.join(process.cwd(), 'app/prompts/timeline-generator.txt');
+  try {
+    cachedSystemPrompt = await fs.readFile(promptPath, 'utf-8');
+    return cachedSystemPrompt;
+  } catch (error) {
+    logger.error('Error reading system prompt:', error);
+    // Fallback to hardcoded prompt if file read fails
+    return "You are a timeline generator that extracts events directly from Wikipedia articles...";
+  }
+}
 
 async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumbnail?: string; summary?: string; error?: string }> {
   const cacheKey = `summary:${title}`;
@@ -70,24 +90,14 @@ async function getCachedCompletion(pageName: string, summary?: string) {
     logger.warn('Cache read error:', error);
   }
 
+  const systemPrompt = await getSystemPrompt();
+  
   // If not in cache, fetch from OpenAI
   const completion = await openai.chat.completions.create({
     messages: [
       {
         role: "system",
-        content: 
-          "You are a timeline generator that extracts events directly from Wikipedia articles. " +
-          "Create a comprehensive chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). " +
-          "Return a JSON object with a 'timeline' array. Each event should have: " +
-          "'date' (use the most precise date available, following these formats: " +
-          "- YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)" +
-          "- YYYY-MM for year and month" +
-          "- YYYY-MM-DD for full dates), " +
-          "'headline' (brief title), and 'text' (detailed description). " +
-          "IMPORTANT: For dates before year 0 (BCE/BC), always use negative years (e.g., '-0221' for 221 BCE). " +
-          "Include as many significant events as possible, especially for historical figures. " +
-          "For ancient historical figures, include major accomplishments, reforms, battles, political changes, and cultural impacts. " +
-          "Ensure all dates and events are factually accurate and sourced from Wikipedia."
+        content: systemPrompt
       },
       {
         role: "user",
