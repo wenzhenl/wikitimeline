@@ -22,7 +22,15 @@ async function getSystemPrompt(): Promise<string> {
 
   const promptPath = path.join(process.cwd(), 'app/prompts/timeline-generator.txt');
   try {
-    cachedSystemPrompt = await fs.readFile(promptPath, 'utf-8');
+    // Read the file and sanitize the content
+    const rawPrompt = await fs.readFile(promptPath, 'utf-8');
+    
+    // Remove any null characters and normalize line endings
+    cachedSystemPrompt = rawPrompt
+      .replace(/\0/g, '')
+      .replace(/\r\n/g, '\n')
+      .trim();
+    
     return cachedSystemPrompt;
   } catch (error) {
     logger.error('Error reading system prompt:', error);
