@@ -64,5 +64,4 @@ If the topic does not suit a timeline (e.g., abstract concepts, objects, or topi
     - Accurate  
     - Significant  
     - Well-organized  
-- Limit the timeline to a **maximum of 20 events**. Prioritize the most important events.  
 - Do not include any text, explanations, or content outside the required **JSON format**.  
