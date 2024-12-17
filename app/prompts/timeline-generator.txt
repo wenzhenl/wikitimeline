@@ -45,7 +45,8 @@ Return the result as a JSON object with this exact schema:
 ### 3. Fact-Based and Comprehensive Content  
 - All events **must be fact-based** and verifiable within your pre-existing knowledge of Wikipedia.  
 - Prioritize including **important and significant events**, even under the fact-based requirement.  
-- Balance accuracy with completeness. Do not exclude notable events unless they fail to meet the criteria for dates or exceed the **20-event limit**.
+- Balance accuracy with completeness. Do not exclude notable events unless they fail to meet the criteria for dates.
+- Double check the accuracy of the dates and events. Making sure dates mentioned as BCE/BC are negative and dates mentioned as AD/CE are positive.
 
 ---
 
@@ -55,12 +56,3 @@ If the topic does not suit a timeline (e.g., abstract concepts, objects, or topi
 ```json
 {"timeline": []}
 ```
-
----
-
-### 5. Professional Editing and Final Presentation  
-- Your output should reflect the work of a professional editor, ensuring all events are:  
-    - Accurate  
-    - Significant  
-    - Well-organized  
-- Do not include any text, explanations, or content outside the required **JSON format**.  
