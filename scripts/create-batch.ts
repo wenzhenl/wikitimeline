@@ -27,15 +27,23 @@ async function getSystemPrompt(): Promise<string> {
 
 async function processFile(inputPath: string, outputPath: string) {
   const systemPrompt = await getSystemPrompt();
+  console.log(systemPrompt);
   const fileStream = await fs.readFile(inputPath, 'utf-8');
-  const pages = fileStream.split('\n').filter((line: string) => line.trim());
+  const pages = fileStream
+    .split('\n')
+    .map((line: string) => line.trim())
+    .filter((line: string) => line);
   
+  console.log('Raw fileStream:', fileStream);
+  console.log('Parsed pages:', pages);
+  console.log(`Found ${pages.length} pages to process`);
   const requests = [];
   
-  for (const [index, pageName] of pages.entries()) {
+  for (const pageName of pages) {
     try {
       console.log(`Processing ${pageName}...`);
       const summary = await wiki.summary(pageName.trim());
+      console.log(`Successfully got summary for ${pageName}`);
       
       const request = {
         custom_id: `timeline-${pageName.trim()}`,
@@ -60,11 +68,17 @@ async function processFile(inputPath: string, outputPath: string) {
       };
       
       requests.push(JSON.stringify(request));
+      console.log(`Added request for ${pageName}`);
     } catch (error) {
       console.error(`Error processing ${pageName}:`, error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
     }
   }
 
+  console.log(`Generated ${requests.length} requests`);
   await fs.writeFile(outputPath, requests.join('\n'), 'utf-8');
   console.log(`Created batch file at ${outputPath}`);
 }
