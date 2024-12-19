@@ -10,3 +10,4 @@ IMPORTANT: For dates before year 0 (BCE/BC), always use negative years (e.g., '-
 Include as many significant events as possible, especially for historical figures. 
 For ancient historical figures, include major accomplishments, reforms, battles, political changes, and cultural impacts. 
 Ensure all dates and events are factually accurate and sourced from Wikipedia. 
+If the article is not suitable for a timeline, return an empty array.
