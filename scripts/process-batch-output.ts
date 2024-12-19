@@ -1,23 +1,15 @@
-require('dotenv').config({ path: '.env.development.local' });
-import { createClient } from 'redis';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+const { Redis } = require('@upstash/redis');
+const fs = require('fs/promises');
+const path = require('path');
 
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+// Initialize Redis
+const redis = Redis.fromEnv();
 
 async function processOutputFile(inputPath: string) {
-  // Initialize Redis client
-  const client = createClient({
-    url: REDIS_URL
-  });
-
-  client.on('error', err => console.error('Redis Client Error', err));
-  await client.connect();
-
   try {
     // Read and process the file
     const fileContent = await fs.readFile(inputPath, 'utf-8');
-    const lines = fileContent.split('\n').filter(line => line.trim());
+    const lines = fileContent.split('\n').filter((line: string) => line.trim());
 
     for (const line of lines) {
       try {
@@ -37,7 +29,7 @@ async function processOutputFile(inputPath: string) {
         const cacheKey = `timeline:${batchItem.custom_id.replace('timeline-', '')}`;
         
         // Store in Redis
-        await client.set(cacheKey, JSON.stringify(timeline));
+        await redis.set(cacheKey, JSON.stringify(timeline));
         console.log(`Stored timeline for ${cacheKey}`);
       } catch (error) {
         console.error('Error processing line:', error);
@@ -48,8 +40,6 @@ async function processOutputFile(inputPath: string) {
     console.log('Finished processing all timelines');
   } catch (error) {
     console.error('Error reading or processing file:', error);
-  } finally {
-    await client.quit();
   }
 }
 
