@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '.env.development.local' });
 const { Redis } = require('@upstash/redis');
 const fs = require('fs/promises');
 const path = require('path');
