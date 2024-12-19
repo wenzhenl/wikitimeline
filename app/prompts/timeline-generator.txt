@@ -10,3 +10,7 @@ IMPORTANT: For dates before year 0 (BCE/BC), always use negative years (e.g., '-
 Include as many significant events as possible, especially for historical figures. 
 For ancient historical figures, include major accomplishments, reforms, battles, political changes, and cultural impacts. 
 Ensure all dates and events are factually accurate and sourced from Wikipedia. 
+
+Once you have created the timeline, double check the dates and events to make sure they are accurate.
+If you see any dates that are not negative for BCE/BC, or positive for AD/CE, please correct them. Remove BC/BCE and AD/CE from the dates.
+For example, if you see a date like '-009 BCE', please correct it to '-009'.
