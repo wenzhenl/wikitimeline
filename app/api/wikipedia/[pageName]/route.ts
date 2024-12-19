@@ -61,8 +61,7 @@ async function getWikipediaInfo(title: string): Promise<{ pageUrl: string; thumb
       summary: summary.extract
     };
 
-    // Cache for 24 hours
-    await redis.set(cacheKey, result, { ex: 86400 });
+    await redis.set(cacheKey, result);
     
     return result;
   } catch (error) {
@@ -129,9 +128,8 @@ async function getCachedCompletion(pageName: string, summary?: string) {
   const result = JSON.parse(completion.choices[0].message.content!);
   logger.debug(result);
   
-  // Store in cache using TTL from config
   try {
-    await redis.set(cacheKey, result, { ex: CACHE_CONFIG.TIMELINE.TTL });
+    await redis.set(cacheKey, result);
     logger.info(`Cached timeline for ${pageName}`);
   } catch (error) {
     logger.warn('Cache write error:', error);
