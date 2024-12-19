@@ -50,7 +50,7 @@ async function getCompletion(pageName: string, summary?: string) {
   const completion = await openai.chat.completions.create({
     messages: [
       {
-        role: "system",
+        role: "developer",
         content: systemPrompt
       },
       {
@@ -58,7 +58,7 @@ async function getCompletion(pageName: string, summary?: string) {
         content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
       }
     ],
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     response_format: { type: "json_object" },
     temperature: 0,
   });
@@ -67,6 +67,8 @@ async function getCompletion(pageName: string, summary?: string) {
     prompt_tokens: completion.usage?.prompt_tokens,
     completion_tokens: completion.usage?.completion_tokens,
     total_tokens: completion.usage?.total_tokens,
+    cached_tokens: completion.usage?.prompt_tokens_details?.cached_tokens || 0,
+    model: completion.model,
   });
 
   return JSON.parse(completion.choices[0].message.content!);
