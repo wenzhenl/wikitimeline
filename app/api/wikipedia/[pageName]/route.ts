@@ -170,9 +170,11 @@ export async function GET(
           text: event.text
         },
         group: formatGroupName(pageName.trim()),
-        media: {
-          thumbnail: wikiInfo.thumbnail,
-        }
+        ...(wikiInfo.thumbnail && {
+          media: {
+            thumbnail: wikiInfo.thumbnail,
+          }
+        })
       }));
     });
 
