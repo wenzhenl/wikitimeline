@@ -37,3 +37,6 @@ next-env.d.ts
 
 # data
 .data/
+
+# prompt tests
+prompt-tests/
