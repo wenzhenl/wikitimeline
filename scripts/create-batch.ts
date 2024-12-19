@@ -28,7 +28,7 @@ async function getSystemPrompt(): Promise<string> {
 async function processFile(inputPath: string, outputPath: string) {
   const systemPrompt = await getSystemPrompt();
   const fileStream = await fs.readFile(inputPath, 'utf-8');
-  const pages = fileStream.split('\n').filter(line => line.trim());
+  const pages = fileStream.split('\n').filter((line: string) => line.trim());
   
   const requests = [];
   
@@ -38,7 +38,7 @@ async function processFile(inputPath: string, outputPath: string) {
       const summary = await wiki.summary(pageName.trim());
       
       const request = {
-        custom_id: `timeline-${index + 1}`,
+        custom_id: `timeline-${pageName.trim()}`,
         method: "POST",
         url: "/v1/chat/completions",
         body: {
@@ -54,7 +54,8 @@ async function processFile(inputPath: string, outputPath: string) {
             }
           ],
           response_format: { type: "json_object" },
-          temperature: 0
+          temperature: 0,
+          max_completion_tokens: 2000,
         }
       };
       
