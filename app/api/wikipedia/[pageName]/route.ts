@@ -111,7 +111,7 @@ async function getCachedCompletion(pageName: string, summary?: string) {
         content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
       }
     ],
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     response_format: { type: "json_object" },
     temperature: 0,
   });
