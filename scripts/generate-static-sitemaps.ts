@@ -1,7 +1,10 @@
-require('dotenv').config({ path: '.env.development.local' });
 const fs = require('fs/promises');
 const path = require('path');
-const { SITE_CONFIG } = require('../app/config/site');
+
+const SITE_CONFIG = {
+  DOMAIN: 'https://wiki-timeline.com',
+  URLS_PER_SITEMAP: 40000
+};
 
 async function readPageNames(filePaths: string[]): Promise<string[]> {
   const allPages = new Set<string>();
