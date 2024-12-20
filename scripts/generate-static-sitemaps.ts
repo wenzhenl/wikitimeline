@@ -86,13 +86,13 @@ function generateStaticSitemap() {
 function generateTimelineSitemap(pageNames: string[]) {
   const urls = pageNames.map(pageName => `
       <url>
-        <loc>${SITE_CONFIG.DOMAIN}/timeline/${pageName}</loc>
+        <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}</loc>
         <lastmod>${new Date().toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
       </url>
       <url>
-        <loc>${SITE_CONFIG.DOMAIN}/timeline/${pageName}/text</loc>
+        <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}/text</loc>
         <lastmod>${new Date().toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
