@@ -22,7 +22,19 @@ export async function GET(
       const page = parseInt(pageMatch[1])
       const start = (page - 1) * (SITE_CONFIG.URLS_PER_SITEMAP / 2)
       
-      const allKeys = await redis.keys('timeline:*')
+      let cursor = 0
+      let allKeys: string[] = []
+      
+      // Use SCAN to get all keys in batches
+      do {
+        const [nextCursor, batch] = await redis.scan(cursor, {
+          match: 'timeline:*',
+          count: 100
+        })
+        cursor = parseInt(nextCursor as string)
+        allKeys = allKeys.concat(batch)
+      } while (cursor !== 0)
+      
       const paginatedKeys = allKeys.slice(start, start + (SITE_CONFIG.URLS_PER_SITEMAP / 2))
       const xml = generateTimelineSitemap(paginatedKeys)
       return new NextResponse(xml, {
