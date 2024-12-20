@@ -17,7 +17,6 @@ JD_Vance
 Tim_Walz
 Joe_Biden
 .xxx
-Portal:Current_events
 Facebook
 Kalki_2898_AD
 Elon_Musk
@@ -23334,7 +23333,6 @@ David_Dobrik
 Blue_Fugates
 Kendra_Wilkinson
 Kingdom_(biology)
-Portal:Anime_and_manga
 Dwarf_planet
 The_Real_Housewives_of_New_Jersey
 Kevin_Jonas
@@ -24448,7 +24446,6 @@ Rosary
 Nightcrawler_(character)
 Saint_Christopher
 Sana_Javed
-Portal:Erotica_and_pornography
 PartyNextDoor
 Maneki-neko
 Mark_Curry_(American_actor)
@@ -47681,7 +47678,6 @@ David_Knopfler
 Ecumenism
 Yunjin_Kim
 Teide
-Portal:Biography
 M72_LAW
 The_Case_Study_of_Vanitas
 Whole_Foods_Market
@@ -47894,7 +47890,6 @@ Virginia_City,_Nevada
 Nursultan_Nazarbayev
 UFC_Fight_Night:_Moreno_vs._Albazi
 Montauk,_New_York
-Portal:Human_sexuality
 Cream_cheese
 CC_Sabathia
 Invasion_of_the_Body_Snatchers
@@ -67305,7 +67300,6 @@ Spy_Kids_2:_The_Island_of_Lost_Dreams
 The_SteelDrivers
 1986_FBI_Miami_shootout
 Ford_Kuga
-Portal:Current_events/Sports
 War_hammer
 Susan_Flannery
 Traditional_Unionist_Voice
@@ -77423,7 +77417,6 @@ Politics_of_Lebanon
 Mushtaq_Ahmed_Zargar
 Son_of_a_Witch
 McCune–Reischauer
-Portal:United_States
 Adrián_(footballer)
 Morgan_Evans_(singer)
 Messier_object
@@ -89497,7 +89490,6 @@ ES_Troyes_AC
 Kawasaki_motorcycles
 NBA_All-Defensive_Team
 Tony_Lupien
-Portal:Nudity
 New_Guinea_singing_dog
 2029_FIFA_Club_World_Cup
 Bill_Haley
