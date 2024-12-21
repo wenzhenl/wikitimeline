@@ -8,9 +8,7 @@ const logger = {
   },
   
   info: (...args: any[]) => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[INFO]', ...args);
-    }
+    console.log('[INFO]', ...args);
   },
   
   warn: (...args: any[]) => {
