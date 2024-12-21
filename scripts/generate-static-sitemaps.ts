@@ -25,74 +25,53 @@ async function generateSitemaps(inputFiles: string[]) {
   try {
     const pageNames = await readPageNames(inputFiles);
     
-    // Read existing sitemaps to determine current content
-    const existingSitemaps = new Map<number, Set<string>>();
+    // Read existing sitemaps but don't modify them
     let currentSitemapCount = 0;
-
     try {
       const sitemapIndexContent = await fs.readFile('public/sitemap.xml', 'utf-8');
       const matches = sitemapIndexContent.match(/timelines-(\d+)\.xml/g);
       if (matches) {
         currentSitemapCount = Math.max(...matches.map((m: string) => parseInt(m.match(/\d+/)![0])));
-        
-        // Load existing URLs from each sitemap
-        for (let i = 1; i <= currentSitemapCount; i++) {
-          const content = await fs.readFile(`public/sitemaps/timelines-${i}.xml`, 'utf-8');
-          const urls = new Set<string>(content.match(/\/timeline\/([^<]+)</g)?.map((u: string) => 
-            decodeURIComponent(u.replace('/timeline/', '').replace('<', ''))) || []);
-          existingSitemaps.set(i, urls);
-        }
       }
     } catch (error) {
-      // If files don't exist, start fresh
       console.log('No existing sitemaps found, creating new ones');
     }
 
-    // Filter out pages that already exist in sitemaps
-    const existingPages = new Set();
-    const orderedUrls: string[] = [];
-    existingSitemaps.forEach(urls => {
-      urls.forEach(url => {
-        if (!existingPages.has(url)) {
-          existingPages.add(url);
-          orderedUrls.push(url);
-        }
-      });
-    });
-    
-    // Add new pages while maintaining order
-    const newPages = pageNames.filter(page => !existingPages.has(page));
-    const allOrderedUrls = [...orderedUrls, ...newPages];
-
-    // Distribute URLs across sitemaps while maintaining order
-    let currentFileIndex = 1;
-    let currentFileUrls = new Set<string>();
-    
-    for (const url of allOrderedUrls) {
-      if (currentFileUrls.size >= SITE_CONFIG.URLS_PER_SITEMAP / 2) {
-        await fs.writeFile(
-          `public/sitemaps/timelines-${currentFileIndex}.xml`,
-          generateTimelineSitemap(Array.from(currentFileUrls))
-        );
-        currentFileIndex++;
-        currentFileUrls = new Set();
+    // Get the last sitemap's content to check its size
+    let lastSitemapUrls = new Set<string>();
+    if (currentSitemapCount > 0) {
+      try {
+        const content = await fs.readFile(`public/sitemaps/timelines-${currentSitemapCount}.xml`, 'utf-8');
+        const urls = content.match(/\/timeline\/([^<]+)</g)?.map((u: string) => 
+          decodeURIComponent(u.replace('/timeline/', '').replace('<', '')))
+          .filter(u => !u.endsWith('/text')) || [];
+        lastSitemapUrls = new Set(urls);
+      } catch (error) {
+        console.error('Error reading last sitemap:', error);
       }
-      currentFileUrls.add(url);
     }
 
-    // Write the last sitemap file
-    if (currentFileUrls.size > 0) {
-      await fs.writeFile(
-        `public/sitemaps/timelines-${currentFileIndex}.xml`,
-        generateTimelineSitemap(Array.from(currentFileUrls))
-      );
+    // Start new sitemap if last one is full
+    let currentFileIndex = currentSitemapCount;
+    if (lastSitemapUrls.size >= SITE_CONFIG.URLS_PER_SITEMAP / 2) {
+      currentFileIndex++;
+      lastSitemapUrls = new Set();
     }
 
-    // Update sitemap index
-    const sitemapIndex = generateSitemapIndex(currentFileIndex);
-    await fs.writeFile('public/sitemap.xml', sitemapIndex);
+    // Append new URLs to the last sitemap
+    const newUrls = new Set([...Array.from(lastSitemapUrls), ...pageNames]);
+    await fs.writeFile(
+      `public/sitemaps/timelines-${currentFileIndex}.xml`,
+      generateTimelineSitemap(Array.from(newUrls))
+    );
 
-    console.log(`Successfully added ${newPages.length} new pages to sitemaps`);
+    // Update sitemap index only if we created a new file
+    if (currentFileIndex > currentSitemapCount) {
+      const sitemapIndex = generateSitemapIndex(currentFileIndex);
+      await fs.writeFile('public/sitemap.xml', sitemapIndex);
+    }
+
+    console.log(`Successfully added ${pageNames.length} new pages to sitemaps`);
   } catch (error) {
     console.error('Error generating sitemaps:', error);
   }
