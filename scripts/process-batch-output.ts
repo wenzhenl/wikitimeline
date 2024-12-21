@@ -12,6 +12,10 @@ async function processOutputFile(inputPath: string) {
     const fileContent = await fs.readFile(inputPath, 'utf-8');
     const lines = fileContent.split('\n').filter((line: string) => line.trim());
 
+    // Create batches of 100 operations
+    const BATCH_SIZE = 100;
+    let batch = [];
+    
     for (const line of lines) {
       try {
         const batchItem = JSON.parse(line);
@@ -29,9 +33,19 @@ async function processOutputFile(inputPath: string) {
         // Create cache key from custom_id
         const cacheKey = `timeline:${batchItem.custom_id.replace('timeline-', '')}`;
         
-        // Store in Redis
-        await redis.set(cacheKey, JSON.stringify(timeline));
-        console.log(`Stored timeline for ${cacheKey}`);
+        // Add to batch instead of immediate write
+        batch.push([cacheKey, JSON.stringify(timeline)]);
+        
+        // When batch is full or it's the last item, execute the batch
+        if (batch.length >= BATCH_SIZE || line === lines[lines.length - 1]) {
+          const pipeline = redis.pipeline();
+          for (const [key, value] of batch) {
+            pipeline.set(key, value);
+          }
+          await pipeline.exec();
+          console.log(`Stored batch of ${batch.length} timelines`);
+          batch = []; // Clear the batch
+        }
       } catch (error) {
         console.error('Error processing line:', error);
         continue;
