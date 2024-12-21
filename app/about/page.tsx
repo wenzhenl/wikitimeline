@@ -71,8 +71,8 @@ export default function AboutPage() {
               Contact Us
             </h2>
             <p className="text-lg">
-              Have questions, suggestions, or found an issue? We'd love to hear
-              from you! Contact us at:{" "}
+              Have questions, suggestions, or found an issue? We&apos;d love to
+              hear from you! Contact us at:{" "}
               <button
                 onClick={() => {
                   const email = [
