@@ -52,10 +52,15 @@ export default function AboutPage() {
               How It Works
             </h2>
             <p className="text-lg">
-              Our system analyzes Wikipedia articles to extract dates and
-              events, organizing them into an interactive timeline. You can
-              compare multiple articles side by side, zoom in on specific
-              periods, and explore events in detail.
+              Our system uses artificial intelligence to analyze Wikipedia
+              articles and extract chronological events. The AI processes the
+              article content to identify dates, events, and their
+              relationships, organizing them into an interactive timeline. You
+              can compare multiple articles side by side, zoom in on specific
+              periods, and explore events in detail. While our AI technology is
+              advanced, it may occasionally misinterpret or miss certain events,
+              which is why we always recommend cross-referencing with the
+              original Wikipedia articles.
             </p>
           </section>
 
