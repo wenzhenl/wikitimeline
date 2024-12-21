@@ -40,3 +40,6 @@ next-env.d.ts
 
 # prompt tests
 prompt-tests/
+
+# robots.txt
+app/robots.txt
