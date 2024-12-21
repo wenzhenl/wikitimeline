@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import WikiSearch from "./components/WikiSearch";
+import Link from "next/link";
 
 interface SelectedPage {
   title: string;
@@ -164,6 +165,12 @@ export default function HomePage() {
                 Zoom, scroll, and explore events interactively
               </p>
             </div>
+          </div>
+
+          <div className="absolute top-4 right-4">
+            <Link href="/about" className="text-blue-600 hover:text-blue-800">
+              About
+            </Link>
           </div>
         </div>
       )}
