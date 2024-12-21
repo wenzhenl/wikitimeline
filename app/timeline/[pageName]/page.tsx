@@ -41,19 +41,19 @@ const ShareDialog = ({
   onClose: () => void;
   pageName: string;
 }) => {
-  const [copyStatus, setCopyStatus] = useState('Copy embed code');
+  const [copyStatus, setCopyStatus] = useState("Copy embed code");
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(embedCode);
-      setCopyStatus('Copied!');
+      setCopyStatus("Copied!");
       setTimeout(() => {
-        setCopyStatus('Copy embed code');
+        setCopyStatus("Copy embed code");
       }, 2000); // Reset after 2 seconds
     } catch (err) {
-      setCopyStatus('Failed to copy');
+      setCopyStatus("Failed to copy");
       setTimeout(() => {
-        setCopyStatus('Copy embed code');
+        setCopyStatus("Copy embed code");
       }, 2000);
     }
   };
@@ -137,11 +137,11 @@ const ShareDialog = ({
           <button
             onClick={handleCopy}
             className={`w-full py-2 ${
-              copyStatus === 'Copied!' 
-                ? 'bg-green-500 hover:bg-green-600' 
-                : copyStatus === 'Failed to copy'
-                ? 'bg-red-500 hover:bg-red-600'
-                : 'bg-blue-500 hover:bg-blue-600'
+              copyStatus === "Copied!"
+                ? "bg-green-500 hover:bg-green-600"
+                : copyStatus === "Failed to copy"
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
             } text-white rounded transition-colors duration-200`}
           >
             {copyStatus}
@@ -306,8 +306,26 @@ export default function TimelinePage({
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
               {decodeURIComponent(params.pageName)
-                .replace(/_/g, " ")
-                .replace(/,/g, ", ")}
+                .split(",")
+                .map((name, index) => (
+                  <span key={name}>
+                    <a
+                      href={`https://wikipedia.org/wiki/${name.trim()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline cursor-pointer"
+                      title={`View "${name
+                        .trim()
+                        .replace(/_/g, " ")}" on Wikipedia`}
+                    >
+                      {name.trim().replace(/_/g, " ")}
+                    </a>
+                    {index <
+                    decodeURIComponent(params.pageName).split(",").length - 1
+                      ? ", "
+                      : ""}
+                  </span>
+                ))}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               Interactive timeline generated from Wikipedia content
