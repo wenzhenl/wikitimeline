@@ -37,33 +37,48 @@ async function generateSitemaps(inputFiles: string[]) {
       console.log('No existing sitemaps found, creating new ones');
     }
 
-    // Get the last sitemap's content to check its size
+    // Get the last sitemap's content
+    let lastSitemapContent = '';
     let lastSitemapUrls = new Set<string>();
     if (currentSitemapCount > 0) {
       try {
-        const content = await fs.readFile(`public/sitemaps/timelines-${currentSitemapCount}.xml`, 'utf-8');
-        const urls = content.match(/\/timeline\/([^<]+)</g)?.map((u: string) => 
+        lastSitemapContent = await fs.readFile(`public/sitemaps/timelines-${currentSitemapCount}.xml`, 'utf-8');
+        const urls = lastSitemapContent.match(/\/timeline\/([^<]+)</g)?.map((u: string) => 
           decodeURIComponent(u.replace('/timeline/', '').replace('<', '')))
-          .filter((u: string) => !u.endsWith('/text')) || [];
+          .filter(u => !u.endsWith('/text')) || [];
         lastSitemapUrls = new Set(urls);
       } catch (error) {
         console.error('Error reading last sitemap:', error);
       }
     }
 
-    // Start new sitemap if last one is full
+    // Start new sitemap if last one is full or doesn't exist
     let currentFileIndex = currentSitemapCount;
-    if (lastSitemapUrls.size >= SITE_CONFIG.URLS_PER_SITEMAP / 2) {
+    if (currentSitemapCount === 0 || lastSitemapUrls.size >= SITE_CONFIG.URLS_PER_SITEMAP / 2) {
       currentFileIndex++;
-      lastSitemapUrls = new Set();
+      await fs.writeFile(
+        `public/sitemaps/timelines-${currentFileIndex}.xml`,
+        generateTimelineSitemap(pageNames)
+      );
+    } else {
+      // Append new URLs to existing content
+      const newContent = lastSitemapContent.replace('</urlset>', 
+        pageNames.map(pageName => `
+      <url>
+        <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}</loc>
+        <lastmod>${new Date().toISOString()}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+      </url>
+      <url>
+        <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}/text</loc>
+        <lastmod>${new Date().toISOString()}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+      </url>`).join('') + '\n    </urlset>');
+      
+      await fs.writeFile(`public/sitemaps/timelines-${currentFileIndex}.xml`, newContent);
     }
-
-    // Append new URLs to the last sitemap
-    const newUrls = new Set([...Array.from(lastSitemapUrls), ...pageNames]);
-    await fs.writeFile(
-      `public/sitemaps/timelines-${currentFileIndex}.xml`,
-      generateTimelineSitemap(Array.from(newUrls))
-    );
 
     // Update sitemap index only if we created a new file
     if (currentFileIndex > currentSitemapCount) {
