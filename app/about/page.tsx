@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -71,12 +73,23 @@ export default function AboutPage() {
             <p className="text-lg">
               Have questions, suggestions, or found an issue? We'd love to hear
               from you! Contact us at:{" "}
-              <a
-                href="mailto:wikitimeline2024@gmail.com"
-                className="text-blue-500 hover:text-blue-600 underline"
+              <button
+                onClick={() => {
+                  const email = [
+                    "wikitimeline2024",
+                    "@",
+                    "gmail",
+                    ".",
+                    "com",
+                  ].join("");
+                  navigator.clipboard.writeText(email);
+                  alert("Email address copied to clipboard!");
+                }}
+                className="text-blue-500 hover:text-blue-600 underline cursor-pointer"
+                title="Click to copy email address"
               >
-                wikitimeline2024@gmail.com
-              </a>
+                [Click to copy email address]
+              </button>
             </p>
           </section>
         </div>
