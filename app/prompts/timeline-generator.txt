@@ -8,7 +8,7 @@ Return a JSON object with a 'timeline' array. Each event should have:
     - YYYY-MM for year and month
     - YYYY-MM-DD for full dates), 
 IMPORTANT: Refer to date in the text to correct the 'date' field if it is not correct. 
-For dates before year 0 (BCE/BC), always use negative years (e.g., '-0221' for 221 BCE). If an event has no date, don't include it.
+For dates before year 0 (BCE/BC), always use negative years (e.g., '-0221' for 221 BCE).
 Include as many significant events as possible, especially for historical figures. 
 For ancient historical figures, include major accomplishments, reforms, battles, political changes, and cultural impacts. 
 Ensure all dates and events are factually accurate and sourced from Wikipedia. 
