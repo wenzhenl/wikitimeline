@@ -45,6 +45,22 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link
+              href="/"
+              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500"
+            >
+              WikiTimeline
+            </Link>
+            <Link href="/about" className="text-blue-600 hover:text-blue-800">
+              About
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-screen">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -165,12 +181,6 @@ export default function HomePage() {
                 Zoom, scroll, and explore events interactively
               </p>
             </div>
-          </div>
-
-          <div className="absolute top-4 right-4">
-            <Link href="/about" className="text-blue-600 hover:text-blue-800">
-              About
-            </Link>
           </div>
         </div>
       )}
