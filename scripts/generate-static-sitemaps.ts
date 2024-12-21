@@ -44,7 +44,7 @@ async function generateSitemaps(inputFiles: string[]) {
         const content = await fs.readFile(`public/sitemaps/timelines-${currentSitemapCount}.xml`, 'utf-8');
         const urls = content.match(/\/timeline\/([^<]+)</g)?.map((u: string) => 
           decodeURIComponent(u.replace('/timeline/', '').replace('<', '')))
-          .filter(u => !u.endsWith('/text')) || [];
+          .filter((u: string) => !u.endsWith('/text')) || [];
         lastSitemapUrls = new Set(urls);
       } catch (error) {
         console.error('Error reading last sitemap:', error);
