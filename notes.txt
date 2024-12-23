@@ -10,3 +10,6 @@ Rank 999999: Kitty_Kirkpatrick (23 views)
 Processed 20241001, saved 7767851 pages
 
 
+
+12/22/24 processed first 10k pages, saved both summary and timeline. Only included first 5k pages in sitemap.
+We need to remove the interactive timeline url from the sitemap.
