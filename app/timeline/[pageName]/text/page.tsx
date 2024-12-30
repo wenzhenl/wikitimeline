@@ -107,35 +107,67 @@ async function TimelineContent({ pageName }: { pageName: string }) {
   }
 
   return (
-    <div className="space-y-8">
-      {data.timeline.map((event: TimelineEvent, index: number) => {
-        const isNegativeYear = event.date.startsWith("-");
-        const normalizedDate = isNegativeYear
-          ? event.date.slice(1)
-          : event.date;
-        const dateParts = normalizedDate.split("-");
-        const year = parseInt(dateParts[0]);
+    <div className="relative">
+      {/* Vertical line */}
+      <div className="absolute left-[19px] top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
 
-        return (
-          <article key={index} className="border-b border-gray-200 dark:border-gray-700 pb-6">
-            <time className="text-gray-600 dark:text-gray-400 block mb-2">
-              {year} {isNegativeYear ? "BC" : ""}
-              {dateParts[1] &&
-                ` ${new Date(2000, parseInt(dateParts[1]) - 1).toLocaleString(
-                  "default",
-                  { month: "long" }
-                )}`}
-              {dateParts[2] && ` ${parseInt(dateParts[2])}`}
-            </time>
+      <div className="space-y-12">
+        {data.timeline.map((event: TimelineEvent, index: number) => {
+          const isNegativeYear = event.date.startsWith("-");
+          const normalizedDate = isNegativeYear
+            ? event.date.slice(1)
+            : event.date;
+          const dateParts = normalizedDate.split("-");
+          const year = parseInt(dateParts[0]);
 
-            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-              {event.headline}
-            </h2>
+          // Generate a color for the circle based on index
+          const colors = [
+            "from-blue-500 to-purple-500",
+            "from-purple-500 to-pink-500",
+            "from-green-500 to-teal-500",
+          ];
+          const gradientColor = colors[index % colors.length];
 
-            {event.text && <p className="text-gray-700 dark:text-gray-300 mb-4">{event.text}</p>}
-          </article>
-        );
-      })}
+          return (
+            <div key={index} className="relative flex items-start gap-6">
+              {/* Circle on the timeline */}
+              <div className="relative">
+                <div
+                  className={`w-10 h-10 rounded-full bg-gradient-to-r ${gradientColor} flex items-center justify-center shadow-lg`}
+                >
+                  <div className="w-6 h-6 rounded-full bg-white dark:bg-gray-800"></div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-all hover:shadow-lg">
+                {/* Date */}
+                <time className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-3 block">
+                  {year} {isNegativeYear ? "BC" : ""}
+                  {dateParts[1] &&
+                    ` ${new Date(
+                      2000,
+                      parseInt(dateParts[1]) - 1
+                    ).toLocaleString("default", { month: "long" })}`}
+                  {dateParts[2] && ` ${parseInt(dateParts[2])}`}
+                </time>
+
+                {/* Title */}
+                <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                  {event.headline}
+                </h2>
+
+                {/* Description */}
+                {event.text && (
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {event.text}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
         <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
