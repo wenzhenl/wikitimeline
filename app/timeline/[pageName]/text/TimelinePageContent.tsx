@@ -57,7 +57,6 @@ const ShareDialog = ({
           text: shareText,
           files: [file],
         });
-        onClose();
       } else if (imageBlob) {
         // Desktop: download file
         const url = URL.createObjectURL(imageBlob);
@@ -69,6 +68,8 @@ const ShareDialog = ({
       }
     } catch (error) {
       console.error("Error sharing:", error);
+    } finally {
+      onClose(); // Always close the dialog, even if sharing was cancelled
     }
   };
 
