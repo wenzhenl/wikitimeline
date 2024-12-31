@@ -142,8 +142,11 @@ export default function TimelineTextPage({
                 href={`/timeline/${params.pageName}`}
                 className="text-blue-600 hover:text-blue-800"
               >
-                View Interactive Timeline
+                Interactive
               </Link>
+              <button className="text-blue-600 hover:text-blue-800">
+                Share
+              </button>
             </div>
           </div>
         </div>
