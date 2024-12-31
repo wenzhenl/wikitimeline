@@ -281,7 +281,7 @@ export default function TimelinePage({
                 href={`/timeline/${params.pageName}/text`}
                 className="text-blue-600 hover:text-blue-800"
               >
-                View Text Version
+                Text
               </Link>
               <button
                 onClick={() => setShowEmbed(true)}
