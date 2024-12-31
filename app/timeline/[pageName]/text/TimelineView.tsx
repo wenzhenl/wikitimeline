@@ -10,10 +10,20 @@ interface TimelineViewProps {
   data: {
     timeline: TimelineEvent[];
     errors?: { failedPages: string[] };
-  };
+  } | null;
 }
 
 export default function TimelineView({ data }: TimelineViewProps) {
+  if (!data || !data.timeline) {
+    return (
+      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
+        <p className="text-yellow-800 dark:text-yellow-200">
+          No timeline data available.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <div className="absolute left-[19px] top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
