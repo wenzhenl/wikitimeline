@@ -47,9 +47,7 @@ const ShareDialog = ({
   const hasShareApi = deviceDetection.hasShareApi();
 
   const pageUrl = `${window.location.origin}/timeline/${pageName}`;
-  const shareText = `🚀 Explore the history of ${decodeURIComponent(
-    pageName
-  )
+  const shareText = `🚀 Explore the history of ${decodeURIComponent(pageName)
     .replace(/_/g, " ")
     .replace(
       /,/g,
@@ -68,23 +66,23 @@ const ShareDialog = ({
           text: shareText,
           url: pageUrl,
         });
-        onClose(); // Close modal after sharing on mobile
       } else {
-        // On desktop, copy embed code
         await navigator.clipboard.writeText(embedCode);
         setCopyStatus("Copied!");
         setTimeout(() => {
           setCopyStatus("Copy embed code");
         }, 2000);
       }
-    } catch (err) {
-      console.error("Sharing failed:", err);
+    } catch (error) {
+      console.error("Sharing failed:", error);
       if (!isMobile) {
         setCopyStatus("Failed to copy");
         setTimeout(() => {
           setCopyStatus("Copy embed code");
         }, 2000);
       }
+    } finally {
+      onClose(); // Always close the dialog, even if sharing was cancelled
     }
   };
 
