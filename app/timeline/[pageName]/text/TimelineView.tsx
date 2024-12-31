@@ -97,8 +97,8 @@ export default function TimelineView({ data, pageName }: TimelineViewProps) {
                   </div>
                 </div>
 
-                <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-all hover:shadow-lg">
-                  <time className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-3 block">
+                <div className="flex-1 w-full md:min-w-[600px] bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 transition-all hover:shadow-lg">
+                  <time className="gradient-text text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-3 block">
                     {year} {isNegativeYear ? "BC" : ""}
                     {dateParts[1] &&
                       ` ${new Date(
@@ -108,12 +108,12 @@ export default function TimelineView({ data, pageName }: TimelineViewProps) {
                     {dateParts[2] && ` ${parseInt(dateParts[2])}`}
                   </time>
 
-                  <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
                     {event.headline}
                   </h2>
 
                   {event.text && (
-                    <p className="text-gray-700 dark:text-gray-300">
+                    <p className="text-base text-gray-700 dark:text-gray-200">
                       {event.text}
                     </p>
                   )}
