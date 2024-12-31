@@ -11,14 +11,17 @@ interface TimelineEvent {
   text: string;
 }
 
-async function getTimelineData(pageName: string) {
-  const cacheKey = `timeline:${decodeURIComponent(pageName)}`;
+async function getTimelineData(pageName: string, activePageName?: string) {
+  // If activePageName is provided, use it, otherwise use the first page from pageName
+  const targetPage = activePageName || pageName.split(",")[0];
+  const cacheKey = `timeline:${decodeURIComponent(targetPage)}`;
+
   try {
     const data = (await redis.get(cacheKey)) as {
       timeline: TimelineEvent[];
       errors?: { failedPages: string[] };
     };
-    logger.info(`Fetched timeline data for ${pageName}`);
+    logger.info(`Fetched timeline data for ${targetPage}`);
 
     // Sort the timeline events
     if (data?.timeline) {
@@ -42,7 +45,7 @@ async function getTimelineData(pageName: string) {
     }
     return data;
   } catch (error) {
-    logger.error(`Failed to fetch timeline data for ${pageName}:`, error);
+    logger.error(`Failed to fetch timeline data for ${targetPage}:`, error);
     throw error;
   }
 }
@@ -54,15 +57,40 @@ export default async function TimelineTextPage({
   params: { pageName: string };
   searchParams: { active?: string };
 }) {
-  const data = await getTimelineData(searchParams.active || params.pageName);
-
-  return (
-    <TimelinePageContent
-      params={params}
-      searchParams={searchParams}
-      initialData={data}
-    />
-  );
+  try {
+    // First decode the pageName, then split it
+    const defaultPage = decodeURIComponent(params.pageName).split(",")[0];
+    const data = await getTimelineData(
+      defaultPage,
+      searchParams.active || defaultPage
+    );
+    console.log("Server-side data:", {
+      defaultPage,
+      active: searchParams.active,
+      data,
+      cacheKey: `timeline:${decodeURIComponent(
+        searchParams.active || defaultPage
+      )}`,
+    });
+    return (
+      <TimelinePageContent
+        params={params}
+        searchParams={{
+          ...searchParams,
+          active: searchParams.active || defaultPage,
+        }}
+        initialData={data || { timeline: [], errors: { failedPages: [] } }}
+      />
+    );
+  } catch (error) {
+    return (
+      <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
+        <p className="text-red-800 dark:text-red-200">
+          Error loading timeline data.
+        </p>
+      </div>
+    );
+  }
 }
 
 export function generateMetadata({
