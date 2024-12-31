@@ -64,7 +64,7 @@ export default async function TimelineTextPage({
       defaultPage,
       searchParams.active || defaultPage
     );
-    console.log("Server-side data:", {
+    logger.debug("Server-side data:", {
       defaultPage,
       active: searchParams.active,
       data,
