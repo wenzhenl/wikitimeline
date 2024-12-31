@@ -103,7 +103,7 @@ export default function TimelinePageContent({
                 href={`/timeline/${params.pageName}`}
                 className="text-blue-600 hover:text-blue-800"
               >
-                Interactive
+                Interactive View
               </Link>
               <button
                 onClick={handleShare}
