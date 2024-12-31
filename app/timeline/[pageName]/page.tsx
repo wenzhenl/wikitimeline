@@ -5,6 +5,7 @@ import MyTimelineComponent from "../../components/MyTimelineComponent";
 import Link from "next/link";
 import logger from "@/app/utils/logger";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
+import { deviceDetection } from "@/app/utils/deviceDetection";
 
 export interface TimelineEvent {
   date: string;
@@ -42,35 +43,68 @@ const ShareDialog = ({
   pageName: string;
 }) => {
   const [copyStatus, setCopyStatus] = useState("Copy embed code");
+  const isMobile = deviceDetection.isMobile();
+  const hasShareApi = deviceDetection.hasShareApi();
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(embedCode);
-      setCopyStatus("Copied!");
-      setTimeout(() => {
-        setCopyStatus("Copy embed code");
-      }, 2000); // Reset after 2 seconds
-    } catch (err) {
-      setCopyStatus("Failed to copy");
-      setTimeout(() => {
-        setCopyStatus("Copy embed code");
-      }, 2000);
-    }
-  };
-
-  const embedCode = `<iframe width="1200" height="600" src="${window.location.origin}/timeline/${pageName}/embed" title="Timeline player" frameborder="0"></iframe>`;
   const pageUrl = `${window.location.origin}/timeline/${pageName}`;
-  const shareText = `Check out this interactive timeline about ${decodeURIComponent(
+  const shareText = `🚀 Explore the fascinating history of ${decodeURIComponent(
     pageName
   )
     .replace(/_/g, " ")
-    .replace(/,/g, ", ")}!`;
+    .replace(
+      /,/g,
+      ", "
+    )} through this interactive timeline! 📚 Powered by @WikiTimeline - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`;
+  const embedCode = `<iframe width="1200" height="600" src="${pageUrl}/embed" title="Timeline player" frameborder="0"></iframe>`;
+
+  const handleShare = async () => {
+    try {
+      if (isMobile && hasShareApi) {
+        await navigator.share({
+          title: `Timeline of ${decodeURIComponent(pageName).replace(
+            /_/g,
+            " "
+          )}`,
+          text: shareText,
+          url: pageUrl,
+        });
+        onClose(); // Close modal after sharing on mobile
+      } else {
+        // On desktop, copy embed code
+        await navigator.clipboard.writeText(embedCode);
+        setCopyStatus("Copied!");
+        setTimeout(() => {
+          setCopyStatus("Copy embed code");
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("Sharing failed:", err);
+      if (!isMobile) {
+        setCopyStatus("Failed to copy");
+        setTimeout(() => {
+          setCopyStatus("Copy embed code");
+        }, 2000);
+      }
+    }
+  };
+
+  // For mobile, trigger share immediately when dialog opens
+  useEffect(() => {
+    if (isOpen && isMobile && hasShareApi) {
+      handleShare();
+    }
+  }, [isOpen]);
+
+  // Don't render modal for mobile devices
+  if (isMobile && hasShareApi) {
+    return null;
+  }
 
   return isOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg w-full relative z-[10000]">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Share</h3>
+          <h3 className="text-lg font-semibold">Share Timeline</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -79,47 +113,58 @@ const ShareDialog = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-4 mb-6">
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
               shareText
             )}&url=${encodeURIComponent(pageUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 p-3 bg-black text-white rounded-lg hover:bg-gray-800"
+            className="flex flex-col items-center justify-center gap-2 p-3 bg-black text-white rounded-lg hover:bg-gray-800"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
-            X
+            <span className="text-sm">X</span>
           </a>
-
+          <a
+            href={`https://www.reddit.com/submit?url=${encodeURIComponent(
+              pageUrl
+            )}&title=${encodeURIComponent(shareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center gap-2 p-3 bg-[#FF4500] text-white rounded-lg hover:bg-[#e03d00]"
+          >
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
+            </svg>
+            <span className="text-sm">Reddit</span>
+          </a>
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+              pageUrl
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center gap-2 p-3 bg-[#0077b5] text-white rounded-lg hover:bg-[#006399]"
+          >
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+            <span className="text-sm">LinkedIn</span>
+          </a>
           <a
             href={`https://t.me/share/url?url=${encodeURIComponent(
               pageUrl
             )}&text=${encodeURIComponent(shareText)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 p-3 bg-[#0088cc] text-white rounded-lg hover:bg-[#0077b3]"
+            className="flex flex-col items-center justify-center gap-2 p-3 bg-[#0088cc] text-white rounded-lg hover:bg-[#0077b3]"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.37-.49 1.03-.74 4.03-1.75 6.72-2.91 8.07-3.48 3.85-1.63 4.64-1.91 5.17-1.92.11 0 .37.03.54.18.17.15.21.36.23.5-.01.14.01.51-.01.51z" />
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.178.119.13.154.305.164.43-.001.097-.015.185-.049.336z" />
             </svg>
-            Telegram
-          </a>
-
-          <a
-            href={`https://www.reddit.com/submit?url=${encodeURIComponent(
-              pageUrl
-            )}&title=${encodeURIComponent(shareText)}&sr=wikipedia`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 p-3 bg-[#FF4500] text-white rounded-lg hover:bg-[#e03d00]"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
-            </svg>
-            Reddit
+            <span className="text-sm">Telegram</span>
           </a>
         </div>
 
@@ -135,7 +180,7 @@ const ShareDialog = ({
             className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-sm font-mono mb-2"
           />
           <button
-            onClick={handleCopy}
+            onClick={handleShare}
             className={`w-full py-2 ${
               copyStatus === "Copied!"
                 ? "bg-green-500 hover:bg-green-600"
