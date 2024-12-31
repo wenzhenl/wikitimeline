@@ -59,6 +59,7 @@ async function TimelineContent({ pageName }: { pageName: string }) {
     };
     logger.info(`Fetched timeline data for ${pageName}`);
 
+    // Sort the timeline events
     if (data?.timeline) {
       data.timeline.sort((a, b) => {
         // Handle negative years (BC)
@@ -106,7 +107,7 @@ async function TimelineContent({ pageName }: { pageName: string }) {
     );
   }
 
-  return <TimelineView data={data} pageName={pageName} />;
+  return <TimelineView data={data} />;
 }
 
 export default function TimelineTextPage({
@@ -116,11 +117,13 @@ export default function TimelineTextPage({
   params: { pageName: string };
   searchParams: { active?: string };
 }) {
+  // Split and decode the pageNames, and remove empty strings
   const pageNames = decodeURIComponent(params.pageName)
     .split(",")
     .map((name) => name.trim())
     .filter(Boolean);
 
+  // Use the active param or first page
   const activePage = searchParams.active || pageNames[0];
 
   return (
@@ -154,6 +157,7 @@ export default function TimelineTextPage({
           <p className="text-gray-600 dark:text-gray-400">Timeline events</p>
         </div>
 
+        {/* Always show tabs if there are multiple pages */}
         {pageNames.length > 1 && (
           <Tabs pageNames={pageNames} currentPage={activePage} />
         )}
