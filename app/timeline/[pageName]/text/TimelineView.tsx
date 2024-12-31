@@ -51,7 +51,7 @@ export default function TimelineView({ data }: TimelineViewProps) {
                     ` ${new Date(
                       2000,
                       parseInt(dateParts[1]) - 1
-                    ).toLocaleString("default", { month: "long" })}`}
+                    ).toLocaleString("default", { month: "short" })}`}
                   {dateParts[2] && ` ${parseInt(dateParts[2])}`}
                 </time>
 
