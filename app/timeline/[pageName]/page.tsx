@@ -47,14 +47,14 @@ const ShareDialog = ({
   const hasShareApi = deviceDetection.hasShareApi();
 
   const pageUrl = `${window.location.origin}/timeline/${pageName}`;
-  const shareText = `🚀 Explore the fascinating history of ${decodeURIComponent(
+  const shareText = `🚀 Explore the history of ${decodeURIComponent(
     pageName
   )
     .replace(/_/g, " ")
     .replace(
       /,/g,
       ", "
-    )} through this interactive timeline! 📚 Powered by @WikiTimeline - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`;
+    )} through this interactive timeline! 📚 Powered by wiki-timeline.com - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`;
   const embedCode = `<iframe width="1200" height="600" src="${pageUrl}/embed" title="Timeline player" frameborder="0"></iframe>`;
 
   const handleShare = async () => {
