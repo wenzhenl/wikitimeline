@@ -55,7 +55,7 @@ export default function TimelineView({ data }: TimelineViewProps) {
               </div>
 
               <div className="flex-1 w-[calc(100vw-80px)] md:w-full md:min-w-[600px] bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 transition-all hover:shadow-lg">
-                <time className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-3 block whitespace-nowrap">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3 block whitespace-nowrap">
                   {year} {isNegativeYear ? "BC" : ""}
                   {dateParts[1] &&
                     ` ${new Date(
@@ -63,7 +63,7 @@ export default function TimelineView({ data }: TimelineViewProps) {
                       parseInt(dateParts[1]) - 1
                     ).toLocaleString("default", { month: "short" })}`}
                   {dateParts[2] && ` ${parseInt(dateParts[2])}`}
-                </time>
+                </div>
 
                 <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
                   {event.headline}
