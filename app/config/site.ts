@@ -8,7 +8,9 @@ function validateEnvVars() {
 validateEnvVars();
 
 export const SITE_CONFIG = {
-  DOMAIN: process.env.VERCEL_PROJECT_PRODUCTION_URL
+  DOMAIN: process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : 'http://localhost:3000',
   URLS_PER_SITEMAP: 40000,
