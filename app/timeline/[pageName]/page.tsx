@@ -6,6 +6,7 @@ import Link from "next/link";
 import logger from "@/app/utils/logger";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
 import { deviceDetection } from "@/app/utils/deviceDetection";
+import { SITE_CONFIG } from "@/app/config/site";
 
 export interface TimelineEvent {
   date: string;
@@ -46,7 +47,7 @@ const ShareDialog = ({
   const isMobile = deviceDetection.isMobile();
   const hasShareApi = deviceDetection.hasShareApi();
 
-  const pageUrl = `${window.location.origin}/timeline/${pageName}`;
+  const pageUrl = `${SITE_CONFIG.DOMAIN}/timeline/${pageName}`;
   const shareText = `🚀 Explore the history of ${decodeURIComponent(pageName)
     .replace(/_/g, " ")
     .replace(
