@@ -199,7 +199,16 @@ export default function HomePage() {
               >
                 IUU AI
               </a>{" "}
-              and other AI directories
+              and{" "}
+              <a
+                href="https://magicbox.tools/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="MagicBox.Tools - AI Tools Directory"
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                MagicBox.Tools
+              </a>
             </p>
           </div>
         </div>
