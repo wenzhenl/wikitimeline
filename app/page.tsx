@@ -228,6 +228,16 @@ export default function HomePage() {
                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Dir2AI
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://aijustworks.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="AI Just Works"
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                AI Just Works
               </a>
             </p>
           </div>
