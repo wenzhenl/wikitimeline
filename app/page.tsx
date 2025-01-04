@@ -208,6 +208,16 @@ export default function HomePage() {
                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 MagicBox.Tools
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://allinai.tools"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="The Best AI Tools"
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                All in AI Tools
               </a>
             </p>
           </div>
