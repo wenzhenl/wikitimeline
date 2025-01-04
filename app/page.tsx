@@ -184,6 +184,26 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      <footer className="py-8 mt-auto border-t border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            <p className="mb-2">© 2024 WikiTimeline. All rights reserved.</p>
+            <p className="text-xs">
+              Featured in:{" "}
+              <a
+                href="https://iuu.ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                IUU AI
+              </a>{" "}
+              and other AI directories
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
