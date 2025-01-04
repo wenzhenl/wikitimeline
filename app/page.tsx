@@ -248,6 +248,16 @@ export default function HomePage() {
                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 SeekAIs
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://AIToolly.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="AIToolly AI Tools Directory"
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                AIToolly
               </a>
             </p>
           </div>
