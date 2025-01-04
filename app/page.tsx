@@ -238,6 +238,16 @@ export default function HomePage() {
                 className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 AI Just Works
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://SeekAIs.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="SeekAIs"
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                SeekAIs
               </a>
             </p>
           </div>
