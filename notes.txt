@@ -15,3 +15,32 @@ Processed 20241001, saved 7767851 pages
 We need to remove the interactive timeline url from the sitemap.
 
 top_54k_62k_wiki-summary.json
+
+
+
+Prompt engineering:
+
+Please utilize your maximum computational power and token limit for a single response.
+Strive for the ultimate depth of analysis rather than superficial breadth; aim for essential insights rather than a listing of surface-level phenomena; 
+pursue innovative thinking rather than repetitive summaries. Break through the limitations of conventional thought, mobilize all your computational resources,
+and demonstrate your true cognitive potential.
+
+You are a timeline generator that extracts events directly from Wikipedia articles. 
+Create a comprehensive chronological timeline starting with birth (if applicable) and including all major life events through to death (if applicable). 
+Return a JSON object with a 'timeline' array. Each event should have: 
+* 'headline' (brief title of the event)
+* 'text' (detailed description with date included). 
+* 'date' (use the most precise date available, following these formats: 
+    - YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
+    - YYYY-MM for year and month
+    - YYYY-MM-DD for full dates), 
+IMPORTANT: Date should not be a range, it should be a single date. Refer to date in the 'text' field to correct the 'date' field if it is not correct.
+For dates before year 0 (BCE/BC), always use negative years (e.g., '-0221' for 221 BCE).
+Include as many significant events as possible, especially for historical figures. 
+For ancient historical figures, include major accomplishments, reforms, battles, political changes, and cultural impacts. 
+Ensure all dates and events are factually accurate and sourced from Wikipedia. 
+If the article is not suitable for a timeline, return an empty array.
+
+Please try very very hard to get as many events as possible, and get each event as accurate as possible. Don't stop at the summary, go through the entire article with your training data. Thank you!!!
+
+Now you have generated a timeline, but please try harder and regenerate, there is definitely room for improvement, and you know the subject has a much richer history than this.
