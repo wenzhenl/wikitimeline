@@ -33,6 +33,7 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
         start_at_slide: 0,
         ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
         timenav_height_percentage: 20,
+        duration: 500,
       };
 
       new Timeline(timelineRef.current, { events }, options);
