@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import MyTimelineComponent from "../../components/MyTimelineComponent";
+import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import Link from "next/link";
 import logger from "@/app/utils/logger";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
@@ -243,29 +243,6 @@ export default function TimelinePage({
     fetchTimelineData();
   }, [params.pageName]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hasSeenSwipeTip = localStorage.getItem("hasSeenSwipeTip");
-      if (!hasSeenSwipeTip) {
-        // For first-time users, add click listener immediately
-        const messageContainer = document.querySelector(".tl-message-full");
-        if (messageContainer) {
-          messageContainer.addEventListener("click", () => {
-            localStorage.setItem("hasSeenSwipeTip", "true");
-          });
-        }
-      } else {
-        // For returning users, hide the tip with minimal delay
-        setTimeout(() => {
-          const messageContainer = document.querySelector(".tl-message-full");
-          if (messageContainer) {
-            (messageContainer as HTMLElement).style.display = "none";
-          }
-        }, 1000);
-      }
-    }
-  }, []);
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -355,50 +332,6 @@ export default function TimelinePage({
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
-        </div>
-
-        {/* Title Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
-              {decodeURIComponent(params.pageName)
-                .split(",")
-                .map((name, index) => (
-                  <span key={name}>
-                    <a
-                      href={`https://wikipedia.org/wiki/${name.trim()}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline cursor-pointer"
-                      title={`View "${name
-                        .trim()
-                        .replace(/_/g, " ")}" on Wikipedia`}
-                    >
-                      {name.trim().replace(/_/g, " ")}
-                    </a>
-                    {index <
-                    decodeURIComponent(params.pageName).split(",").length - 1
-                      ? ", "
-                      : ""}
-                  </span>
-                ))}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Interactive timeline generated from Wikipedia content
-            </p>
-            {skippedPages.length > 0 && (
-              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
-                <p className="text-yellow-800 dark:text-yellow-200">
-                  Could not generate timeline for: {skippedPages.join(", ")}
-                  <br />
-                  <span className="text-sm">
-                    These pages might not exist on Wikipedia or might not
-                    contain enough timeline data.
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Timeline Section - Full width */}

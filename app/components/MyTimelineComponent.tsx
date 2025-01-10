@@ -25,7 +25,6 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
 
       const options = {
         scale_factor: 2,
-        timenav_position: "top",
         height: "600px",
         language: "en",
         hash_bookmark: true,
