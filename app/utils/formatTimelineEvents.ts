@@ -3,44 +3,44 @@ import { TimelineEvent } from "../timeline/[pageName]/page";
 // Define background colors for different groups with better contrast
 export const GROUP_COLORS = {
     0: {
-      color: "#F8FAFC",
-      textColor: "#1E293B", // slate-800
+      color: "#F5F3FF",
+      textColor: "#6D28D9", // violet-800
     },
     1: {
       color: "#F0F9FF",
       textColor: "#0369A1", // sky-600
     },
     2: {
-      color: "#F5F3FF",
-      textColor: "#6D28D9", // violet-800
-    },
-    3: {
       color: "#FFFBEB",
       textColor: "#B45309", // amber-800
     },
-    4: {
+    3: {
       color: "#FFF1F2",
       textColor: "#E11D48", // rose-600
     },
-    5: {
+    4: {
       color: "#EEF2FF",
       textColor: "#4338CA", // indigo-800
     },
-    6: {
+    5: {
       color: "#F0FDFA",
       textColor: "#115E59", // teal-800
     },
-    7: {
+    6: {
       color: "#FDF2F8",
       textColor: "#BE185D", // pink-800
     },
-    8: {
+    7: {
       color: "#FAF5FF",
       textColor: "#7E22CE", // purple-800
     },
-    9: {
+    8: {
       color: "#ECFDF5",
       textColor: "#065F46", // green-800
+    },
+    9: {
+      color: "#F8FAFC",
+      textColor: "#1E293B", // slate-800
     },
   };
   
