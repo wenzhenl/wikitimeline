@@ -34,6 +34,7 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
         ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
         timenav_height_percentage: 20,
         duration: 500,
+        font: "ubuntu",
       };
 
       new Timeline(timelineRef.current, { events }, options);
