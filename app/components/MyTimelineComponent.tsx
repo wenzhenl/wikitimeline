@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Timeline } from "@knight-lab/timelinejs";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import { SITE_CONFIG } from "../config/site";
 import { AVAILABLE_FONTS } from "../constants/fonts";
@@ -24,26 +23,32 @@ const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
 
   useEffect(() => {
     if (typeof window !== "undefined" && timelineRef.current) {
-      if (timelineInstance && timelineRef.current) {
-        timelineRef.current.innerHTML = "";
-      }
+      import("@knight-lab/timelinejs").then(({ Timeline }) => {
+        if (timelineInstance && timelineRef.current) {
+          timelineRef.current.innerHTML = "";
+        }
 
-      const options = {
-        scale_factor: 2,
-        height: "600px",
-        language: "en",
-        hash_bookmark: true,
-        marker_height_min: 50,
-        marker_padding: 5,
-        start_at_slide: 0,
-        ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
-        timenav_height_percentage: 20,
-        duration: 500,
-        font,
-      };
+        const options = {
+          scale_factor: 2,
+          height: "600px",
+          language: "en",
+          hash_bookmark: true,
+          marker_height_min: 50,
+          marker_padding: 5,
+          start_at_slide: 0,
+          ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
+          timenav_height_percentage: 20,
+          duration: 500,
+          font,
+        };
 
-      const timeline = new Timeline(timelineRef.current, { events }, options);
-      setTimelineInstance(timeline);
+        const timeline = new Timeline(
+          timelineRef.current!,
+          { events },
+          options
+        );
+        setTimelineInstance(timeline);
+      });
     }
 
     return () => {
