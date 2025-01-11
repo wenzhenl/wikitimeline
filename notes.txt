@@ -54,3 +54,5 @@ Please try very very hard to get as many events as possible, and get each event 
 Now you have generated a timeline, but please try harder and regenerate, there is definitely room for improvement, and you know the subject has a much richer history than this.
 
 Remember: You have one opportunity to create this timeline. Use your full analytical capabilities to ensure comprehensive and accurate extraction of all dated events from the article.
+
+tell it not include range, just a single date, and if there is a range, break it down into multiple events.
