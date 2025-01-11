@@ -54,7 +54,7 @@ const ShareDialog = ({
       /,/g,
       ", "
     )} through this interactive timeline! 📚 Powered by wiki-timeline.com - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`;
-  const embedCode = `<iframe width="1200" height="600" src="${pageUrl}/embed" title="Timeline player" frameborder="0"></iframe>`;
+  const embedCode = `<iframe onload="this.width=screen.width;this.height=600;" src="${pageUrl}/embed" title="Timeline player" frameborder="0"></iframe>`;
 
   const handleShare = async () => {
     try {
