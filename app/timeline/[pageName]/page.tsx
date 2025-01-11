@@ -7,6 +7,7 @@ import logger from "@/app/utils/logger";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
+import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 
 export interface TimelineEvent {
   date: string;
@@ -206,6 +207,7 @@ export default function TimelinePage({
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [showEmbed, setShowEmbed] = useState(false);
+  const [selectedFont, setSelectedFont] = useState("default");
 
   // Create a map to store group indices
   const groupIndices = new Map<string, number>();
@@ -242,6 +244,19 @@ export default function TimelinePage({
 
     fetchTimelineData();
   }, [params.pageName]);
+
+  useEffect(() => {
+    const savedFont = localStorage.getItem("timeline-font");
+    if (savedFont) {
+      setSelectedFont(savedFont);
+    }
+  }, []);
+
+  const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFont = e.target.value;
+    setSelectedFont(newFont);
+    localStorage.setItem("timeline-font", newFont);
+  };
 
   if (loading) {
     return (
@@ -337,7 +352,27 @@ export default function TimelinePage({
         {/* Timeline Section - Full width */}
         {events.length > 0 && (
           <div className="w-full h-[800px]">
-            <MyTimelineComponent events={formatTimelineEvents(events)} />
+            <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <label htmlFor="font-select" className="text-sm font-medium">
+                Timeline Font:
+              </label>
+              <select
+                id="font-select"
+                value={selectedFont}
+                onChange={handleFontChange}
+                className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              >
+                {AVAILABLE_FONTS.map((font) => (
+                  <option key={font.value} value={font.value}>
+                    {font.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <MyTimelineComponent
+              events={formatTimelineEvents(events)}
+              font={selectedFont}
+            />
           </div>
         )}
       </main>

@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Timeline } from "@knight-lab/timelinejs";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import { SITE_CONFIG } from "../config/site";
+import { AVAILABLE_FONTS } from "../constants/fonts";
 
 export interface Event {
   start_date: { year: number; month?: number; day?: number };
@@ -14,14 +15,18 @@ export interface Event {
 
 interface MyTimelineComponentProps {
   events: Event[];
+  font: string;
 }
 
-const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
-  const timelineRef = useRef(null);
+const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const [timelineInstance, setTimelineInstance] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && timelineRef.current) {
-      const { Timeline } = require("@knight-lab/timelinejs");
+      if (timelineInstance && timelineRef.current) {
+        timelineRef.current.innerHTML = "";
+      }
 
       const options = {
         scale_factor: 2,
@@ -34,14 +39,21 @@ const MyTimelineComponent = ({ events }: MyTimelineComponentProps) => {
         ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
         timenav_height_percentage: 20,
         duration: 500,
-        font: "ubuntu",
+        font,
       };
 
-      new Timeline(timelineRef.current, { events }, options);
+      const timeline = new Timeline(timelineRef.current, { events }, options);
+      setTimelineInstance(timeline);
     }
-  }, [events]);
 
-  return <div ref={timelineRef} id="timeline-embed"></div>;
+    return () => {
+      if (timelineInstance && timelineRef.current) {
+        timelineRef.current.innerHTML = "";
+      }
+    };
+  }, [events, font]);
+
+  return <div ref={timelineRef} id="timeline-embed" />;
 };
 
 export default MyTimelineComponent;
