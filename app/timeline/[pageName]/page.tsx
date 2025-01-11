@@ -8,6 +8,7 @@ import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
 import { AVAILABLE_FONTS } from "@/app/constants/fonts";
+import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 
 export interface TimelineEvent {
   date: string;
@@ -208,6 +209,7 @@ export default function TimelinePage({
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [showEmbed, setShowEmbed] = useState(false);
   const [selectedFont, setSelectedFont] = useState("default");
+  const [selectedColorScheme, setSelectedColorScheme] = useState("default");
 
   // Create a map to store group indices
   const groupIndices = new Map<string, number>();
@@ -256,6 +258,19 @@ export default function TimelinePage({
     const newFont = e.target.value;
     setSelectedFont(newFont);
     localStorage.setItem("timeline-font", newFont);
+  };
+
+  useEffect(() => {
+    const savedColorScheme = localStorage.getItem("timeline-color-scheme");
+    if (savedColorScheme) {
+      setSelectedColorScheme(savedColorScheme);
+    }
+  }, []);
+
+  const handleColorSchemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newScheme = e.target.value;
+    setSelectedColorScheme(newScheme);
+    localStorage.setItem("timeline-color-scheme", newScheme);
   };
 
   if (loading) {
@@ -368,9 +383,50 @@ export default function TimelinePage({
                   </option>
                 ))}
               </select>
+
+              <label
+                htmlFor="color-scheme-select"
+                className="text-sm font-medium ml-4"
+              >
+                Color Scheme:
+              </label>
+              <select
+                id="color-scheme-select"
+                value={selectedColorScheme}
+                onChange={handleColorSchemeChange}
+                className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              >
+                {COLOR_SCHEMES.map((scheme) => (
+                  <option key={scheme.id} value={scheme.id}>
+                    {scheme.name}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-1 h-6 ml-2">
+                {(
+                  COLOR_SCHEMES.find((s) => s.id === selectedColorScheme) ||
+                  COLOR_SCHEMES.find((s) => s.id === "default")
+                )?.colors &&
+                  Object.values(
+                    (COLOR_SCHEMES.find((s) => s.id === selectedColorScheme) ||
+                      COLOR_SCHEMES.find((s) => s.id === "default"))!.colors
+                  )
+                    .slice(0, 5)
+                    .map((color, i) => (
+                      <div
+                        key={i}
+                        className="w-4 rounded"
+                        style={{
+                          backgroundColor: color.color,
+                          borderColor: color.textColor,
+                          borderWidth: 1,
+                        }}
+                      />
+                    ))}
+              </div>
             </div>
             <MyTimelineComponent
-              events={formatTimelineEvents(events)}
+              events={formatTimelineEvents(events, selectedColorScheme)}
               font={selectedFont}
             />
           </div>

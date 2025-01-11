@@ -1,52 +1,9 @@
 import { TimelineEvent } from "../timeline/[pageName]/page";
+import { COLOR_SCHEMES } from "../constants/colorSchemes";
 
-// Define background colors for different groups with better contrast
-export const GROUP_COLORS = {
-    0: {
-      color: "#F5F3FF",
-      textColor: "#6D28D9", // violet-800
-    },
-    1: {
-      color: "#F0F9FF",
-      textColor: "#0369A1", // sky-600
-    },
-    2: {
-      color: "#FFFBEB",
-      textColor: "#B45309", // amber-800
-    },
-    3: {
-      color: "#FFF1F2",
-      textColor: "#E11D48", // rose-600
-    },
-    4: {
-      color: "#EEF2FF",
-      textColor: "#4338CA", // indigo-800
-    },
-    5: {
-      color: "#F0FDFA",
-      textColor: "#115E59", // teal-800
-    },
-    6: {
-      color: "#FDF2F8",
-      textColor: "#BE185D", // pink-800
-    },
-    7: {
-      color: "#FAF5FF",
-      textColor: "#7E22CE", // purple-800
-    },
-    8: {
-      color: "#ECFDF5",
-      textColor: "#065F46", // green-800
-    },
-    9: {
-      color: "#F8FAFC",
-      textColor: "#1E293B", // slate-800
-    },
-  };
-  
-
-export function formatTimelineEvents(events: TimelineEvent[]) {
+export function formatTimelineEvents(events: TimelineEvent[], colorSchemeId = 'default') {
   const groupIndices = new Map<string, number>();
+  const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
 
   return events.map((event) => {
     // Check if it's a negative year first
@@ -67,7 +24,7 @@ export function formatTimelineEvents(events: TimelineEvent[]) {
       groupIndices.set(event.group, groupIndices.size);
     }
     const groupIndex = groupIndices.get(event.group)!;
-    const colors = GROUP_COLORS[groupIndex as keyof typeof GROUP_COLORS] || GROUP_COLORS[0];
+    const colors = colorScheme.colors[groupIndex as keyof typeof colorScheme.colors] || colorScheme.colors[0];
 
     return {
       start_date: { year, month, day },
