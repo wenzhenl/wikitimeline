@@ -1,48 +1,50 @@
-"use client";
+import EmbeddedTimeline from "@/app/components/EmbeddedTimeline";
+import { SITE_CONFIG } from "@/app/config/site";
 
-import MyTimelineComponent from "@/app/components/MyTimelineComponent";
-import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
-import { useEffect, useState } from "react";
-import type { TimelineEvent } from "../page";
+async function getTimelineData(pageName: string) {
+  try {
+    const response = await fetch(
+      `${SITE_CONFIG.DOMAIN}/api/wikipedia/${pageName}`,
+      { cache: "no-store" }
+    );
 
-export default function EmbedPage({
+    if (!response.ok) {
+      throw new Error("Failed to fetch timeline data");
+    }
+
+    const data = await response.json();
+    return data.timeline || [];
+  } catch (error) {
+    console.error(`Failed to fetch timeline data for ${pageName}:`, error);
+    return [];
+  }
+}
+
+export default async function EmbedPage({
   params,
 }: {
   params: { pageName: string };
 }) {
-  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const events = await getTimelineData(params.pageName);
+  return <EmbeddedTimeline events={events} />;
+}
 
-  useEffect(() => {
-    const fetchTimelineData = async () => {
-      const response = await fetch(`/api/wikipedia/${params.pageName}`);
-      const data = await response.json();
-      setEvents(data.timeline);
-    };
+export function generateMetadata({ params }: { params: { pageName: string } }) {
+  const pageNames = decodeURIComponent(params.pageName)
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean);
 
-    fetchTimelineData();
-  }, [params.pageName]);
+  const title = pageNames
+    .map((name) => decodeURIComponent(name).replace(/_/g, " "))
+    .join(", ");
 
-  return (
-    <div className="w-full h-screen">
-      {events.length > 0 && (
-        <MyTimelineComponent
-          events={formatTimelineEvents(events)}
-          font="default"
-        />
-      )}
-      <style jsx global>{`
-        .tl-slide-content
-          .tl-text
-          .tl-text-content-container
-          .tl-text-headline-container
-          .tl-headline-date,
-        .tl-text .tl-headline-date {
-          color: #4b5563 !important; /* gray-600 for better visibility */
-          text-shadow: none !important;
-          font-weight: 500 !important;
-          opacity: 0.9 !important;
-        }
-      `}</style>
-    </div>
-  );
+  return {
+    title: `Timeline of ${title} - Embedded View`,
+    description: `Interactive timeline visualization for ${title}, generated from Wikipedia content.`,
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 }
