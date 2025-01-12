@@ -46,5 +46,8 @@ export function generateMetadata({ params }: { params: { pageName: string } }) {
       index: true,
       follow: true,
     },
+    alternates: {
+      canonical: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`,
+    },
   };
 }
