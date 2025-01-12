@@ -24,7 +24,8 @@ export function formatTimelineEvents(events: TimelineEvent[], colorSchemeId = 'd
       groupIndices.set(event.group, groupIndices.size);
     }
     const groupIndex = groupIndices.get(event.group)!;
-    const colors = colorScheme.colors[groupIndex as keyof typeof colorScheme.colors] || colorScheme.colors[0];
+    const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
+    const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
     return {
       start_date: { year, month, day },

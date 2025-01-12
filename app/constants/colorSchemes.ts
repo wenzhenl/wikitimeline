@@ -163,6 +163,17 @@ const VIBRANT_CLASSES = {
   }
 };
 
+const MONOCHROME_CLASSES = {
+  id: "monochrome",
+  name: "Monochrome",
+  colors: {
+    0: {
+      color: "bg-gray-50",
+      textColor: "text-gray-900"
+    }
+  }
+};
+
 // Convert Tailwind classes to hex colors
 export const COLOR_SCHEMES: ColorScheme[] = [
   {
@@ -188,6 +199,16 @@ export const COLOR_SCHEMES: ColorScheme[] = [
   {
     ...VIBRANT_CLASSES,
     colors: Object.entries(VIBRANT_CLASSES.colors).reduce((acc, [key, value]) => {
+      acc[key as unknown as number] = {
+        color: getColorFromClass(value.color),
+        textColor: getColorFromClass(value.textColor)
+      };
+      return acc;
+    }, {} as ColorScheme['colors'])
+  },
+  {
+    ...MONOCHROME_CLASSES,
+    colors: Object.entries(MONOCHROME_CLASSES.colors).reduce((acc, [key, value]) => {
       acc[key as unknown as number] = {
         color: getColorFromClass(value.color),
         textColor: getColorFromClass(value.textColor)
