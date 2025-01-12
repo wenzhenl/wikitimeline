@@ -5,6 +5,7 @@ import { CACHE_CONFIG } from '@/app/config/cache';
 import logger from '@/app/utils/logger';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { TimelineEvent, TimelineResponse, WikipediaInfo, TimelineGenerationResult } from '@/app/types/api';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -141,7 +142,7 @@ async function getCachedCompletion(pageName: string, summary?: string) {
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
-) {
+): Promise<Response> {
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
     const failedPages: string[] = [];
@@ -183,7 +184,7 @@ export async function GET(
     
     allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
-    const response: any = { timeline: allEvents };
+    const response: TimelineResponse = { timeline: allEvents };
     
     // Combine both types of failures in the error message
     const problemPages = [...failedPages, ...noTimelinePages];
@@ -202,7 +203,7 @@ export async function GET(
   } catch (error) {
     logger.error('Error processing request:', error);
     return Response.json(
-      { error: 'Failed to generate timeline' },
+      { timeline: [], error: 'Failed to generate timeline' } as TimelineResponse,
       { status: 500 }
     );
   }

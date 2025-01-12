@@ -11,32 +11,7 @@ import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import TimelineControls from "@/app/components/TimelineControls";
 import { useRouter } from "next/navigation";
-
-export interface TimelineEvent {
-  date: string;
-  text: {
-    headline: string;
-    text: string;
-  };
-  group: string;
-  media: {
-    url: string;
-    thumbnail?: string;
-  };
-}
-
-// Add new interface for API response
-interface TimelineResponse {
-  timeline: TimelineEvent[];
-  errors?: {
-    message: string;
-    failedPages: string[];
-    details?: {
-      noWikipediaData: string[];
-      noTimelineGenerated: string[];
-    };
-  };
-}
+import { TimelineEvent, TimelineResponse } from "@/app/types/api";
 
 interface ShareDialogProps {
   isOpen: boolean;
