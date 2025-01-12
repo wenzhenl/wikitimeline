@@ -56,3 +56,12 @@ Now you have generated a timeline, but please try harder and regenerate, there i
 Remember: You have one opportunity to create this timeline. Use your full analytical capabilities to ensure comprehensive and accurate extraction of all dated events from the article.
 
 tell it not include range, just a single date, and if there is a range, break it down into multiple events.
+
+
+SEO notes:
+
+Fix soft 404s, I think it's because the api is called from client side which is banned, so google can't crawl it.We need to make it server side so that it can also be indexed. 
+
+Paid subscriptions:
+it unlocks the ability to trigger LLM to generate new timelines, not the content. any content which is already generated is free. so that early adopters actually contribute to the content
+which will be free for everyone. Early adopters will get cheaper deal on the subscription, and enjoy free ads, and also the ability to enforce update of certain timelines.
