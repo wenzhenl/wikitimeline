@@ -2,7 +2,7 @@
 
 import MyTimelineComponent from "./MyTimelineComponent";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
-import type { TimelineEvent } from "../timeline/[pageName]/page";
+import { TimelineEvent } from "@/app/types/api";
 
 export default function EmbeddedTimeline({
   events,
