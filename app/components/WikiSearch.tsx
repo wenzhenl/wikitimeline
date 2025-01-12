@@ -158,16 +158,20 @@ export default function WikiSearch({
   }, []);
 
   const handleResultClick = (result: SearchResult) => {
-    onPagesChange([
-      ...selectedPages,
-      {
-        title: result.title,
-        link: result.fullurl,
-      },
-    ]);
+    const newPage = {
+      title: result.title,
+      link: `https://en.wikipedia.org/wiki/${result.title.replace(/ /g, "_")}`,
+    };
+
+    // Check if page already exists
+    if (selectedPages.some((page) => page.link === newPage.link)) {
+      return; // Skip if already exists
+    }
+
+    onPagesChange([...selectedPages, newPage]);
     setInputValue("");
+    setSearchResults([]);
     setShowDropdown(false);
-    inputRef.current?.focus();
   };
 
   const removePage = (indexToRemove: number) => {
