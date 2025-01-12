@@ -1,11 +1,10 @@
 import { OpenAI } from 'openai';
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
-import { CACHE_CONFIG } from '@/app/config/cache';
 import logger from '@/app/utils/logger';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { TimelineEvent, TimelineResponse, WikipediaInfo, TimelineGenerationResult } from '@/app/types/api';
+import { TimelineResponse } from '@/app/types/api';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -140,7 +139,6 @@ async function getCachedCompletion(pageName: string, summary?: string) {
 }
 
 export async function GET(
-  request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   try {

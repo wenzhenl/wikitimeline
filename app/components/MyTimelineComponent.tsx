@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import { SITE_CONFIG } from "../config/site";
-import { AVAILABLE_FONTS } from "../constants/fonts";
 
 export interface Event {
   start_date: { year: number; month?: number; day?: number };

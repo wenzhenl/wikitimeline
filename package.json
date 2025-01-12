@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:test": "next build",
+    "dev:strict": "next build && next dev",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@knight-lab/timelinejs": "^3.9.6",

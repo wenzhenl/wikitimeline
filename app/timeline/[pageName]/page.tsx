@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import Link from "next/link";
-import logger from "@/app/utils/logger";
 import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
