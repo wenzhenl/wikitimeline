@@ -94,7 +94,7 @@ export default function HomePage() {
                 selectedPages={selectedPages}
                 onPagesChange={setSelectedPages}
                 onSubmit={handleSubmit}
-                placeholder="Search Wikipedia pages (e.g. 'Albert Einstein', 'World War II')..."
+                placeholder="Search or paste Wikipedia URLs (e.g. 'Albert Einstein' or 'wikipedia.org/wiki/World_War_II')..."
                 className="flex-1 border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-blue-500 transition-all"
               />
               <button
