@@ -24,7 +24,7 @@ export interface ColorScheme {
 
 const TAILWIND_CLASSES = {
   id: "default",
-  name: "Tailwind Light",
+  name: "Default",
   colors: {
     0: {
       color: "bg-violet-50",
