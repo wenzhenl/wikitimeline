@@ -29,12 +29,18 @@ export default function HomePage() {
     // Get all page names
     const pageNames = selectedPages
       .map((page) => {
-        return page.link.split("/").pop()?.split("#")[0]?.split("?")[0];
+        // Handle both title and URL formats
+        const titleFromUrl = page.link.split("/wiki/").pop();
+        if (titleFromUrl) {
+          // Remove any hash or query parameters and decode
+          return decodeURIComponent(titleFromUrl.split("#")[0].split("?")[0]);
+        }
+        return null;
       })
       .filter(Boolean);
 
     if (!pageNames.length) {
-      setError("Invalid Wikipedia URL");
+      setError("Invalid Wikipedia URL or title");
       setLoading(false);
       return;
     }
