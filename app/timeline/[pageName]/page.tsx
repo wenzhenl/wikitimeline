@@ -9,6 +9,8 @@ import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
 import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
+import TimelineControls from "@/app/components/TimelineControls";
+import { useRouter } from "next/navigation";
 
 export interface TimelineEvent {
   date: string;
@@ -36,15 +38,24 @@ interface TimelineResponse {
   };
 }
 
-const ShareDialog = ({
-  isOpen,
-  onClose,
-  pageName,
-}: {
+interface ShareDialogProps {
   isOpen: boolean;
   onClose: () => void;
   pageName: string;
-}) => {
+}
+
+interface SelectedPage {
+  title: string;
+  link: string;
+}
+
+// Add this type near the top with other interfaces
+type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
+
+// Add this with other type definitions
+type FontId = (typeof AVAILABLE_FONTS)[number]["value"];
+
+const ShareDialog = ({ isOpen, onClose, pageName }: ShareDialogProps) => {
   const [copyStatus, setCopyStatus] = useState("Copy embed code");
   const isMobile = deviceDetection.isMobile();
   const hasShareApi = deviceDetection.hasShareApi();
@@ -206,13 +217,80 @@ export default function TimelinePage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [skippedPages, setSkippedPages] = useState<string[]>([]);
+  const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
+  const [selectedFont, setSelectedFont] = useState<FontId>(
+    AVAILABLE_FONTS[0].value
+  );
+  const [selectedColorScheme, setSelectedColorScheme] =
+    useState<ColorSchemeId>("default");
   const [showEmbed, setShowEmbed] = useState(false);
-  const [selectedFont, setSelectedFont] = useState("default");
-  const [selectedColorScheme, setSelectedColorScheme] = useState("default");
+  const [skippedPages, setSkippedPages] = useState<string[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const router = useRouter();
 
-  // Create a map to store group indices
-  const groupIndices = new Map<string, number>();
+  // Add this function to handle timeline refresh
+  const handleTimelineRefresh = () => {
+    const pageNames = selectedPages
+      .map((page) => {
+        const titleFromUrl = page.link.split("/wiki/").pop();
+        if (titleFromUrl) {
+          return decodeURIComponent(titleFromUrl.split("#")[0].split("?")[0]);
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    if (pageNames.length > 0) {
+      const newPath = `/timeline/${pageNames.join(",")}`;
+
+      // Only update URL if it's different from current path
+      if (newPath !== `/timeline/${params.pageName}`) {
+        router.push(newPath, { scroll: false }); // Add scroll: false to prevent page jump
+      }
+
+      // Always fetch new data
+      setLoading(true);
+      setError(null);
+      fetch(`/api/wikipedia/${pageNames.join(",")}`)
+        .then((response) => {
+          if (!response.ok) throw new Error("Failed to fetch timeline data");
+          return response.json();
+        })
+        .then((data: TimelineResponse) => {
+          if (data.timeline.length === 0) {
+            throw new Error(
+              data.errors?.message || "No timeline events could be generated"
+            );
+          }
+          setEvents(data.timeline);
+          if (data.errors?.failedPages) {
+            setSkippedPages(data.errors.failedPages);
+          }
+        })
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : "An error occurred");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  };
+
+  // Initialize selected pages from URL
+  useEffect(() => {
+    // Split by comma and handle encoded commas
+    const pageNames = decodeURIComponent(params.pageName)
+      .split(",")
+      .map((name) => name.trim())
+      .filter(Boolean);
+
+    setSelectedPages(
+      pageNames.map((name) => ({
+        title: name.replace(/_/g, " "),
+        link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
+      }))
+    );
+  }, [params.pageName]);
 
   useEffect(() => {
     const fetchTimelineData = async () => {
@@ -250,25 +328,28 @@ export default function TimelinePage({
   useEffect(() => {
     const savedFont = localStorage.getItem("timeline-font");
     if (savedFont) {
-      setSelectedFont(savedFont);
+      setSelectedFont(savedFont as FontId);
     }
   }, []);
 
   const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFont = e.target.value;
-    setSelectedFont(newFont);
+    setSelectedFont(newFont as FontId);
     localStorage.setItem("timeline-font", newFont);
   };
 
   useEffect(() => {
     const savedColorScheme = localStorage.getItem("timeline-color-scheme");
-    if (savedColorScheme) {
-      setSelectedColorScheme(savedColorScheme);
+    if (
+      savedColorScheme &&
+      COLOR_SCHEMES.some((scheme) => scheme.id === savedColorScheme)
+    ) {
+      setSelectedColorScheme(savedColorScheme as ColorSchemeId);
     }
   }, []);
 
   const handleColorSchemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newScheme = e.target.value;
+    const newScheme = e.target.value as ColorSchemeId;
     setSelectedColorScheme(newScheme);
     localStorage.setItem("timeline-color-scheme", newScheme);
   };
@@ -364,10 +445,10 @@ export default function TimelinePage({
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
         </div>
 
-        {/* Timeline Section - Full width */}
+        {/* Timeline Section */}
         {events.length > 0 && (
-          <div className="w-full h-screen min-h-[600px] max-h-[1000px] lg:h-[750px]">
-            <div className="flex flex-wrap items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="relative w-full h-screen min-h-[600px] max-h-[1000px] lg:h-[750px]">
+            <div className="flex flex-wrap items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-4">
               <label htmlFor="font-select" className="text-sm font-medium">
                 Timeline Font:
               </label>
@@ -429,6 +510,28 @@ export default function TimelinePage({
               events={formatTimelineEvents(events, selectedColorScheme)}
               font={selectedFont}
             />
+
+            {/* Move TimelineControls button inside timeline container */}
+            <TimelineControls
+              selectedPages={selectedPages}
+              onPagesChange={setSelectedPages}
+              onRefresh={handleTimelineRefresh}
+              isExpanded={isExpanded}
+              onExpandedChange={setIsExpanded}
+            />
+          </div>
+        )}
+
+        {/* Show skipped pages warning if any */}
+        {skippedPages.length > 0 && (
+          <div className="fixed top-20 right-4 z-50 bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg shadow-lg max-w-md">
+            <h4 className="text-yellow-800 dark:text-yellow-200 font-medium mb-2">
+              Some pages were skipped
+            </h4>
+            <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+              No timeline data could be extracted from:{" "}
+              {skippedPages.map((page) => decodeURIComponent(page)).join(", ")}
+            </p>
           </div>
         )}
       </main>
@@ -440,7 +543,7 @@ export default function TimelinePage({
           .tl-text-headline-container
           .tl-headline-date,
         .tl-text .tl-headline-date {
-          color: #4b5563 !important; /* gray-600 for better visibility */
+          color: #4b5563 !important;
           text-shadow: none !important;
           font-weight: 500 !important;
           opacity: 0.9 !important;

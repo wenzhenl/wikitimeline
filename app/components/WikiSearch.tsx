@@ -171,7 +171,11 @@ export default function WikiSearch({
   };
 
   const removePage = (indexToRemove: number) => {
-    onPagesChange(selectedPages.filter((_, index) => index !== indexToRemove));
+    const newPages = selectedPages.filter(
+      (_, index) => index !== indexToRemove
+    );
+    if (newPages.length === 0) return; // Prevent removing last page
+    onPagesChange(newPages);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
