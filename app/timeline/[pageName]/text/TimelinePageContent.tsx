@@ -181,8 +181,6 @@ export default function TimelinePageContent({
 }: TimelinePageContentProps) {
   const [showShare, setShowShare] = useState(false);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
-  const isMobile = deviceDetection.isMobile();
-  const hasShareApi = deviceDetection.hasShareApi();
 
   const handleShare = async () => {
     try {
