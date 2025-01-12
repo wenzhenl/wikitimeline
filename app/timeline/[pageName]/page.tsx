@@ -366,8 +366,8 @@ export default function TimelinePage({
 
         {/* Timeline Section - Full width */}
         {events.length > 0 && (
-          <div className="w-full h-[800px]">
-            <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="w-full h-screen min-h-[600px] max-h-[1000px] lg:h-[750px]">
+            <div className="flex flex-wrap items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
               <label htmlFor="font-select" className="text-sm font-medium">
                 Timeline Font:
               </label>
