@@ -37,3 +37,24 @@ export interface TimelineAPIResponse {
     };
   };
 }
+
+// Interface for TimelineJS format
+export interface TimelineJSEvent {
+  start_date: {
+    year: number;
+    month?: number;
+    day?: number;
+  };
+  text: {
+    headline: string;
+    text: string;
+  };
+  group: string;
+  media?: {
+    url?: string;
+    thumbnail?: string;
+  };
+  background?: {
+    color: string;
+  };
+}
