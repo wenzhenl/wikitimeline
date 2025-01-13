@@ -30,6 +30,63 @@ export default function TimelinePageContent({
 }: TimelinePageContentProps) {
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
 
+  const handleCaptureImage = async () => {
+    try {
+      const timelineElement = document.querySelector("#timeline-content");
+      if (!timelineElement) {
+        console.error("Timeline element not found");
+        return;
+      }
+
+      const canvas = await html2canvas(timelineElement as HTMLElement, {
+        backgroundColor: null,
+        scale: 2,
+      });
+
+      // Convert canvas to blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          console.error("Failed to create blob from canvas");
+          return;
+        }
+
+        try {
+          // Try to use the native share API for images if available
+          if (navigator.share && navigator.canShare) {
+            const file = new File([blob], "timeline.png", {
+              type: "image/png",
+            });
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: `Timeline of ${decodeURIComponent(activePage).replace(
+                  /_/g,
+                  " "
+                )}`,
+                text: "Check out this timeline I found!",
+              });
+              return;
+            }
+          }
+
+          // Fallback: Download the image
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `timeline-${activePage.toLowerCase()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Error sharing/downloading image:", error);
+        }
+      }, "image/png");
+    } catch (error) {
+      console.error("Error capturing timeline:", error);
+    }
+  };
+
   // Split and decode the pageNames
   const pageNames = decodeURIComponent(params.pageName)
     .split(",")
@@ -75,6 +132,10 @@ export default function TimelinePageContent({
                     /,/g,
                     ", "
                   )} in chronological order! Powered by wiki-timeline.com - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`}
+                customAction={{
+                  label: "Save as Image",
+                  onClick: handleCaptureImage,
+                }}
               />
             </div>
           </div>
