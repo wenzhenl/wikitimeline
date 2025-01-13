@@ -1,4 +1,3 @@
-import { useState } from "react";
 import WikiSearch from "./WikiSearch";
 
 interface SelectedPage {
@@ -21,7 +20,6 @@ export default function TimelineControls({
   isExpanded,
   onExpandedChange,
 }: TimelineControlsProps) {
-  const PANEL_WIDTH = 384;
 
   const handlePageChange = (newPages: SelectedPage[]) => {
     if (newPages.length === 0) return;
