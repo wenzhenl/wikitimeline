@@ -29,6 +29,7 @@ export default function TimelinePageContent({
   initialData,
 }: TimelinePageContentProps) {
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
+  const isMobile = deviceDetection.isMobile();
 
   const handleCaptureImage = async () => {
     try {
@@ -51,25 +52,7 @@ export default function TimelinePageContent({
         }
 
         try {
-          // Try to use the native share API for images if available
-          if (navigator.share && navigator.canShare) {
-            const file = new File([blob], "timeline.png", {
-              type: "image/png",
-            });
-            if (navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                files: [file],
-                title: `Timeline of ${decodeURIComponent(activePage).replace(
-                  /_/g,
-                  " "
-                )}`,
-                text: "Check out this timeline I found!",
-              });
-              return;
-            }
-          }
-
-          // Fallback: Download the image
+          // Download the image directly (no sharing)
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -79,7 +62,7 @@ export default function TimelinePageContent({
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         } catch (error) {
-          console.error("Error sharing/downloading image:", error);
+          console.error("Error downloading image:", error);
         }
       }, "image/png");
     } catch (error) {
