@@ -4,7 +4,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 async function getTimelineData(pageName: string) {
   try {
     const response = await fetch(
-      `${SITE_CONFIG.DOMAIN}/api/wikipedia/${pageName}`,
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${pageName}`,
       { cache: "no-store" }
     );
 
