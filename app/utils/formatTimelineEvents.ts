@@ -1,11 +1,57 @@
-import { TimelineEvent } from "../timeline/[pageName]/page";
+import { PageTimeline } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "../constants/colorSchemes";
 
-export function formatTimelineEvents(events: TimelineEvent[], colorSchemeId = 'default') {
+// Interface for TimelineJS format
+interface TimelineJSEvent {
+  start_date: {
+    year: number;
+    month?: number;
+    day?: number;
+  };
+  text: {
+    headline: string;
+    text: string;
+  };
+  group: string;
+  media?: {
+    url?: string;
+    thumbnail?: string;
+  };
+  background?: {
+    color: string;
+  };
+}
+
+function formatGroupName(name: string): string {
+  return name
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join(' ');
+}
+
+export function formatTimelineEventsForInteractive(
+  timelines: Record<string, PageTimeline>, 
+  colorSchemeId = 'default'
+): TimelineJSEvent[] {
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
 
-  return events.map((event) => {
+  // Merge and format all events from all timelines
+  const allEvents = Object.entries(timelines).flatMap(([pageName, pageData]) => 
+    pageData.timeline.map(event => ({
+      ...event,
+      group: formatGroupName(pageName),
+      media: {
+        url: pageData.wikiSummary.pageUrl,
+        thumbnail: pageData.wikiSummary.thumbnail
+      }
+    }))
+  );
+
+  return allEvents.map((event) => {
     // Check if it's a negative year first
     const isNegativeYear = event.date.startsWith("-");
     const normalizedDate = isNegativeYear ? event.date.slice(1) : event.date;
@@ -30,8 +76,8 @@ export function formatTimelineEvents(events: TimelineEvent[], colorSchemeId = 'd
     return {
       start_date: { year, month, day },
       text: {
-        headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.text.headline}</span>`,
-        text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text.text}</span>`,
+        headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
+        text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text}</span>`,
       },
       group: event.group,
       media: event.media,
