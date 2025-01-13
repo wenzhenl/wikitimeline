@@ -1,5 +1,3 @@
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
 const logger = {
   debug: (...args: any[]) => {
     if (process.env.NODE_ENV !== 'production') {
