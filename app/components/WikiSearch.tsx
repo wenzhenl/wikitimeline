@@ -74,14 +74,14 @@ export default function WikiSearch({
         onPagesChange([...selectedPages, newPage]);
         setInputValue("");
         setSearchResults([]);
-        return;
+        return undefined;
       }
     }
 
     // Continue with existing search logic for non-URL inputs
     if (!value.trim()) {
       setSearchResults([]);
-      return;
+      return undefined;
     }
 
     // Existing search logic...
