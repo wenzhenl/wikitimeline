@@ -124,7 +124,7 @@ async function getCachedCompletion(pageName: string, summary: string): Promise<{
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   try {
