@@ -102,6 +102,15 @@ async function getCachedCompletion(pageName: string, summary: string): Promise<{
     temperature: 0,
   });
 
+  // Log token usage
+  logger.debug(`Token usage for ${pageName}:`, {
+    prompt_tokens: completion.usage?.prompt_tokens,
+    completion_tokens: completion.usage?.completion_tokens,
+    total_tokens: completion.usage?.total_tokens,
+    cached_tokens: completion.usage?.prompt_tokens_details?.cached_tokens || 0,
+    model: completion.model,
+  });
+
   const result = JSON.parse(completion.choices[0].message.content!);
   
   try {
