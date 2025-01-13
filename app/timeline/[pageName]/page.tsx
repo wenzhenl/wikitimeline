@@ -37,7 +37,6 @@ export default function TimelinePage({
   );
   const [selectedColorScheme, setSelectedColorScheme] =
     useState<ColorSchemeId>("default");
-  const [showEmbed, setShowEmbed] = useState(false);
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
