@@ -1,5 +1,6 @@
 import EmbeddedTimeline from "@/app/components/EmbeddedTimeline";
 import { SITE_CONFIG } from "@/app/config/site";
+import { TimelineAPIResponse } from "@/app/types/timeline";
 
 async function getTimelineData(pageName: string) {
   try {
@@ -12,11 +13,17 @@ async function getTimelineData(pageName: string) {
       throw new Error("Failed to fetch timeline data");
     }
 
-    const data = await response.json();
-    return data.timeline || [];
+    const data: TimelineAPIResponse = await response.json();
+
+    // Return empty if no valid timelines
+    if (!data.timelines || Object.keys(data.timelines).length === 0) {
+      return {};
+    }
+
+    return data.timelines;
   } catch (error) {
     console.error(`Failed to fetch timeline data for ${pageName}:`, error);
-    return [];
+    return {};
   }
 }
 
@@ -25,8 +32,8 @@ export default async function EmbedPage({
 }: {
   params: { pageName: string };
 }) {
-  const events = await getTimelineData(params.pageName);
-  return <EmbeddedTimeline events={events} />;
+  const timelines = await getTimelineData(params.pageName);
+  return <EmbeddedTimeline timelines={timelines} />;
 }
 
 export function generateMetadata({ params }: { params: { pageName: string } }) {
