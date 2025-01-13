@@ -396,9 +396,22 @@ export default function TimelinePage({
                 Reader View
               </Link>
               <ShareButtons
-                pageName={params.pageName}
-                variant="interactive"
-                onEmbedClick={() => setShowEmbed(true)}
+                url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+                title={`Timeline of ${decodeURIComponent(
+                  params.pageName
+                ).replace(/_/g, " ")}`}
+                description={`🚀 Explore the history of ${decodeURIComponent(
+                  params.pageName
+                )
+                  .replace(/_/g, " ")
+                  .replace(
+                    /,/g,
+                    ", "
+                  )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
+                customAction={{
+                  label: "Get Embed Code",
+                  onClick: () => setShowEmbed(true),
+                }}
               />
             </div>
           </div>
