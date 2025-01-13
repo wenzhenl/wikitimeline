@@ -1,49 +1,57 @@
-import { Redis } from "@upstash/redis";
 import TimelinePageContent from "./TimelinePageContent";
 import logger from "@/app/utils/logger";
+import { SITE_CONFIG } from "@/app/config/site";
 
-// Initialize Redis
-const redis = Redis.fromEnv();
-
-interface TimelineEvent {
-  date: string;
-  headline: string;
-  text: string;
-}
+import { TimelineAPIResponse } from "@/app/types/timeline";
 
 async function getTimelineData(pageName: string, activePageName?: string) {
-  // If activePageName is provided, use it, otherwise use the first page from pageName
   const targetPage = activePageName || pageName.split(",")[0];
-  const cacheKey = `timeline:${decodeURIComponent(targetPage)}`;
 
   try {
-    const data = (await redis.get(cacheKey)) as {
-      timeline: TimelineEvent[];
-      errors?: { failedPages: string[] };
-    };
+    const response = await fetch(
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`,
+      { next: { revalidate: 3600 } }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch timeline data: ${response.statusText}`);
+    }
+
+    const data: TimelineAPIResponse = await response.json();
     logger.info(`Fetched timeline data for ${targetPage}`);
 
-    // Sort the timeline events
-    if (data?.timeline) {
-      data.timeline.sort((a, b) => {
-        const aIsNegative = a.date.startsWith("-");
-        const bIsNegative = b.date.startsWith("-");
-        const aParts = (aIsNegative ? a.date.slice(1) : a.date)
-          .split("-")
-          .map(Number);
-        const bParts = (bIsNegative ? b.date.slice(1) : b.date)
-          .split("-")
-          .map(Number);
-        const aYear = aParts[0] * (aIsNegative ? -1 : 1);
-        const bYear = bParts[0] * (bIsNegative ? -1 : 1);
-        if (aYear !== bYear) return aYear - bYear;
-        if (aParts[1] && bParts[1] && aParts[1] !== bParts[1])
-          return aParts[1] - bParts[1];
-        if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
-        return aParts.length - bParts.length;
-      });
-    }
-    return data;
+    // Transform API response to text format
+    const transformedData = {
+      timeline: Object.values(data.timelines)
+        .flatMap((page) =>
+          page.timeline.map((event) => ({
+            date: event.date,
+            headline: event.headline,
+            text: event.text,
+          }))
+        )
+        .sort((a, b) => {
+          const aIsNegative = a.date.startsWith("-");
+          const bIsNegative = b.date.startsWith("-");
+          const aParts = (aIsNegative ? a.date.slice(1) : a.date)
+            .split("-")
+            .map(Number);
+          const bParts = (bIsNegative ? b.date.slice(1) : b.date)
+            .split("-")
+            .map(Number);
+          const aYear = aParts[0] * (aIsNegative ? -1 : 1);
+          const bYear = bParts[0] * (bIsNegative ? -1 : 1);
+
+          if (aYear !== bYear) return aYear - bYear;
+          if (aParts[1] && bParts[1] && aParts[1] !== bParts[1])
+            return aParts[1] - bParts[1];
+          if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
+          return aParts.length - bParts.length;
+        }),
+      errors: data.errors,
+    };
+
+    return transformedData;
   } catch (error) {
     logger.error(`Failed to fetch timeline data for ${targetPage}:`, error);
     throw error;
