@@ -1,19 +1,19 @@
 "use client";
 
 import MyTimelineComponent from "./MyTimelineComponent";
-import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
-import { TimelineEvent } from "@/app/types/api";
+import { formatTimelineEventsForInteractive } from "@/app/utils/formatTimelineEvents";
+import { PageTimeline } from "@/app/types/timeline";
 
 export default function EmbeddedTimeline({
-  events,
+  timelines,
 }: {
-  events: TimelineEvent[];
+  timelines: Record<string, PageTimeline>;
 }) {
   return (
     <div className="w-full h-screen">
-      {events.length > 0 && (
+      {Object.keys(timelines).length > 0 && (
         <MyTimelineComponent
-          events={formatTimelineEvents(events)}
+          events={formatTimelineEventsForInteractive(timelines)}
           font="default"
         />
       )}

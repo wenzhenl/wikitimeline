@@ -1,26 +1,6 @@
 import { PageTimeline } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "../constants/colorSchemes";
-
-// Interface for TimelineJS format
-interface TimelineJSEvent {
-  start_date: {
-    year: number;
-    month?: number;
-    day?: number;
-  };
-  text: {
-    headline: string;
-    text: string;
-  };
-  group: string;
-  media?: {
-    url?: string;
-    thumbnail?: string;
-  };
-  background?: {
-    color: string;
-  };
-}
+import { TimelineJSEvent } from "@/app/types/timeline";
 
 function formatGroupName(name: string): string {
   return name

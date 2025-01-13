@@ -2,17 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import { SITE_CONFIG } from "../config/site";
-
-export interface Event {
-  start_date: { year: number; month?: number; day?: number };
-  text: { headline: string; text?: string };
-  group?: string;
-  background?: { color?: string; url?: string };
-  media?: { url: string; thumbnail?: string };
-}
+import { TimelineJSEvent } from "@/app/types/timeline";
 
 interface MyTimelineComponentProps {
-  events: Event[];
+  events: TimelineJSEvent[];
   font: string;
 }
 
