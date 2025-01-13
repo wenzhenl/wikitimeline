@@ -6,6 +6,7 @@ import TimelineView from "./TimelineView";
 import html2canvas from "html2canvas";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
+import ShareButtons from "@/app/components/ShareButtons";
 
 interface TimelineEvent {
   date: string;
@@ -22,28 +23,6 @@ interface TimelinePageContentProps {
   };
 }
 
-const ShareDialog = ({
-  isOpen,
-  onClose,
-  pageName,
-  imageBlob,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  pageName: string;
-  imageBlob: Blob | null;
-}) => {
-  const isMobile = deviceDetection.isMobile();
-  const hasShareApi = deviceDetection.hasShareApi();
-
-  const pageUrl = `${SITE_CONFIG.DOMAIN}/timeline/${pageName}/text`;
-  const shareText = `🚀 Explore the history of ${decodeURIComponent(pageName)
-    .replace(/_/g, " ")
-    .replace(
-      /,/g,
-      ", "
-    )} through this interactive timeline! 📚 Powered by wiki-timeline.com - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`;
-
 export default function TimelinePageContent({
   params,
   searchParams,
@@ -59,6 +38,10 @@ export default function TimelinePageContent({
 
   // Use the active param or first page
   const activePage = searchParams.active || pageNames[0];
+
+  const pageUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text${
+    searchParams.active ? `?active=${searchParams.active}` : ""
+  }`;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -78,24 +61,21 @@ export default function TimelinePageContent({
               >
                 Interactive View
               </Link>
-              <button
-                onClick={handleShare}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-              </button>
+              <ShareButtons
+                url={pageUrl}
+                title={`Timeline of ${decodeURIComponent(activePage).replace(
+                  /_/g,
+                  " "
+                )}`}
+                description={`📚 Read through the history of ${decodeURIComponent(
+                  activePage
+                )
+                  .replace(/_/g, " ")
+                  .replace(
+                    /,/g,
+                    ", "
+                  )} in chronological order! Powered by wiki-timeline.com - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`}
+              />
             </div>
           </div>
         </div>
