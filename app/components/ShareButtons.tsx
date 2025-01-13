@@ -60,8 +60,14 @@ export default function ShareButtons({
       </button>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          style={{ paddingTop: "30vh" }}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md flex flex-col"
+            style={{ maxHeight: "60vh" }}
+          >
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h3 className="text-lg font-semibold">Share Timeline</h3>
               <button
@@ -84,7 +90,7 @@ export default function ShareButtons({
               </button>
             </div>
 
-            <div className="p-4">
+            <div className="flex-1 p-4 overflow-y-auto">
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
