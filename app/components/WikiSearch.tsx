@@ -31,7 +31,6 @@ interface WikiSearchProps {
 export default function WikiSearch({
   selectedPages,
   onPagesChange,
-  onSubmit,
   placeholder,
   className,
 }: WikiSearchProps) {
@@ -180,19 +179,6 @@ export default function WikiSearch({
     );
     if (newPages.length === 0) return; // Prevent removing last page
     onPagesChange(newPages);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !showDropdown) {
-      e.preventDefault();
-      onSubmit();
-    } else if (
-      e.key === "Backspace" &&
-      !inputValue &&
-      selectedPages.length > 0
-    ) {
-      removePage(selectedPages.length - 1);
-    }
   };
 
   return (
