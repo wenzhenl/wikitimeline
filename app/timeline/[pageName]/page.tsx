@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import Link from "next/link";
-import { formatTimelineEvents } from "@/app/utils/formatTimelineEvents";
+import { formatTimelineEventsForInteractive } from "@/app/utils/formatTimelineEvents";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
 import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import TimelineControls from "@/app/components/TimelineControls";
 import { useRouter } from "next/navigation";
-import { TimelineEvent, TimelineResponse } from "@/app/types/api";
-
+import { TimelineAPIResponse, TimelineJSEvent } from "@/app/types/timeline";
 interface ShareDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -190,7 +189,7 @@ export default function TimelinePage({
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<TimelineEvent[]>([]);
+  const [events, setEvents] = useState<TimelineJSEvent[]>([]);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -202,7 +201,46 @@ export default function TimelinePage({
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
 
-  // Add this function to handle timeline refresh
+  // Update the fetch logic
+  useEffect(() => {
+    const fetchTimelineData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          `/api/timeline/generate/${params.pageName}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch timeline data");
+        }
+
+        const data: TimelineAPIResponse = await response.json();
+
+        if (!data.timelines || Object.keys(data.timelines).length === 0) {
+          throw new Error("No timeline data could be generated");
+        }
+
+        setEvents(
+          formatTimelineEventsForInteractive(
+            data.timelines,
+            selectedColorScheme
+          )
+        );
+        if (data.errors?.failedPages) {
+          setSkippedPages(data.errors.failedPages);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimelineData();
+  }, [params.pageName, selectedColorScheme]);
+
+  // Update the refresh handler
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
       .map((page) => {
@@ -217,26 +255,27 @@ export default function TimelinePage({
     if (pageNames.length > 0) {
       const newPath = `/timeline/${pageNames.join(",")}`;
 
-      // Only update URL if it's different from current path
       if (newPath !== `/timeline/${params.pageName}`) {
-        router.push(newPath, { scroll: false }); // Add scroll: false to prevent page jump
+        router.push(newPath, { scroll: false });
       }
 
-      // Always fetch new data
       setLoading(true);
       setError(null);
-      fetch(`/api/timeline/${pageNames.join(",")}`)
+      fetch(`/api/timeline/generate/${pageNames.join(",")}`)
         .then((response) => {
           if (!response.ok) throw new Error("Failed to fetch timeline data");
           return response.json();
         })
-        .then((data: TimelineResponse) => {
-          if (data.timeline.length === 0) {
-            throw new Error(
-              data.errors?.message || "No timeline events could be generated"
-            );
+        .then((data: TimelineAPIResponse) => {
+          if (!data.timelines || Object.keys(data.timelines).length === 0) {
+            throw new Error("No timeline data could be generated");
           }
-          setEvents(data.timeline);
+          setEvents(
+            formatTimelineEventsForInteractive(
+              data.timelines,
+              selectedColorScheme
+            )
+          );
           if (data.errors?.failedPages) {
             setSkippedPages(data.errors.failedPages);
           }
@@ -264,39 +303,6 @@ export default function TimelinePage({
         link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
       }))
     );
-  }, [params.pageName]);
-
-  useEffect(() => {
-    const fetchTimelineData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/timeline/${params.pageName}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch timeline data");
-        }
-
-        const data: TimelineResponse = await response.json();
-
-        if (data.timeline.length === 0) {
-          throw new Error(
-            data.errors?.message || "No timeline events could be generated"
-          );
-        }
-
-        setEvents(data.timeline);
-        if (data.errors?.failedPages) {
-          setSkippedPages(data.errors.failedPages);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTimelineData();
   }, [params.pageName]);
 
   useEffect(() => {
@@ -480,10 +486,7 @@ export default function TimelinePage({
                     ))}
               </div>
             </div>
-            <MyTimelineComponent
-              events={formatTimelineEvents(events, selectedColorScheme)}
-              font={selectedFont}
-            />
+            <MyTimelineComponent events={events} font={selectedFont} />
 
             {/* Move TimelineControls button inside timeline container */}
             <TimelineControls
