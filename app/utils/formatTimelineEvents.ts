@@ -25,7 +25,6 @@ export function formatTimelineEventsForInteractive(
       ...event,
       group: formatGroupName(pageName),
       media: {
-        url: pageData.wikiSummary.pageUrl,
         thumbnail: pageData.wikiSummary.thumbnail
       }
     }))
