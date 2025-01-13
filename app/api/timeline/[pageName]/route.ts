@@ -115,6 +115,7 @@ async function getCachedCompletion(pageName: string, summary: string): Promise<{
 }
 
 export async function GET(
+  request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   try {
@@ -127,26 +128,23 @@ export async function GET(
       pageNames.map(async (pageName) => {
         const trimmedName = pageName.trim();
         
-        // Get Wikipedia info and timeline data in parallel for each page
+        // Get Wikipedia info first
         const wikiInfo = await getWikipediaInfo(trimmedName);
         if (wikiInfo.error) {
           failedPages.push(trimmedName);
           return;
         }
 
-        const timelineData = await getCachedCompletion(trimmedName, wikiInfo.summary);
+        // Then get timeline data using the wiki summary
+        const timelineData = await getCachedCompletion(trimmedName, wikiInfo.summary!);
         if (!timelineData?.timeline?.length) {
           noTimelinePages.push(trimmedName);
           return;
         }
 
-        // Transform to new format
+        // Store results
         timelines[trimmedName] = {
-          timeline: timelineData.timeline.map(event => ({
-            date: event.date,
-            headline: event.headline,
-            text: event.text
-          })),
+          timeline: timelineData.timeline,
           wikiSummary: {
             pageUrl: wikiInfo.pageUrl,
             thumbnail: wikiInfo.thumbnail,
