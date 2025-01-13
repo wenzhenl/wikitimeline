@@ -209,7 +209,7 @@ export default function TimelinePage({
         setError(null);
 
         const response = await fetch(
-          `/api/timeline/generate/${params.pageName}`
+          `/api/timeline/${params.pageName}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch timeline data");
@@ -261,7 +261,7 @@ export default function TimelinePage({
 
       setLoading(true);
       setError(null);
-      fetch(`/api/timeline/generate/${pageNames.join(",")}`)
+      fetch(`/api/timeline/${pageNames.join(",")}`)
         .then((response) => {
           if (!response.ok) throw new Error("Failed to fetch timeline data");
           return response.json();
