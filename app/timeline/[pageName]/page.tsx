@@ -92,38 +92,9 @@ export default function TimelinePage({
 
     if (pageNames.length > 0) {
       const newPath = `/timeline/${pageNames.join(",")}`;
-
       if (newPath !== `/timeline/${params.pageName}`) {
-        router.push(newPath, { scroll: false });
+        router.push(newPath);
       }
-
-      setLoading(true);
-      setError(null);
-      fetch(`/api/timeline/${pageNames.join(",")}`)
-        .then((response) => {
-          if (!response.ok) throw new Error("Failed to fetch timeline data");
-          return response.json();
-        })
-        .then((data: TimelineAPIResponse) => {
-          if (!data.timelines || Object.keys(data.timelines).length === 0) {
-            throw new Error("No timeline data could be generated");
-          }
-          setEvents(
-            formatTimelineEventsForInteractive(
-              data.timelines,
-              selectedColorScheme
-            )
-          );
-          if (data.errors?.failedPages) {
-            setSkippedPages(data.errors.failedPages);
-          }
-        })
-        .catch((err) => {
-          setError(err instanceof Error ? err.message : "An error occurred");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
     }
   };
 
