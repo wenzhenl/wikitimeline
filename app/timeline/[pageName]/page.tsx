@@ -2,6 +2,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import InteractiveTimelineContent from "@/app/components/InteractiveTimelineContent";
 import logger from "@/app/utils/logger";
+import { notFound } from "next/navigation";
 
 async function getTimelineData(pageName: string) {
   try {
@@ -31,17 +32,30 @@ export default async function TimelinePage({
 }) {
   try {
     const initialData = await getTimelineData(params.pageName);
+
+    // If we got a successful response but no timeline data, show 404
+    if (
+      !initialData.timelines ||
+      Object.keys(initialData.timelines).length === 0
+    ) {
+      notFound();
+    }
+
     return (
       <InteractiveTimelineContent params={params} initialData={initialData} />
     );
   } catch (error) {
-    return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
-        <p className="text-red-800 dark:text-red-200">
-          Error loading timeline data.
-        </p>
-      </div>
-    );
+    // Only catch non-NEXT_NOT_FOUND errors
+    if ((error as any)?.digest !== "NEXT_NOT_FOUND") {
+      return (
+        <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
+          <p className="text-red-800 dark:text-red-200">
+            Error loading timeline data.
+          </p>
+        </div>
+      );
+    }
+    throw error;
   }
 }
 
