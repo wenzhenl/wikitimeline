@@ -34,8 +34,7 @@ async function getSystemPrompt(): Promise<string> {
     return cachedSystemPrompt;
   } catch (error) {
     logger.error('Error reading system prompt:', error);
-    // Fallback to hardcoded prompt if file read fails
-    return "You are a timeline generator that extracts events directly from Wikipedia articles...";
+    throw new Error('Failed to read system prompt file');
   }
 }
 
