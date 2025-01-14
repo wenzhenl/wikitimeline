@@ -95,7 +95,7 @@ export default function HomePage() {
                 onPagesChange={setSelectedPages}
                 onSubmit={handleSubmit}
                 placeholder="Search or paste Wikipedia URLs (e.g. 'Albert Einstein' or 'wikipedia.org/wiki/World_War_II')..."
-                className="flex-1 border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-blue-500 transition-all"
+                className="flex-1"
               />
               <button
                 type="submit"
