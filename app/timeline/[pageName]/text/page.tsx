@@ -76,9 +76,6 @@ export default async function TimelineTextPage({
       defaultPage,
       active: searchParams.active,
       data,
-      cacheKey: `timeline:${decodeURIComponent(
-        searchParams.active || defaultPage
-      )}`,
     });
     return (
       <TimelinePageContent
