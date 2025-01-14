@@ -23,7 +23,7 @@ export default function NotFound() {
           404
         </h1>
         <p className="text-xl mb-8 text-gray-600 dark:text-gray-300">
-          Page not found
+          Timeline not found for this Wikipedia page
         </p>
         <Link
           href="/"
