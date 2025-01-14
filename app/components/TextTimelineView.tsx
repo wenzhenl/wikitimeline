@@ -6,14 +6,14 @@ interface TimelineEvent {
   text: string;
 }
 
-interface TimelineViewProps {
+interface TextTimelineViewProps {
   data: {
     timeline: TimelineEvent[];
     errors?: { failedPages: string[] };
   } | null;
 }
 
-export default function TimelineView({ data }: TimelineViewProps) {
+export default function TextTimelineView({ data }: TextTimelineViewProps) {
   if (!data || !data.timeline) {
     return (
       <div className="p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import TimelineView from "./TimelineView";
+import TextTimelineView from "@/app/components/TextTimelineView";
 import html2canvas from "html2canvas";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
@@ -14,7 +14,7 @@ interface TimelineEvent {
   text: string;
 }
 
-interface TimelinePageContentProps {
+interface TextTimelinePageContentProps {
   params: { pageName: string };
   searchParams: { active?: string };
   initialData: {
@@ -23,11 +23,11 @@ interface TimelinePageContentProps {
   };
 }
 
-export default function TimelinePageContent({
+export default function TextTimelinePageContent({
   params,
   searchParams,
   initialData,
-}: TimelinePageContentProps) {
+}: TextTimelinePageContentProps) {
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const isMobile = deviceDetection.isMobile();
 
@@ -138,7 +138,7 @@ export default function TimelinePageContent({
         )}
 
         <div className="mt-8">
-          <TimelineView data={initialData} />
+          <TextTimelineView data={initialData} />
         </div>
       </main>
     </div>

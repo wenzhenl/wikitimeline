@@ -1,4 +1,4 @@
-import TimelinePageContent from "./TimelinePageContent";
+import TextTimelinePageContent from "@/app/components/TextTimelinePageContent";
 import logger from "@/app/utils/logger";
 import { SITE_CONFIG } from "@/app/config/site";
 
@@ -78,7 +78,7 @@ export default async function TimelineTextPage({
       data,
     });
     return (
-      <TimelinePageContent
+      <TextTimelinePageContent
         params={params}
         searchParams={{
           ...searchParams,
