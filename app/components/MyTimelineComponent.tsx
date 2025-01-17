@@ -21,16 +21,10 @@ const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
         }
 
         const options = {
-          scale_factor: 2,
-          height: "600px",
-          language: "en",
-          hash_bookmark: true,
           marker_height_min: 50,
-          marker_padding: 5,
-          start_at_slide: 0,
           ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
-          timenav_height_percentage: 20,
           duration: 500,
+          timenav_height_percentage: 20,
           font,
         };
 
