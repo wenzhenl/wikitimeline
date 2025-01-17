@@ -338,11 +338,14 @@ export default function InteractiveTimelineContent({
                         const pageNames = decodeURIComponent(
                           params.pageName
                         ).replace(/_/g, " ");
+                        const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`;
                         const subject = encodeURIComponent(
                           `Timeline Issue: ${pageNames}`
                         );
                         const body = encodeURIComponent(
-                          `I found an issue with the timeline for: ${pageNames}\n\nIssue description:\n`
+                          `I found an issue with the timeline for: ${pageNames}\n\n` +
+                            `Timeline URL: ${timelineUrl}\n\n` +
+                            `Issue description:\n`
                         );
                         window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
                         setIsOptionsOpen(false);
