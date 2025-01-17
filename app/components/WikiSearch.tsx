@@ -26,6 +26,7 @@ interface WikiSearchProps {
   onSubmit: () => void;
   placeholder?: string;
   className?: string;
+  autoFocus?: boolean;
 }
 
 export default function WikiSearch({
@@ -33,6 +34,7 @@ export default function WikiSearch({
   onPagesChange,
   placeholder,
   className,
+  autoFocus = true,
 }: WikiSearchProps) {
   const [inputValue, setInputValue] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -218,6 +220,12 @@ export default function WikiSearch({
   useEffect(() => {
     setSelectedIndex(-1);
   }, [searchResults]);
+
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, []);
 
   return (
     <div className={`relative ${className}`}>
