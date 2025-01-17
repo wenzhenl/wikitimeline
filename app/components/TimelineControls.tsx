@@ -20,7 +20,6 @@ export default function TimelineControls({
   isExpanded,
   onExpandedChange,
 }: TimelineControlsProps) {
-
   const handlePageChange = (newPages: SelectedPage[]) => {
     if (newPages.length === 0) return;
     onPagesChange(newPages);
@@ -28,10 +27,10 @@ export default function TimelineControls({
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button - Adjusted positioning */}
       <button
         onClick={() => onExpandedChange(true)}
-        className="absolute right-4 -bottom-16 z-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg"
+        className="fixed right-4 bottom-4 z-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-105"
       >
         <svg
           className="w-6 h-6"
