@@ -213,7 +213,7 @@ export default function InteractiveTimelineContent({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Navigation */}
       <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -274,7 +274,7 @@ export default function InteractiveTimelineContent({
         </div>
       </nav>
 
-      <main className="relative">
+      <main className="flex-1 relative overflow-hidden">
         {/* Settings Modal */}
         {isSettingsOpen && (
           <div
@@ -386,7 +386,7 @@ export default function InteractiveTimelineContent({
 
         {/* Timeline Content */}
         {events.length > 0 && (
-          <div className="relative w-full h-screen min-h-[600px] max-h-[1000px] lg:h-[750px]">
+          <div className="h-full">
             <MyTimelineComponent events={events} font={selectedFont} />
             <TimelineControls
               selectedPages={selectedPages}
