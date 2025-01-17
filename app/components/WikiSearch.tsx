@@ -38,6 +38,7 @@ export default function WikiSearch({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +60,7 @@ export default function WikiSearch({
 
   const handleInputChange = async (value: string) => {
     setInputValue(value);
+    setShowDropdown(true);
 
     // Check if input looks like a Wikipedia URL
     const wikiTitle = extractWikiTitle(value);
@@ -171,6 +173,10 @@ export default function WikiSearch({
     setInputValue("");
     setSearchResults([]);
     setShowDropdown(false);
+    setSelectedIndex(-1);
+
+    // Re-focus the input after selection
+    inputRef.current?.focus();
   };
 
   const removePage = (indexToRemove: number) => {
@@ -180,6 +186,38 @@ export default function WikiSearch({
     if (newPages.length === 0) return; // Prevent removing last page
     onPagesChange(newPages);
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDropdown || searchResults.length === 0) return;
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedIndex((prev) =>
+          prev < searchResults.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (selectedIndex >= 0) {
+          handleResultClick(searchResults[selectedIndex]);
+        }
+        break;
+      case "Escape":
+        setShowDropdown(false);
+        setSelectedIndex(-1);
+        break;
+    }
+  };
+
+  // Reset selected index when results change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchResults]);
 
   return (
     <div className={`relative ${className}`}>
@@ -210,6 +248,7 @@ export default function WikiSearch({
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setShowDropdown(true)}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder || "Search Wikipedia or paste URL..."}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
         />
@@ -222,10 +261,14 @@ export default function WikiSearch({
               </div>
             ) : searchResults.length > 0 ? (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                {searchResults.map((result) => (
+                {searchResults.map((result, index) => (
                   <li
                     key={result.pageid}
-                    className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex items-start gap-3"
+                    className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex items-start gap-3 ${
+                      index === selectedIndex
+                        ? "bg-gray-50 dark:bg-gray-700"
+                        : ""
+                    }`}
                     onClick={() => handleResultClick(result)}
                   >
                     <div className="flex-shrink-0 w-16 h-16 relative rounded overflow-hidden bg-gray-100 dark:bg-gray-600">
