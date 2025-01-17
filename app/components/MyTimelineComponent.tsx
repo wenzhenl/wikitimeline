@@ -21,10 +21,8 @@ const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
         }
 
         const options = {
-          marker_height_min: 50,
           ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
           duration: 500,
-          timenav_height_percentage: 20,
           font,
         };
 
