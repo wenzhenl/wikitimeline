@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { TimelineAPIResponse, TimelineJSEvent } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
-import ReportIssueButton from "@/app/components/ReportIssueButton";
 
 interface SelectedPage {
   title: string;
