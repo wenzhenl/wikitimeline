@@ -49,6 +49,7 @@ export default function InteractiveTimelineContent({
   const router = useRouter();
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -181,6 +182,27 @@ export default function InteractiveTimelineContent({
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const optionsButton = document.querySelector(
+        '[aria-label="More options"]'
+      );
+      const optionsMenu = document.querySelector(".options-menu");
+
+      if (
+        isOptionsOpen &&
+        !optionsButton?.contains(target) &&
+        !optionsMenu?.contains(target)
+      ) {
+        setIsOptionsOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isOptionsOpen]);
+
   if (loading) {
     return <LoadingUI />;
   }
@@ -224,33 +246,8 @@ export default function InteractiveTimelineContent({
             >
               WikiTimeline
             </Link>
-            <div className="flex items-center gap-4">
-              {/* Settings Button */}
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                aria-label="Customize Timeline"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                  />
-                </svg>
-              </button>
-              <Link
-                href={`/timeline/${params.pageName}/text`}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                Reader View
-              </Link>
+            <div className="flex items-center gap-3">
+              {/* Share Button - Most important, keep prominent */}
               <ShareButtons
                 url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
                 title={`Timeline of ${decodeURIComponent(
@@ -266,9 +263,80 @@ export default function InteractiveTimelineContent({
                   )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
                 customAction={{
                   label: "Copy Embed Code",
-                  onClick: () => handleCopyEmbedCode(),
+                  onClick: handleCopyEmbedCode,
                 }}
               />
+
+              {/* Settings and Reader View in a dropdown */}
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    setIsOptionsOpen(!isOptionsOpen);
+                  }}
+                  className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                  aria-label="More options"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                    />
+                  </svg>
+                </button>
+
+                {isOptionsOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50 options-menu">
+                    <button
+                      onClick={() => {
+                        setIsSettingsOpen(true);
+                        setIsOptionsOpen(false);
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                        />
+                      </svg>
+                      Customize Timeline
+                    </button>
+                    <Link
+                      href={`/timeline/${params.pageName}/text`}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
+                      </svg>
+                      Reader View
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
