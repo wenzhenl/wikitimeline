@@ -48,6 +48,7 @@ export default function InteractiveTimelineContent({
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
   const [showSkippedModal, setShowSkippedModal] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -88,10 +89,9 @@ export default function InteractiveTimelineContent({
     }
   }, []);
 
-  const handleColorSchemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newScheme = e.target.value as ColorSchemeId;
-    setSelectedColorScheme(newScheme);
-    localStorage.setItem("timeline-color-scheme", newScheme);
+  const handleColorSchemeChange = (value: string) => {
+    setSelectedColorScheme(value);
+    localStorage.setItem("timeline-color-scheme", value);
   };
 
   const handleCopyEmbedCode = () => {
@@ -210,6 +210,26 @@ export default function InteractiveTimelineContent({
               WikiTimeline
             </Link>
             <div className="flex items-center gap-4">
+              {/* Settings Button */}
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                aria-label="Customize Timeline"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  />
+                </svg>
+              </button>
               <Link
                 href={`/timeline/${params.pageName}/text`}
                 className="text-blue-600 hover:text-blue-800"
@@ -240,76 +260,119 @@ export default function InteractiveTimelineContent({
       </nav>
 
       <main className="relative">
-        {/* Background decoration */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
-        </div>
+        {/* Settings Modal */}
+        {isSettingsOpen && (
+          <div
+            className="fixed inset-0 z-50 overflow-y-auto"
+            aria-labelledby="settings-modal"
+            role="dialog"
+          >
+            <div className="min-h-screen px-4 text-center">
+              <div
+                className="fixed inset-0 bg-black/30 transition-opacity"
+                aria-hidden="true"
+                onClick={() => setIsSettingsOpen(false)}
+              />
 
-        {/* Timeline Section */}
-        {events.length > 0 && (
-          <div className="relative w-full h-screen min-h-[600px] max-h-[1000px] lg:h-[750px]">
-            <div className="flex flex-wrap items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-4">
-              <label htmlFor="font-select" className="text-sm font-medium">
-                Timeline Font:
-              </label>
-              <select
-                id="font-select"
-                value={selectedFont}
-                onChange={handleFontChange}
-                className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-              >
-                {AVAILABLE_FONTS.map((font) => (
-                  <option key={font.value} value={font.value}>
-                    {font.label}
-                  </option>
-                ))}
-              </select>
-
-              <label
-                htmlFor="color-scheme-select"
-                className="text-sm font-medium ml-4"
-              >
-                Color Scheme:
-              </label>
-              <select
-                id="color-scheme-select"
-                value={selectedColorScheme}
-                onChange={handleColorSchemeChange}
-                className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-              >
-                {COLOR_SCHEMES.map((scheme) => (
-                  <option key={scheme.id} value={scheme.id}>
-                    {scheme.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex gap-1 h-6 ml-2">
-                {(
-                  COLOR_SCHEMES.find((s) => s.id === selectedColorScheme) ||
-                  COLOR_SCHEMES.find((s) => s.id === "default")
-                )?.colors &&
-                  Object.values(
-                    (COLOR_SCHEMES.find((s) => s.id === selectedColorScheme) ||
-                      COLOR_SCHEMES.find((s) => s.id === "default"))!.colors
-                  )
-                    .slice(0, 5)
-                    .map((color, i) => (
-                      <div
-                        key={i}
-                        className="w-4 rounded"
-                        style={{
-                          backgroundColor: color.color,
-                          borderColor: color.textColor,
-                          borderWidth: 1,
-                        }}
+              {/* Modal panel */}
+              <div className="inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Customize Timeline
+                  </h3>
+                  <button
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
                       />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Font Selection */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="font-select"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Timeline Font
+                  </label>
+                  <select
+                    id="font-select"
+                    value={selectedFont}
+                    onChange={handleFontChange}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                  >
+                    {AVAILABLE_FONTS.map((font) => (
+                      <option key={font.value} value={font.value}>
+                        {font.label}
+                      </option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Color Scheme Selection */}
+                <div>
+                  <label
+                    htmlFor="color-scheme-select"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Color Scheme
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {COLOR_SCHEMES.map((scheme) => (
+                      <button
+                        key={scheme.id}
+                        onClick={() => handleColorSchemeChange(scheme.id)}
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          selectedColorScheme === scheme.id
+                            ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-50"
+                            : "border-gray-200 dark:border-gray-700"
+                        }`}
+                      >
+                        <div className="flex gap-1 h-6 mb-2">
+                          {Object.values(scheme.colors)
+                            .slice(0, 5)
+                            .map((color, i) => (
+                              <div
+                                key={i}
+                                className="w-full rounded"
+                                style={{
+                                  backgroundColor: color.color,
+                                  borderColor: color.textColor,
+                                  borderWidth: 1,
+                                }}
+                              />
+                            ))}
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {scheme.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-            <MyTimelineComponent events={events} font={selectedFont} />
+          </div>
+        )}
 
-            {/* Move TimelineControls button inside timeline container */}
+        {/* Timeline Content */}
+        {events.length > 0 && (
+          <div className="relative w-full h-screen min-h-[600px] max-h-[1000px] lg:h-[750px]">
+            <MyTimelineComponent events={events} font={selectedFont} />
             <TimelineControls
               selectedPages={selectedPages}
               onPagesChange={setSelectedPages}
