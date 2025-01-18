@@ -20,15 +20,18 @@ export function formatTimelineEventsForInteractive(
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
 
   // Merge and format all events from all timelines
-  const allEvents = Object.entries(timelines).flatMap(([pageName, pageData]) => 
-    pageData.timeline.map(event => ({
+  const allEvents = Object.entries(timelines).flatMap(([pageName, pageData]) => {
+    // Only add group if there are multiple pages
+    const hasMultiplePages = Object.keys(timelines).length > 1;
+    
+    return pageData.timeline.map(event => ({
       ...event,
-      group: formatGroupName(pageName),
+      ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
       media: {
         thumbnail: pageData.wikiSummary.thumbnail
       }
-    }))
-  );
+    }));
+  });
 
   return allEvents.map((event) => {
     // Check if it's a negative year first

@@ -49,7 +49,7 @@ export interface TimelineJSEvent {
     headline: string;
     text: string;
   };
-  group: string;
+  group?: string;
   media?: {
     url?: string;
     thumbnail?: string;
