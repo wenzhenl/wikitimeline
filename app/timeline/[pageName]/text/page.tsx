@@ -66,33 +66,36 @@ export default async function TimelineTextPage({
   searchParams: { active?: string };
 }) {
   try {
-    // First decode the pageName, then split it
     const defaultPage = decodeURIComponent(params.pageName).split(",")[0];
     const data = await getTimelineData(
       defaultPage,
       searchParams.active || defaultPage
     );
-    logger.debug("Server-side data:", {
-      defaultPage,
-      active: searchParams.active,
-      data,
-    });
+
     return (
-      <TextTimelinePageContent
-        params={params}
-        searchParams={{
-          ...searchParams,
-          active: searchParams.active || defaultPage,
-        }}
-        initialData={data || { timeline: [], errors: { failedPages: [] } }}
-      />
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="max-w-4xl mx-auto px-4 py-8 min-h-[800px]">
+          <TextTimelinePageContent
+            params={params}
+            searchParams={{
+              ...searchParams,
+              active: searchParams.active || defaultPage,
+            }}
+            initialData={data || { timeline: [], errors: { failedPages: [] } }}
+          />
+        </div>
+      </div>
     );
   } catch (error) {
     return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
-        <p className="text-red-800 dark:text-red-200">
-          Error loading timeline data.
-        </p>
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
+            <p className="text-red-800 dark:text-red-200">
+              Error loading timeline data.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
