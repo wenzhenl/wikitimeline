@@ -402,8 +402,8 @@ export default function HomePage() {
                         Founding Fathers of America
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400">
-                        Explore the lives and achievements of America's founding
-                        fathers in an interactive timeline.
+                        Explore the lives and achievements of America&apos;s
+                        founding fathers in an interactive timeline.
                       </p>
                     </div>
                     <a
