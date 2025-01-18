@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 interface TimelineEvent {
   date: string;
   headline: string;
@@ -14,12 +16,43 @@ interface TextTimelineViewProps {
 }
 
 export default function TextTimelineView({ data }: TextTimelineViewProps) {
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   if (!data || !data.timeline) {
     return (
       <div className="p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
         <p className="text-yellow-800 dark:text-yellow-200">
           No timeline data available.
         </p>
+      </div>
+    );
+  }
+
+  // Show skeleton before hydration
+  if (!isHydrated) {
+    return (
+      <div className="relative">
+        <div className="absolute left-[19px] top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+        <div className="space-y-12">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="relative flex items-start gap-6">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg animate-pulse">
+                  <div className="w-6 h-6 rounded-full bg-white/50"></div>
+                </div>
+              </div>
+              <div className="flex-1 w-[calc(100vw-80px)] md:w-full md:min-w-[600px] bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-3 animate-pulse"></div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
