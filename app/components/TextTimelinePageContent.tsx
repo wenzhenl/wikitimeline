@@ -90,13 +90,10 @@ export default function TextTimelinePageContent({
   }`;
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
-      style={{ visibility: isHydrated ? "visible" : "hidden" }}
-    >
-      <nav className="h-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex justify-between items-center h-full">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <Link
               href="/"
               className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500"
@@ -119,7 +116,7 @@ export default function TextTimelinePageContent({
                   .replace(
                     /,/g,
                     ", "
-                  )} in chronological order! Powered by wiki-timeline.com - Turn Wikipedia pages into beautiful, interactive timelines ⚡️`}
+                  )} in chronological order! Powered by wiki-timeline.com`}
                 customAction={{
                   label: "Save as Image",
                   onClick: handleCaptureImage,
@@ -282,25 +279,24 @@ export default function TextTimelinePageContent({
         </div>
       </nav>
 
-      <main
-        className="max-w-4xl mx-auto p-8 pt-24 min-h-[calc(100vh-4rem)]"
-        id="timeline-content"
-      >
-        <div className="h-24 mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            {decodeURIComponent(activePage).replace(/_/g, " ")}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">Timeline events</p>
-        </div>
-
-        {pageNames.length > 1 && (
-          <div className="min-h-[48px]">
-            <Tabs pageNames={pageNames} currentPage={activePage} />
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="timeline-content" className="bg-transparent">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              {decodeURIComponent(activePage).replace(/_/g, " ")}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">Timeline events</p>
           </div>
-        )}
 
-        <div className="mt-8 min-h-[400px]">
-          <TextTimelineView data={initialData} />
+          {pageNames.length > 1 && (
+            <div className="min-h-[48px]">
+              <Tabs pageNames={pageNames} currentPage={activePage} />
+            </div>
+          )}
+
+          <div className="mt-8">
+            <TextTimelineView data={initialData} />
+          </div>
         </div>
       </main>
     </div>

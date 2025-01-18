@@ -45,7 +45,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
                   <div className="w-6 h-6 rounded-full bg-white/50"></div>
                 </div>
               </div>
-              <div className="flex-1 w-[calc(100vw-80px)] md:w-full md:min-w-[600px] bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+              <div className="flex-1">
                 <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-3 animate-pulse"></div>
                 <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
                 <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
@@ -87,8 +87,8 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
                 </div>
               </div>
 
-              <div className="flex-1 w-[calc(100vw-80px)] md:w-full md:min-w-[600px] bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 transition-all hover:shadow-lg">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-3 block whitespace-nowrap">
+              <div className="flex-1">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {year} {isNegativeYear ? "BC" : ""}
                   {dateParts[1] &&
                     ` ${new Date(
@@ -98,7 +98,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
                   {dateParts[2] && ` ${parseInt(dateParts[2])}`}
                 </div>
 
-                <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+                <h2 className="text-xl font-bold mt-2 mb-2 text-gray-900 dark:text-white">
                   {event.headline}
                 </h2>
 

@@ -73,23 +73,19 @@ export default async function TimelineTextPage({
     );
 
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4 py-8 min-h-[800px] min-w-[320px] md:min-w-[768px]">
-          <TextTimelinePageContent
-            params={params}
-            searchParams={{
-              ...searchParams,
-              active: searchParams.active || defaultPage,
-            }}
-            initialData={data || { timeline: [], errors: { failedPages: [] } }}
-          />
-        </div>
-      </div>
+      <TextTimelinePageContent
+        params={params}
+        searchParams={{
+          ...searchParams,
+          active: searchParams.active || defaultPage,
+        }}
+        initialData={data || { timeline: [], errors: { failedPages: [] } }}
+      />
     );
   } catch (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4 py-8 min-w-[320px] md:min-w-[768px]">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
             <p className="text-red-800 dark:text-red-200">
               Error loading timeline data.
