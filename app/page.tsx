@@ -15,6 +15,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -390,14 +391,51 @@ export default function HomePage() {
                     </a>
                   </div>
                   <div className="mt-4 aspect-[16/9] relative">
-                    <iframe
-                      src="/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison/embed"
-                      width="100%"
-                      height="600"
-                      frameBorder="0"
-                      allow="fullscreen"
-                      className="rounded-lg border border-gray-200 dark:border-gray-700"
-                    />
+                    {iframeError ? (
+                      <div className="flex flex-col items-center justify-center h-[600px] bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <svg
+                          className="w-12 h-12 text-gray-400 mb-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                        <p className="text-gray-600 dark:text-gray-400 text-center">
+                          Preview currently unavailable.
+                          <br />
+                          <a
+                            href="/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            Click here to view the timeline in a new tab
+                          </a>
+                        </p>
+                      </div>
+                    ) : (
+                      <iframe
+                        src="/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison/embed"
+                        width="100%"
+                        height="600"
+                        frameBorder="0"
+                        allow="fullscreen"
+                        className="rounded-lg border border-gray-200 dark:border-gray-700"
+                        onError={() => setIframeError(true)}
+                        onLoad={(e) => {
+                          const iframe = e.target as HTMLIFrameElement;
+                          if (!iframe.contentWindow) {
+                            setIframeError(true);
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
                 {/* Add more example timelines here */}
