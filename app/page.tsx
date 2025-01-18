@@ -355,19 +355,51 @@ export default function HomePage() {
           <section id="demo" className="py-16 bg-white/50 dark:bg-gray-800/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold mb-8">Featured Timelines</h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Link
-                  href="/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison"
-                  className="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
-                >
-                  <h3 className="text-xl font-bold mb-2">
-                    Founding Fathers of America
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Explore the lives and achievements of America's founding
-                    fathers in an interactive timeline.
-                  </p>
-                </Link>
+              <div className="space-y-8">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">
+                        Founding Fathers of America
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Explore the lives and achievements of America's founding
+                        fathers in an interactive timeline.
+                      </p>
+                    </div>
+                    <a
+                      href="/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2 text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      <span>Open in new tab</span>
+                      <svg
+                        className="w-4 h-4 ml-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                  <div className="mt-4 aspect-[16/9] relative">
+                    <iframe
+                      src="/timeline/George_Washington,Thomas_Jefferson,John_Adams,Benjamin_Franklin,Alexander_Hamilton,John_Jay,James_Madison/embed"
+                      width="100%"
+                      height="600"
+                      frameBorder="0"
+                      allow="fullscreen"
+                      className="rounded-lg border border-gray-200 dark:border-gray-700"
+                    />
+                  </div>
+                </div>
                 {/* Add more example timelines here */}
               </div>
             </div>
