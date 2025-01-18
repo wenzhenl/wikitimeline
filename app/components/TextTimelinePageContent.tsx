@@ -31,6 +31,7 @@ export default function TextTimelinePageContent({
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const isMobile = deviceDetection.isMobile();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -102,13 +103,9 @@ export default function TextTimelinePageContent({
             >
               WikiTimeline
             </Link>
-            <div className="flex items-center gap-4">
-              <Link
-                href={`/timeline/${params.pageName}`}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                Interactive View
-              </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-3">
               <ShareButtons
                 url={pageUrl}
                 title={`Timeline of ${decodeURIComponent(activePage).replace(
@@ -128,6 +125,158 @@ export default function TextTimelinePageContent({
                   onClick: handleCaptureImage,
                 }}
               />
+              <Link
+                href={`/timeline/${params.pageName}`}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                Interactive View
+              </Link>
+              <button
+                onClick={() => {
+                  const pageNames = decodeURIComponent(params.pageName).replace(
+                    /_/g,
+                    " "
+                  );
+                  const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`;
+                  const subject = encodeURIComponent(
+                    `Timeline Issue: ${pageNames}`
+                  );
+                  const body = encodeURIComponent(
+                    `I found an issue with the timeline for: ${pageNames}\n\n` +
+                      `Timeline URL: ${timelineUrl}\n\n` +
+                      `Issue description:\n`
+                  );
+                  window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
+                }}
+                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                Report Issue
+              </button>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="md:hidden relative">
+              <button
+                onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                aria-label="Menu"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+
+              {isOptionsOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50">
+                  <ShareButtons
+                    url={pageUrl}
+                    title={`Timeline of ${decodeURIComponent(
+                      activePage
+                    ).replace(/_/g, " ")}`}
+                    description={`📚 Read through the history of ${decodeURIComponent(
+                      activePage
+                    )
+                      .replace(/_/g, " ")
+                      .replace(
+                        /,/g,
+                        ", "
+                      )} in chronological order! Powered by wiki-timeline.com`}
+                    customAction={{
+                      label: "Save as Image",
+                      onClick: handleCaptureImage,
+                    }}
+                  />
+                  <Link
+                    href={`/timeline/${params.pageName}`}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    Interactive View
+                  </Link>
+                  <button
+                    onClick={() => {
+                      const pageNames = decodeURIComponent(
+                        params.pageName
+                      ).replace(/_/g, " ");
+                      const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`;
+                      const subject = encodeURIComponent(
+                        `Timeline Issue: ${pageNames}`
+                      );
+                      const body = encodeURIComponent(
+                        `I found an issue with the timeline for: ${pageNames}\n\n` +
+                          `Timeline URL: ${timelineUrl}\n\n` +
+                          `Issue description:\n`
+                      );
+                      window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
+                      setIsOptionsOpen(false);
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    Report Issue
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
