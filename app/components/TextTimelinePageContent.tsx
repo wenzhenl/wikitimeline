@@ -96,7 +96,7 @@ export default function TextTimelinePageContent({
           <div className="flex justify-between items-center h-16">
             <Link
               href="/"
-              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500"
+              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 py-4"
             >
               WikiTimeline
             </Link>
