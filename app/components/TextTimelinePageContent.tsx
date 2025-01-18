@@ -105,25 +105,6 @@ export default function TextTimelinePageContent({
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-3">
-              <ShareButtons
-                url={pageUrl}
-                title={`Timeline of ${decodeURIComponent(activePage).replace(
-                  /_/g,
-                  " "
-                )}`}
-                description={`📚 Read through the history of ${decodeURIComponent(
-                  activePage
-                )
-                  .replace(/_/g, " ")
-                  .replace(
-                    /,/g,
-                    ", "
-                  )} in chronological order! Powered by wiki-timeline.com`}
-                customAction={{
-                  label: "Save as Image",
-                  onClick: handleCaptureImage,
-                }}
-              />
               <Link
                 href={`/timeline/${params.pageName}`}
                 className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
@@ -143,6 +124,25 @@ export default function TextTimelinePageContent({
                 </svg>
                 Interactive View
               </Link>
+              <ShareButtons
+                url={pageUrl}
+                title={`Timeline of ${decodeURIComponent(activePage).replace(
+                  /_/g,
+                  " "
+                )}`}
+                description={`📚 Read through the history of ${decodeURIComponent(
+                  activePage
+                )
+                  .replace(/_/g, " ")
+                  .replace(
+                    /,/g,
+                    ", "
+                  )} in chronological order! Powered by wiki-timeline.com`}
+                customAction={{
+                  label: "Save as Image",
+                  onClick: handleCaptureImage,
+                }}
+              />
               <button
                 onClick={() => {
                   const pageNames = decodeURIComponent(params.pageName).replace(
