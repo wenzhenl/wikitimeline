@@ -74,7 +74,7 @@ export default async function TimelineTextPage({
 
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4 py-8 min-h-[800px]">
+        <div className="max-w-4xl mx-auto px-4 py-8 min-h-[800px] min-w-[320px] md:min-w-[768px]">
           <TextTimelinePageContent
             params={params}
             searchParams={{
@@ -89,7 +89,7 @@ export default async function TimelineTextPage({
   } catch (error) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto px-4 py-8 min-w-[320px] md:min-w-[768px]">
           <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
             <p className="text-red-800 dark:text-red-200">
               Error loading timeline data.
