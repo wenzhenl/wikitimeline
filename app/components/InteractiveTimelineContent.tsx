@@ -374,24 +374,6 @@ export default function InteractiveTimelineContent({
 
               {isOptionsOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50 options-menu">
-                  <ShareButtons
-                    url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
-                    title={`Timeline of ${decodeURIComponent(
-                      params.pageName
-                    ).replace(/_/g, " ")}`}
-                    description={`🚀 Explore the history of ${decodeURIComponent(
-                      params.pageName
-                    )
-                      .replace(/_/g, " ")
-                      .replace(
-                        /,/g,
-                        ", "
-                      )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
-                    customAction={{
-                      label: "Copy Embed Code",
-                      onClick: handleCopyEmbedCode,
-                    }}
-                  />
                   <button
                     onClick={() => {
                       setIsSettingsOpen(true);
@@ -433,6 +415,26 @@ export default function InteractiveTimelineContent({
                     </svg>
                     Reader View
                   </Link>
+
+                  <ShareButtons
+                    url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+                    title={`Timeline of ${decodeURIComponent(
+                      params.pageName
+                    ).replace(/_/g, " ")}`}
+                    description={`🚀 Explore the history of ${decodeURIComponent(
+                      params.pageName
+                    )
+                      .replace(/_/g, " ")
+                      .replace(
+                        /,/g,
+                        ", "
+                      )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
+                    customAction={{
+                      label: "Copy Embed Code",
+                      onClick: handleCopyEmbedCode,
+                    }}
+                  />
+
                   <button
                     onClick={() => {
                       const pageNames = decodeURIComponent(
