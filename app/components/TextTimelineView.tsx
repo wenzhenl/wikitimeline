@@ -35,8 +35,8 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
   // Show skeleton before hydration
   if (!isHydrated) {
     return (
-      <div className="relative">
-        <div className="absolute left-[19px] top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+      <div className="relative pt-4">
+        <div className="absolute left-[19px] top-4 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
         <div className="space-y-12">
           {[...Array(3)].map((_, index) => (
             <div key={index} className="relative flex items-start gap-6">
@@ -58,8 +58,8 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
   }
 
   return (
-    <div className="relative">
-      <div className="absolute left-[19px] top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+    <div className="relative pt-4">
+      <div className="absolute left-[19px] top-4 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
 
       <div className="space-y-12">
         {data.timeline.map((event, index) => {
