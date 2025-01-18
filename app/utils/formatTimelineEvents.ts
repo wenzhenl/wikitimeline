@@ -48,10 +48,11 @@ export function formatTimelineEventsForInteractive(
     const year = isNegativeYear ? -initialYear : initialYear;
 
     // Assign a consistent index to each group
-    if (!groupIndices.has(event.group)) {
-      groupIndices.set(event.group, groupIndices.size);
+    const groupKey = event.group || 'default';
+    if (!groupIndices.has(groupKey)) {
+      groupIndices.set(groupKey, groupIndices.size);
     }
-    const groupIndex = groupIndices.get(event.group)!;
+    const groupIndex = groupIndices.get(groupKey)!;
     const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
     const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
