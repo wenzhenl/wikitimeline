@@ -24,97 +24,65 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
 
   if (!data || !data.timeline) {
     return (
-      <div className="min-h-[120px] p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
-        <p className="text-yellow-800 dark:text-yellow-200">
+      <div className="py-4">
+        <p className="text-gray-700 dark:text-gray-300">
           No timeline data available.
         </p>
       </div>
     );
   }
 
-  // Show skeleton before hydration with matching dimensions
+  // Show simple loading state before hydration
   if (!isHydrated) {
     return (
-      <div className="relative pt-4 min-h-[500px]">
-        <div className="absolute left-[19px] top-4 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
-        <div className="space-y-12">
-          {[...Array(3)].map((_, index) => (
-            <div key={index} className="relative flex items-start gap-6">
-              <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg animate-pulse">
-                  <div className="w-6 h-6 rounded-full bg-white/50"></div>
-                </div>
-              </div>
-              <div className="flex-1 min-h-[160px]">
-                <div className="h-9 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-3 animate-pulse"></div>
-                <div className="h-7 w-full max-w-lg bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
-                <div className="h-24 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="space-y-8">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="animate-pulse space-y-2">
+            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-5 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="relative pt-4 min-h-[500px]">
-      <div className="absolute left-[19px] top-4 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
-      <div className="space-y-12">
-        {data.timeline.map((event, index) => {
-          const isNegativeYear = event.date.startsWith("-");
-          const normalizedDate = isNegativeYear
-            ? event.date.slice(1)
-            : event.date;
-          const dateParts = normalizedDate.split("-");
-          const year = parseInt(dateParts[0]);
+    <div className="space-y-8">
+      {data.timeline.map((event, index) => {
+        const isNegativeYear = event.date.startsWith("-");
+        const normalizedDate = isNegativeYear
+          ? event.date.slice(1)
+          : event.date;
+        const dateParts = normalizedDate.split("-");
+        const year = parseInt(dateParts[0]);
 
-          const colors = [
-            "from-blue-500 to-purple-500",
-            "from-purple-500 to-pink-500",
-            "from-green-500 to-teal-500",
-          ];
-          const gradientColor = colors[index % colors.length];
+        return (
+          <article key={index} className="space-y-2">
+            <time className="block text-lg font-semibold text-blue-600 dark:text-blue-400">
+              {year} {isNegativeYear ? "BC" : ""}
+              {dateParts[1] &&
+                ` ${new Date(2000, parseInt(dateParts[1]) - 1).toLocaleString(
+                  "default",
+                  { month: "short" }
+                )}`}
+              {dateParts[2] && ` ${parseInt(dateParts[2])}`}
+            </time>
 
-          return (
-            <div key={index} className="relative flex items-start gap-6">
-              <div className="relative flex-shrink-0">
-                <div
-                  className={`w-10 h-10 rounded-full bg-gradient-to-r ${gradientColor} flex items-center justify-center shadow-lg`}
-                >
-                  <div className="w-6 h-6 rounded-full bg-white dark:bg-gray-800"></div>
-                </div>
-              </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              {event.headline}
+            </h2>
 
-              <div className="flex-1 min-h-[120px]">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 min-h-[36px]">
-                  {year} {isNegativeYear ? "BC" : ""}
-                  {dateParts[1] &&
-                    ` ${new Date(
-                      2000,
-                      parseInt(dateParts[1]) - 1
-                    ).toLocaleString("default", { month: "short" })}`}
-                  {dateParts[2] && ` ${parseInt(dateParts[2])}`}
-                </div>
-
-                <h2 className="text-xl font-bold mt-2 mb-2 text-gray-900 dark:text-white min-h-[28px]">
-                  {event.headline}
-                </h2>
-
-                {event.text && (
-                  <p className="text-base text-gray-700 dark:text-gray-200 min-h-[48px]">
-                    {event.text}
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            {event.text && (
+              <p className="text-gray-700 dark:text-gray-300">{event.text}</p>
+            )}
+          </article>
+        );
+      })}
 
       {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
-        <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded min-h-[64px]">
-          <p className="text-yellow-800 dark:text-yellow-200">
+        <div className="py-4">
+          <p className="text-gray-700 dark:text-gray-300">
             Note: Could not include data from:{" "}
             {data.errors.failedPages.join(", ")}
           </p>
