@@ -110,9 +110,20 @@ export default function TextTimelinePageContent({
                 <div className="h-10 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
+
               {[...Array(3)].map((_, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div
+                  key={index}
+                  className="
+                    p-6 
+                    bg-white dark:bg-gray-800 
+                    rounded-lg 
+                    shadow-sm
+                    border border-gray-100 dark:border-gray-700
+                    space-y-3
+                  "
+                >
+                  <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                   <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
                   <div className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
                 </div>
