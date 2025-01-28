@@ -72,14 +72,6 @@ export default async function TimelineTextPage({
       searchParams.active || defaultPage
     );
 
-    // Prioritize the first few events
-    if (data?.timeline) {
-      data.timeline = data.timeline.map((event, index) => ({
-        ...event,
-        priority: index < 5, // Mark first 5 events as priority
-      }));
-    }
-
     return (
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
         <TextTimelinePageContent
