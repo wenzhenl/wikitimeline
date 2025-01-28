@@ -15,4 +15,5 @@ export const SITE_CONFIG = {
     : 'http://localhost:3000',
   URLS_PER_SITEMAP: 40000,
   GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
+  ADSENSE_CLIENT_ID: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || '',
 } as const
