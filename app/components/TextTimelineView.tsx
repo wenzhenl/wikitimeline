@@ -24,7 +24,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
 
   if (!data || !data.timeline) {
     return (
-      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
+      <div className="min-h-[120px] p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
         <p className="text-yellow-800 dark:text-yellow-200">
           No timeline data available.
         </p>
@@ -32,23 +32,23 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
     );
   }
 
-  // Show skeleton before hydration
+  // Show skeleton before hydration with matching dimensions
   if (!isHydrated) {
     return (
-      <div className="relative pt-4">
+      <div className="relative pt-4 min-h-[500px]">
         <div className="absolute left-[19px] top-4 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
         <div className="space-y-12">
           {[...Array(3)].map((_, index) => (
             <div key={index} className="relative flex items-start gap-6">
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg animate-pulse">
                   <div className="w-6 h-6 rounded-full bg-white/50"></div>
                 </div>
               </div>
-              <div className="flex-1">
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-3 animate-pulse"></div>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
-                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="flex-1 min-h-[160px]">
+                <div className="h-9 w-48 bg-gray-200 dark:bg-gray-700 rounded mb-3 animate-pulse"></div>
+                <div className="h-7 w-full max-w-lg bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+                <div className="h-24 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
               </div>
             </div>
           ))}
@@ -58,7 +58,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
   }
 
   return (
-    <div className="relative pt-4">
+    <div className="relative pt-4 min-h-[500px]">
       <div className="absolute left-[19px] top-4 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
       <div className="space-y-12">
         {data.timeline.map((event, index) => {
@@ -78,7 +78,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
 
           return (
             <div key={index} className="relative flex items-start gap-6">
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <div
                   className={`w-10 h-10 rounded-full bg-gradient-to-r ${gradientColor} flex items-center justify-center shadow-lg`}
                 >
@@ -86,8 +86,8 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
                 </div>
               </div>
 
-              <div className="flex-1">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="flex-1 min-h-[120px]">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 min-h-[36px]">
                   {year} {isNegativeYear ? "BC" : ""}
                   {dateParts[1] &&
                     ` ${new Date(
@@ -97,12 +97,12 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
                   {dateParts[2] && ` ${parseInt(dateParts[2])}`}
                 </div>
 
-                <h2 className="text-xl font-bold mt-2 mb-2 text-gray-900 dark:text-white">
+                <h2 className="text-xl font-bold mt-2 mb-2 text-gray-900 dark:text-white min-h-[28px]">
                   {event.headline}
                 </h2>
 
                 {event.text && (
-                  <p className="text-base text-gray-700 dark:text-gray-200">
+                  <p className="text-base text-gray-700 dark:text-gray-200 min-h-[48px]">
                     {event.text}
                   </p>
                 )}
@@ -113,7 +113,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
       </div>
 
       {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
-        <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded">
+        <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/50 rounded min-h-[64px]">
           <p className="text-yellow-800 dark:text-yellow-200">
             Note: Could not include data from:{" "}
             {data.errors.failedPages.join(", ")}
