@@ -89,6 +89,42 @@ export default function TextTimelinePageContent({
     searchParams.active ? `?active=${searchParams.active}` : ""
   }`;
 
+  // Show loading state before hydration
+  if (!isHydrated) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
+        <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex-shrink-0">
+                <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <main className="flex-1 w-full">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="space-y-8 animate-pulse">
+              <div className="space-y-4">
+                <div className="h-10 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Original render with all content
   return (
     <div className="flex flex-col min-h-screen">
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">

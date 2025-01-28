@@ -22,29 +22,9 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
     setIsHydrated(true);
   }, []);
 
-  if (!data || !data.timeline) {
-    return (
-      <div className="py-4">
-        <p className="text-gray-700 dark:text-gray-300">
-          No timeline data available.
-        </p>
-      </div>
-    );
-  }
-
-  // Show simple loading state before hydration
-  if (!isHydrated) {
-    return (
-      <div className="space-y-8">
-        {[...Array(3)].map((_, index) => (
-          <div key={index} className="animate-pulse space-y-2">
-            <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-5 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-          </div>
-        ))}
-      </div>
-    );
+  if (!isHydrated || !data || !data.timeline) {
+    // Return null during hydration to prevent flash
+    return null;
   }
 
   return (
