@@ -113,12 +113,5 @@ export function generateMetadata({
   return {
     title: `Timeline of ${title} - Text Version`,
     description: `Text version of the historical timeline for ${title}, generated from Wikipedia content.`,
-    robots: {
-      index: true,
-      follow: true,
-    },
-    alternates: {
-      canonical: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`,
-    },
   };
 }
