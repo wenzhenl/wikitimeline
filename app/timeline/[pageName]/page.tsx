@@ -72,7 +72,7 @@ export function generateMetadata({ params }: { params: { pageName: string } }) {
     title: `Timeline of ${title}`,
     description: `Interactive timeline showing the history of ${title}, generated from Wikipedia content.`,
     robots: {
-      index: true,
+      index: false,
       follow: true,
     },
     alternates: {
