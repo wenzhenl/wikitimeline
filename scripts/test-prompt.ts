@@ -32,11 +32,12 @@ async function getSystemPrompt(): Promise<string> {
 
 async function getWikipediaInfo(title: string) {
   try {
-    const summary = await wiki.summary(title);
+    const page = await wiki.page(title);
+    const content = await page.content();
     return {
       pageUrl: `https://en.wikipedia.org/wiki/${title}`,
-      thumbnail: summary.thumbnail?.source,
-      summary: summary.extract
+      thumbnail: page.thumbnail?.source,
+      content: content
     };
   } catch (error) {
     console.error('Error fetching Wikipedia info:', error);
@@ -130,10 +131,13 @@ async function main() {
     const wikiInfo = await getWikipediaInfo(pageName);
 
     console.log(`Generating timeline using ${model}...`);
-    const timeline = await getCompletion(pageName, wikiInfo.summary, model);
+    const timeline = await getCompletion(pageName, wikiInfo.content, model);
 
     const result = {
-      wikipedia: wikiInfo,
+      wikipedia: {
+        pageUrl: wikiInfo.pageUrl,
+        thumbnail: wikiInfo.thumbnail
+      },
       timeline: timeline,
       model: model
     };
