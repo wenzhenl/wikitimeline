@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@knight-lab/timelinejs": "^3.9.6",
     "@next/third-parties": "^14.2.4",
     "@tailwindcss/line-clamp": "^0.4.4",
