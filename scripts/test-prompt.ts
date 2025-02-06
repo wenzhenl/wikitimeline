@@ -99,7 +99,9 @@ async function getGeminiCompletion(pageName: string, summary: string, systemProm
   const text = response.text();
   
   try {
-    return JSON.parse(text);
+    // Remove markdown JSON formatting
+    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(jsonStr);
   } catch (error) {
     console.error('Failed to parse Gemini response:', text);
     throw error;
