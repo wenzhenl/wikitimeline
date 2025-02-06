@@ -110,7 +110,7 @@ async function getGeminiCompletion(pageName: string, summary: string, systemProm
 }
 
 async function main() {
-  const [,, pageName, modelArg = 'deepseek'] = process.argv;
+  const [,, pageName, modelArg = 'gemini'] = process.argv;
   const model = modelArg as SupportedModel;
 
   if (!pageName) {
