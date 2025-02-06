@@ -32,10 +32,15 @@ async function getSystemPrompt(): Promise<string> {
 
 async function getWikipediaInfo(title: string) {
   try {
-    const page = await wiki.page(title);
+    // Decode the URL-encoded title first (in case it's already encoded)
+    const decodedTitle = decodeURIComponent(title);
+    // Then encode it properly for Wikipedia
+    const encodedTitle = encodeURIComponent(decodedTitle);
+    
+    const page = await wiki.page(encodedTitle);
     const content = await page.content();
     return {
-      pageUrl: `https://en.wikipedia.org/wiki/${title}`,
+      pageUrl: `https://en.wikipedia.org/wiki/${encodedTitle}`,
       thumbnail: page.thumbnail?.source,
       content: content
     };
