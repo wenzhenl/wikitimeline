@@ -20,7 +20,7 @@ async function processOutputFile(inputPath: string) {
     const cacheKey = `timeline:${pageName}`;
     
     // Store timeline data in Redis
-    await redis.set(cacheKey, JSON.stringify(data.timeline));
+    await redis.set(cacheKey, JSON.stringify(data));
     console.log(`Stored timeline for ${cacheKey}`);
 
   } catch (error) {
