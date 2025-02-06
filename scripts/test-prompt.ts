@@ -96,7 +96,13 @@ async function getDeepseekCompletion(pageName: string, summary: string, systemPr
 
 async function getGeminiCompletion(pageName: string, summary: string, systemPrompt: string) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const geminiModel = genAI.getGenerativeModel({ 
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      maxOutputTokens: 8192,  // Set maximum output tokens
+      temperature: 0
+    }
+  });
   
   const prompt = `${systemPrompt}\n\nCreate a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`;
   
