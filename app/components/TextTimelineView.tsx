@@ -29,6 +29,17 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
 
   return (
     <div className="space-y-6">
+      <p
+        className="
+        text-gray-600 dark:text-gray-400
+        text-sm
+        mb-6
+      "
+      >
+        A chronological timeline generated from Wikipedia content, showing key
+        dates and events in order.
+      </p>
+
       {data.timeline.map((event, index) => {
         const isNegativeYear = event.date.startsWith("-");
         const normalizedDate = isNegativeYear
