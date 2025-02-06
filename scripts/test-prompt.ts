@@ -4,7 +4,8 @@ const wiki = require('wikipedia');
 const path = require('path');
 const fs = require('fs').promises;
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
 let cachedSystemPrompt = '';
@@ -50,7 +51,7 @@ async function getCompletion(pageName: string, summary?: string) {
   const completion = await openai.chat.completions.create({
     messages: [
       {
-        role: "developer",
+        role: "system",
         content: systemPrompt
       },
       {
@@ -58,9 +59,8 @@ async function getCompletion(pageName: string, summary?: string) {
         content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
       }
     ],
-    model: "gpt-4o",
+    model: "deepseek-chat",
     response_format: { type: "json_object" },
-    temperature: 0,
   });
 
   console.log('Token usage:', {
