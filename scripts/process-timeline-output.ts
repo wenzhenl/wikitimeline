@@ -14,7 +14,7 @@ async function processOutputFile(inputPath: string) {
     
     // Extract page name from filename (remove model suffix and .json)
     const filename = path.basename(inputPath);
-    const pageName = filename.replace(/\.json$/, '');
+    const pageName = filename.replace(/-(?:deepseek|gemini)\.json$/, '');
     
     // Create cache key
     const cacheKey = `timeline:${pageName}`;

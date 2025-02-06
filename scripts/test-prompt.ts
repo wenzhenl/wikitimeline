@@ -138,7 +138,7 @@ async function main() {
     console.log(`Generating timeline using ${model}...`);
     const timeline = await getCompletion(pageName, wikiInfo.content, model);
 
-    const outputPath = path.join(outputDir, `${pageName}.json`);
+    const outputPath = path.join(outputDir, `${pageName}-${model}.json`);
     await fs.writeFile(
       outputPath, 
       JSON.stringify(timeline, null, 2),
