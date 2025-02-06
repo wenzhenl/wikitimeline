@@ -1,12 +1,11 @@
 require('dotenv').config({ path: '.env.development.local' });
 const { OpenAI } = require('openai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const wiki = require('wikipedia');
 const path = require('path');
 const fs = require('fs').promises;
-const openai = new OpenAI({
-  baseURL: 'https://api.deepseek.com',
-  apiKey: process.env.DEEPSEEK_API_KEY,
-});
+
+type SupportedModel = 'deepseek' | 'gemini';
 
 let cachedSystemPrompt = '';
 
@@ -45,9 +44,25 @@ async function getWikipediaInfo(title: string) {
   }
 }
 
-async function getCompletion(pageName: string, summary?: string) {
+async function getCompletion(pageName: string, summary: string, model: SupportedModel) {
   const systemPrompt = await getSystemPrompt();
   
+  switch (model) {
+    case 'deepseek':
+      return getDeepseekCompletion(pageName, summary, systemPrompt);
+    case 'gemini':
+      return getGeminiCompletion(pageName, summary, systemPrompt);
+    default:
+      throw new Error(`Unsupported model: ${model}`);
+  }
+}
+
+async function getDeepseekCompletion(pageName: string, summary: string, systemPrompt: string) {
+  const openai = new OpenAI({
+    baseURL: 'https://api.deepseek.com',
+    apiKey: process.env.DEEPSEEK_API_KEY,
+  });
+
   const completion = await openai.chat.completions.create({
     messages: [
       {
@@ -56,28 +71,52 @@ async function getCompletion(pageName: string, summary?: string) {
       },
       {
         role: "user",
-        content: `Create a timeline for ${pageName.trim()} ${summary ? ` (${summary})` : ''}`
+        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`
       }
     ],
     model: "deepseek-chat",
-    response_format: { type: "json_object" },
+    temperature: 0,
   });
 
-  console.log('Token usage:', {
+  console.log('Deepseek token usage:', {
     prompt_tokens: completion.usage?.prompt_tokens,
     completion_tokens: completion.usage?.completion_tokens,
     total_tokens: completion.usage?.total_tokens,
-    cached_tokens: completion.usage?.prompt_tokens_details?.cached_tokens || 0,
     model: completion.model,
   });
 
   return JSON.parse(completion.choices[0].message.content!);
 }
 
+async function getGeminiCompletion(pageName: string, summary: string, systemPrompt: string) {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  
+  const prompt = `${systemPrompt}\n\nCreate a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`;
+  
+  const result = await geminiModel.generateContent(prompt);
+  const response = await result.response;
+  const text = response.text();
+  
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Failed to parse Gemini response:', text);
+    throw error;
+  }
+}
+
 async function main() {
-  const pageName = process.argv[2];
+  const [,, pageName, modelArg = 'deepseek'] = process.argv;
+  const model = modelArg as SupportedModel;
+
   if (!pageName) {
     console.error('Please provide a page name as an argument');
+    process.exit(1);
+  }
+
+  if (!['deepseek', 'gemini'].includes(model)) {
+    console.error('Invalid model. Supported models: deepseek, gemini');
     process.exit(1);
   }
 
@@ -88,15 +127,16 @@ async function main() {
     console.log(`Fetching Wikipedia info for ${pageName}...`);
     const wikiInfo = await getWikipediaInfo(pageName);
 
-    console.log('Generating timeline...');
-    const timeline = await getCompletion(pageName, wikiInfo.summary);
+    console.log(`Generating timeline using ${model}...`);
+    const timeline = await getCompletion(pageName, wikiInfo.summary, model);
 
     const result = {
       wikipedia: wikiInfo,
-      timeline: timeline
+      timeline: timeline,
+      model: model
     };
 
-    const outputPath = path.join(outputDir, `${pageName}.json`);
+    const outputPath = path.join(outputDir, `${pageName}-${model}.json`);
     await fs.writeFile(
       outputPath, 
       JSON.stringify(result, null, 2),
