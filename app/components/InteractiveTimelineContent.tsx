@@ -235,8 +235,7 @@ export default function InteractiveTimelineContent({
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      {/* Navigation */}
+    <div className="min-h-screen flex flex-col">
       <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -476,34 +475,160 @@ export default function InteractiveTimelineContent({
         </div>
       </nav>
 
-      <main className="flex-1 relative overflow-hidden">
-        {/* Settings Modal */}
-        {isSettingsOpen && (
-          <div
-            className="fixed inset-0 z-50 overflow-y-auto"
-            aria-labelledby="settings-modal"
-            role="dialog"
-          >
-            <div className="min-h-screen px-4 text-center">
-              <div
-                className="fixed inset-0 bg-black/30 transition-opacity"
-                aria-hidden="true"
-                onClick={() => setIsSettingsOpen(false)}
+      <main className="flex-1 flex justify-center px-4 py-6">
+        <div className="flex-1 max-w-5xl w-full">
+          {events.length > 0 && (
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="h-[600px]">
+                {" "}
+                {/* Fixed height for consistency */}
+                <MyTimelineComponent events={events} font={selectedFont} />
+              </div>
+              <TimelineControls
+                selectedPages={selectedPages}
+                onPagesChange={setSelectedPages}
+                onRefresh={handleTimelineRefresh}
+                isExpanded={isExpanded}
+                onExpandedChange={setIsExpanded}
               />
+            </div>
+          )}
+        </div>
+      </main>
 
-              {/* Modal panel */}
-              <div className="inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Customize Timeline
-                  </h3>
-                  <button
-                    onClick={() => setIsSettingsOpen(false)}
-                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          aria-labelledby="settings-modal"
+          role="dialog"
+        >
+          <div className="min-h-screen px-4 text-center">
+            <div
+              className="fixed inset-0 bg-black/30 transition-opacity"
+              aria-hidden="true"
+              onClick={() => setIsSettingsOpen(false)}
+            />
+
+            {/* Modal panel */}
+            <div className="inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Customize Timeline
+                </h3>
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <span className="sr-only">Close</span>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Font Selection */}
+              <div className="mb-4">
+                <label
+                  htmlFor="font-select"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Timeline Font
+                </label>
+                <select
+                  id="font-select"
+                  value={selectedFont}
+                  onChange={handleFontChange}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                >
+                  {AVAILABLE_FONTS.map((font) => (
+                    <option key={font.value} value={font.value}>
+                      {font.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Color Scheme Selection */}
+              <div>
+                <label
+                  htmlFor="color-scheme-select"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Color Scheme
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {COLOR_SCHEMES.map((scheme) => (
+                    <button
+                      key={scheme.id}
+                      onClick={() => handleColorSchemeChange(scheme.id)}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        selectedColorScheme === scheme.id
+                          ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-50"
+                          : "border-gray-200 dark:border-gray-700"
+                      }`}
+                    >
+                      <div className="flex gap-1 h-6 mb-2">
+                        {Object.values(scheme.colors)
+                          .slice(0, 5)
+                          .map((color, i) => (
+                            <div
+                              key={i}
+                              className="w-full rounded"
+                              style={{
+                                backgroundColor: color.color,
+                                borderColor: color.textColor,
+                                borderWidth: 1,
+                              }}
+                            />
+                          ))}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {scheme.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Skipped Pages Modal */}
+      {skippedPages.length > 0 && showSkippedModal && (
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          aria-labelledby="modal-title"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              aria-hidden="true"
+            ></div>
+
+            {/* Modal panel */}
+            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900 sm:mx-0 sm:h-10 sm:w-10">
+                    {/* Warning icon */}
                     <svg
-                      className="h-6 w-6"
+                      className="h-6 w-6 text-yellow-600 dark:text-yellow-200"
+                      xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -511,163 +636,42 @@ export default function InteractiveTimelineContent({
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
+                        strokeWidth="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                  </button>
-                </div>
-
-                {/* Font Selection */}
-                <div className="mb-4">
-                  <label
-                    htmlFor="font-select"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Timeline Font
-                  </label>
-                  <select
-                    id="font-select"
-                    value={selectedFont}
-                    onChange={handleFontChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                  >
-                    {AVAILABLE_FONTS.map((font) => (
-                      <option key={font.value} value={font.value}>
-                        {font.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Color Scheme Selection */}
-                <div>
-                  <label
-                    htmlFor="color-scheme-select"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Color Scheme
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {COLOR_SCHEMES.map((scheme) => (
-                      <button
-                        key={scheme.id}
-                        onClick={() => handleColorSchemeChange(scheme.id)}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          selectedColorScheme === scheme.id
-                            ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-50"
-                            : "border-gray-200 dark:border-gray-700"
-                        }`}
-                      >
-                        <div className="flex gap-1 h-6 mb-2">
-                          {Object.values(scheme.colors)
-                            .slice(0, 5)
-                            .map((color, i) => (
-                              <div
-                                key={i}
-                                className="w-full rounded"
-                                style={{
-                                  backgroundColor: color.color,
-                                  borderColor: color.textColor,
-                                  borderWidth: 1,
-                                }}
-                              />
-                            ))}
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {scheme.name}
-                        </span>
-                      </button>
-                    ))}
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Timeline Content */}
-        {events.length > 0 && (
-          <div className="h-full">
-            <MyTimelineComponent events={events} font={selectedFont} />
-            <TimelineControls
-              selectedPages={selectedPages}
-              onPagesChange={setSelectedPages}
-              onRefresh={handleTimelineRefresh}
-              isExpanded={isExpanded}
-              onExpandedChange={setIsExpanded}
-            />
-          </div>
-        )}
-
-        {/* Skipped Pages Modal */}
-        {skippedPages.length > 0 && showSkippedModal && (
-          <div
-            className="fixed inset-0 z-50 overflow-y-auto"
-            aria-labelledby="modal-title"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              {/* Background overlay */}
-              <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                aria-hidden="true"
-              ></div>
-
-              {/* Modal panel */}
-              <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900 sm:mx-0 sm:h-10 sm:w-10">
-                      {/* Warning icon */}
-                      <svg
-                        className="h-6 w-6 text-yellow-600 dark:text-yellow-200"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                      <h3
-                        className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100"
-                        id="modal-title"
-                      >
-                        Some pages were skipped
-                      </h3>
-                      <div className="mt-2">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          No timeline data could be extracted from:{" "}
-                          {skippedPages
-                            .map((page) => decodeURIComponent(page))
-                            .join(", ")}
-                        </p>
-                      </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3
+                      className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100"
+                      id="modal-title"
+                    >
+                      Some pages were skipped
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No timeline data could be extracted from:{" "}
+                        {skippedPages
+                          .map((page) => decodeURIComponent(page))
+                          .join(", ")}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="button"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
-                    onClick={handleSkippedModalClose}
-                  >
-                    Got it
-                  </button>
-                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={handleSkippedModalClose}
+                >
+                  Got it
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
 
       <style jsx global>{`
         .tl-slide-content

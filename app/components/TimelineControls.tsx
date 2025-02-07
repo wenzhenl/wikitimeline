@@ -27,10 +27,10 @@ export default function TimelineControls({
 
   return (
     <>
-      {/* Floating Button - Adjusted positioning */}
+      {/* Floating Button - Position relative to timeline container */}
       <button
         onClick={() => onExpandedChange(true)}
-        className="fixed right-4 bottom-4 z-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-105"
+        className="absolute right-4 bottom-4 z-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-105"
       >
         <svg
           className="w-6 h-6"
