@@ -476,12 +476,10 @@ export default function InteractiveTimelineContent({
       </nav>
 
       <main className="flex-1 flex justify-center px-4 py-6">
-        <div className="flex-1 max-w-5xl w-full">
+        <div className="flex-1 w-full max-w-3xl lg:max-w-6xl xl:max-w-[1920px]">
           {events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-              <div className="h-[600px]">
-                {" "}
-                {/* Fixed height for consistency */}
+              <div className="h-[400px] lg:h-[500px] xl:h-[650px]">
                 <MyTimelineComponent events={events} font={selectedFont} />
               </div>
               <TimelineControls
