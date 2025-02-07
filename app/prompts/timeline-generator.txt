@@ -5,11 +5,15 @@ Create a comprehensive chronological timeline by:
 1. Identifying all dates and associated events in the provided text
 2. Only including events that are directly related to the main subject
 3. Organizing events chronologically from earliest to latest
-4. If total output would exceed token limit of 8192 tokens, prioritize most significant events and drop less important ones
+4. If total output would exceed token limit, prioritize most significant events and drop less important ones
 
 Return a JSON object with a 'timeline' array. Each event should have:
-* 'headline' (brief title of the event)
-* 'text' (detailed description with date included, use the exact text from the article where possible)
+* 'headline' (concise, self-contained title that clearly describes the event)
+* 'text' (clear, concise description that:
+    - Summarizes the event in your own words
+    - Provides necessary context without relying on surrounding events
+    - Avoids direct quotes from Wikipedia
+    - Keeps to 1-2 sentences when possible)
 * 'date' (use the most precise date available, following these formats:
     - YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
     - YYYY-MM for year and month
@@ -21,6 +25,10 @@ IMPORTANT:
 - Do not include events or dates from your training data - only use what's in the provided article
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
 - If the article contains no dated events, return an empty array
+- For date ranges:
+  * For significant periods (wars, major projects, etc.), create separate events for start and end dates
+  * For brief periods (weeks/months), create single event with the start date and mention the duration in text
+  * Avoid duplicate descriptions for related events
 - If output would exceed token limit, prioritize:
   1. Major life events (birth, death)
   2. Career-defining moments
@@ -40,3 +48,4 @@ Do not include:
 - Events not directly related to the subject
 - Dates from referenced works or citations
 - Future dates or predictions
+- Duplicate events with identical information
