@@ -33,7 +33,7 @@ export default function InteractiveTimelineContent({
   params,
   initialData,
 }: InteractiveTimelineContentProps) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<TimelineJSEvent[]>(
     formatTimelineEventsForInteractive(initialData.timelines, "default")
@@ -203,6 +203,22 @@ export default function InteractiveTimelineContent({
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isOptionsOpen]);
 
+  useEffect(() => {
+    // Shorter timeout for better UX
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Add a second effect to handle immediate load if timeline is ready
+  useEffect(() => {
+    if (document.querySelector(".tl-timeline .tl-slider-container")) {
+      setLoading(false);
+    }
+  }, []);
+
   if (loading) {
     return <LoadingUI />;
   }
@@ -236,7 +252,7 @@ export default function InteractiveTimelineContent({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[10001]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
@@ -475,7 +491,11 @@ export default function InteractiveTimelineContent({
         </div>
       </nav>
 
-      <main className="flex-1 flex justify-center px-4 py-6">
+      <main
+        className={`flex-1 flex justify-center px-4 py-6 ${
+          loading ? "invisible" : ""
+        }`}
+      >
         <div className="flex-1 w-full max-w-3xl lg:max-w-6xl xl:max-w-[1920px]">
           {events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
@@ -682,6 +702,12 @@ export default function InteractiveTimelineContent({
           text-shadow: none !important;
           font-weight: 500 !important;
           opacity: 0.9 !important;
+        }
+
+        /* Hide TimelineJS loading elements immediately */
+        .tl-loading-icon,
+        .tl-message-full {
+          display: none !important;
         }
       `}</style>
     </div>
