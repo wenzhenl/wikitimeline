@@ -26,9 +26,10 @@ IMPORTANT:
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
 - If the article contains no dated events, return an empty array
 - For date ranges:
-  * For significant periods (wars, major projects, etc.), create separate events for start and end dates
-  * For brief periods (weeks/months), create single event with the start date and mention the duration in text
-  * Avoid duplicate descriptions for related events
+  * Always create a single event using the start date
+  * Include the end date in the text description
+  * Use clear language like "from [start] to [end]" or "between [start] and [end]"
+- Always include the full date in the text description for context
 - If output would exceed token limit, prioritize:
   1. Major life events (birth, death)
   2. Career-defining moments
