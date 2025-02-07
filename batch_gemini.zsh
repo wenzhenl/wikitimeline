@@ -12,9 +12,6 @@ while IFS= read -r page; do
     ((current_line++))
     echo "Processing [$current_line/$total_lines]: $page"
     npx ts-node scripts/test-prompt.ts "$page"
-    sleep 1
     npx ts-node scripts/process-timeline-output.ts "prompt-tests/$page-gemini.json"
     echo "Completed [$current_line/$total_lines]: $page"
-    echo "Waiting 1 seconds..."
-    sleep 1
 done < "$1"
