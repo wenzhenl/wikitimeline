@@ -5,11 +5,16 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
+total_lines=$(wc -l < "$1")
+current_line=0
+
 while IFS= read -r page; do
-    echo "Processing $page..."
+    ((current_line++))
+    echo "Processing [$current_line/$total_lines]: $page"
     npx ts-node scripts/test-prompt.ts "$page"
     sleep 1
     npx ts-node scripts/process-timeline-output.ts "prompt-tests/$page-gemini.json"
-    echo "Waiting 10 seconds..."
-    sleep 10
+    echo "Completed [$current_line/$total_lines]: $page"
+    echo "Waiting 1 seconds..."
+    sleep 1
 done < "$1"
