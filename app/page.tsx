@@ -194,78 +194,7 @@ export default function HomePage() {
       <footer className="py-8 mt-auto border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-            <p className="mb-2">© 2024 WikiTimeline. All rights reserved.</p>
-            <p className="text-xs">
-              Featured in:{" "}
-              <a
-                href="https://iuu.ai/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                IUU AI
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://magicbox.tools/"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="MagicBox.Tools - AI Tools Directory"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                MagicBox.Tools
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://allinai.tools"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="The Best AI Tools"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                All in AI Tools
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://www.dir2ai.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Dir2AI Tools Directory"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Dir2AI
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://aijustworks.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="AI Just Works"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                AI Just Works
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://SeekAIs.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="SeekAIs"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                SeekAIs
-              </a>{" "}
-              and{" "}
-              <a
-                href="https://AIToolly.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="AIToolly AI Tools Directory"
-                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                AIToolly
-              </a>
-            </p>
+            <p>© 2024 WikiTimeline. All rights reserved.</p>
           </div>
         </div>
       </footer>
