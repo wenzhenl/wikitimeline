@@ -493,7 +493,7 @@ export default function InteractiveTimelineContent({
       </nav>
 
       <main className="flex-1 flex justify-center px-4 py-6">
-        <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(80vw,calc((100vh-300px)*16/9))] 2xl:max-w-[min(85vw,calc((100vh-300px)*16/9))]">
+        <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
           {events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="h-[500px] lg:hidden">
