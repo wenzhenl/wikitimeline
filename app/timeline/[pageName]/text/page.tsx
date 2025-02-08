@@ -10,7 +10,8 @@ async function getTimelineData(pageName: string, activePageName?: string) {
 
   try {
     const response = await fetch(
-      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`,
+      { cache: "no-store" }
     );
 
     if (!response.ok) {

@@ -97,7 +97,7 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
     );
     const response = await result.response;
     const text = response.text();
-    
+    logger.debug('text', text);
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const timelineData = JSON.parse(jsonStr);
     return timelineData.timeline;
