@@ -27,9 +27,11 @@ export function formatTimelineEventsForInteractive(
     return pageData.timeline.map(event => ({
       ...event,
       ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
-      media: {
-        thumbnail: pageData.wikiSummary.thumbnail
-      }
+      ...(pageData.wikiSummary?.thumbnail && {  // Only add media if thumbnail exists
+        media: {
+          thumbnail: pageData.wikiSummary.thumbnail
+        }
+      })
     }));
   });
 
@@ -63,7 +65,7 @@ export function formatTimelineEventsForInteractive(
         text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text}</span>`,
       },
       group: event.group,
-      media: event.media,
+      ...(event.media && { media: event.media }), // Only include media if it exists
       background: {
         color: colors.color,
       },
