@@ -52,7 +52,7 @@ IMPORTANT:
   4. Drop less impactful or redundant events
 
 Focus on extracting:
-- Life events (birth, death, marriages, etc.)
+- Life events (birth, death, marriages, etc.), these are must-have events, especially birth and death
 - Career milestones
 - Major accomplishments
 - Significant historical events
@@ -103,7 +103,7 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
     model: "gemini-2.0-flash",
     generationConfig: {
       maxOutputTokens: 8192,
-      temperature: 0
+      temperature: 0.1
     }
   });
   
