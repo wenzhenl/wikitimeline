@@ -9,8 +9,7 @@ async function getTimelineData(pageName: string, activePageName?: string) {
 
   try {
     const response = await fetch(
-      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`,
-      { next: { revalidate: 3600 } }
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`
     );
 
     if (!response.ok) {
