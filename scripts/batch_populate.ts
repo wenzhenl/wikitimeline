@@ -18,12 +18,11 @@ const SITE_CONFIG = {
 
 async function populateTimeline(page: string): Promise<void> {
   try {
-    console.log(`Processing: ${page}`);
+    console.error(`Processing: ${page}`);
     
-    // Use your website's endpoint
     const response = await fetch(
       `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(page)}`,
-      { cache: 'no-store' }  // Ensure fresh data
+      { cache: 'no-store' }
     );
 
     if (!response.ok) {
@@ -32,13 +31,12 @@ async function populateTimeline(page: string): Promise<void> {
 
     const data = await response.json();
     console.log(`Successfully processed: ${page}`);
-    // console.log('Response:', JSON.stringify(data, null, 2));
+    console.log('Response:', JSON.stringify(data, null, 2));
     
-    // Add delay between requests to avoid rate limiting
-    console.log('Waiting 1 second before next request...\n');
+    console.error('Waiting 1 second before next request...\n');
     await new Promise(resolve => setTimeout(resolve, 1000));
   } catch (error) {
-    console.error(`Error processing ${page}:`, error);
+    console.log(`Error processing ${page}:`, error);
   }
 }
 
@@ -51,25 +49,24 @@ async function main() {
   }
 
   try {
-    // Read and parse input file
     const filePath = path.resolve(process.cwd(), inputFile);
-    console.log(`Reading pages from: ${filePath}`);
+    console.error(`Reading pages from: ${filePath}`);
     
     const pages = (await fs.readFile(filePath, 'utf-8'))
       .split('\n')
       .filter((line: string) => Boolean(line))
       .map((line: string) => line.trim());
 
-    console.log(`Found ${pages.length} pages to process\n`);
+    console.error(`Found ${pages.length} pages to process\n`);
 
     // Process pages sequentially
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
-      console.log(`[${i + 1}/${pages.length}] Starting ${page}`);
-      await populateTimeline(page);  // Wait for each page to complete
+      console.error(`[${i + 1}/${pages.length}] Starting ${page}`);
+      await populateTimeline(page);
     }
 
-    console.log('All pages processed!');
+    console.error('All pages processed!');
   } catch (error) {
     console.error('Error:', error);
     process.exit(1);
