@@ -251,7 +251,7 @@ export default function InteractiveTimelineContent({
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex justify-between items-center w-full max-w-2xl mx-auto px-4">
+            <div className="hidden md:flex justify-between items-center w-full max-w-2xl ml-12 px-4">
               <div className="flex justify-center">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
