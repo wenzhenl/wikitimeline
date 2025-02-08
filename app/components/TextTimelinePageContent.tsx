@@ -149,79 +149,86 @@ export default function TextTimelinePageContent({
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-3">
-              <Link
-                href={`/timeline/${params.pageName}`}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="hidden md:flex justify-between items-center w-full max-w-2xl ml-12 px-4">
+              <div className="flex justify-center">
+                <Link
+                  href={`/timeline/${params.pageName}`}
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
-                Interactive View
-              </Link>
-              <ShareButtons
-                url={pageUrl}
-                title={`Timeline of ${decodeURIComponent(activePage).replace(
-                  /_/g,
-                  " "
-                )}`}
-                description={`📚 Read through the history of ${decodeURIComponent(
-                  activePage
-                )
-                  .replace(/_/g, " ")
-                  .replace(
-                    /,/g,
-                    ", "
-                  )} in chronological order! Powered by wiki-timeline.com`}
-                customAction={{
-                  label: "Save as Image",
-                  onClick: handleCaptureImage,
-                }}
-              />
-              <button
-                onClick={() => {
-                  const pageNames = decodeURIComponent(params.pageName).replace(
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  Interactive View
+                </Link>
+              </div>
+
+              <div className="flex justify-center">
+                <ShareButtons
+                  url={pageUrl}
+                  title={`Timeline of ${decodeURIComponent(activePage).replace(
                     /_/g,
                     " "
-                  );
-                  const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`;
-                  const subject = encodeURIComponent(
-                    `Timeline Issue: ${pageNames}`
-                  );
-                  const body = encodeURIComponent(
-                    `I found an issue with the timeline for: ${pageNames}\n\n` +
-                      `Timeline URL: ${timelineUrl}\n\n` +
-                      `Issue description:\n`
-                  );
-                  window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
-                }}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  )}`}
+                  description={`📚 Read through the history of ${decodeURIComponent(
+                    activePage
+                  )
+                    .replace(/_/g, " ")
+                    .replace(
+                      /,/g,
+                      ", "
+                    )} in chronological order! Powered by wiki-timeline.com`}
+                  customAction={{
+                    label: "Save as Image",
+                    onClick: handleCaptureImage,
+                  }}
+                />
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    const pageNames = decodeURIComponent(
+                      params.pageName
+                    ).replace(/_/g, " ");
+                    const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`;
+                    const subject = encodeURIComponent(
+                      `Timeline Issue: ${pageNames}`
+                    );
+                    const body = encodeURIComponent(
+                      `I found an issue with the timeline for: ${pageNames}\n\n` +
+                        `Timeline URL: ${timelineUrl}\n\n` +
+                        `Issue description:\n`
+                    );
+                    window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
+                  }}
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                Report Issue
-              </button>
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  Report Issue
+                </button>
+              </div>
             </div>
 
             {/* Mobile Navigation */}
