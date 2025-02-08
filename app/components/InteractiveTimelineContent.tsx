@@ -492,12 +492,8 @@ export default function InteractiveTimelineContent({
         </div>
       </nav>
 
-      <main
-        className={`flex-1 flex justify-center px-4 py-6 ${
-          loading ? "invisible" : ""
-        }`}
-      >
-        <div className="flex-1 w-full max-w-3xl lg:max-w-6xl xl:max-w-[1920px]">
+      <main className="flex-1 flex justify-center px-4 py-6">
+        <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-7xl">
           {events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="h-[500px] lg:hidden">
@@ -505,10 +501,12 @@ export default function InteractiveTimelineContent({
                 {/* Mobile only */}
                 <MyTimelineComponent events={events} font={selectedFont} />
               </div>
-              <div className="hidden lg:block h-[400px] xl:h-[500px] 2xl:h-[600px]">
+              <div className="hidden lg:block h-0 pb-[56.25%] relative">
                 {" "}
                 {/* Desktop with breakpoints */}
-                <MyTimelineComponent events={events} font={selectedFont} />
+                <div className="absolute inset-0">
+                  <MyTimelineComponent events={events} font={selectedFont} />
+                </div>
               </div>
               <TimelineControls
                 selectedPages={selectedPages}
