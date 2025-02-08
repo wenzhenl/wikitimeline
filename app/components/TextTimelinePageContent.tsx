@@ -149,8 +149,12 @@ export default function TextTimelinePageContent({
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex justify-between items-center w-full max-w-2xl ml-12 px-4">
-              <div className="flex justify-center">
+            <div className="hidden md:flex items-center w-full max-w-2xl ml-12 px-4">
+              <div className="flex-1">
+                {/* Empty space to match Customize Timeline position */}
+              </div>
+
+              <div className="flex gap-4 items-center">
                 <Link
                   href={`/timeline/${params.pageName}`}
                   className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
@@ -170,9 +174,7 @@ export default function TextTimelinePageContent({
                   </svg>
                   Interactive View
                 </Link>
-              </div>
 
-              <div className="flex justify-center">
                 <ShareButtons
                   url={pageUrl}
                   title={`Timeline of ${decodeURIComponent(activePage).replace(
@@ -192,9 +194,7 @@ export default function TextTimelinePageContent({
                     onClick: handleCaptureImage,
                   }}
                 />
-              </div>
 
-              <div className="flex justify-center">
                 <button
                   onClick={() => {
                     const pageNames = decodeURIComponent(
