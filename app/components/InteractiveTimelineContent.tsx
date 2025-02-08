@@ -509,13 +509,13 @@ export default function InteractiveTimelineContent({
       {/* Settings Modal */}
       {isSettingsOpen && (
         <div
-          className="fixed inset-0 z-50 overflow-y-auto"
+          className="fixed inset-0 top-16 z-[60] overflow-y-auto"
           aria-labelledby="settings-modal"
           role="dialog"
         >
-          <div className="min-h-screen px-4 text-center">
+          <div className="min-h-[calc(100vh-4rem)] px-4 text-center">
             <div
-              className="fixed inset-0 bg-black/30 transition-opacity"
+              className="fixed inset-0 top-16 bg-black/30 transition-opacity"
               aria-hidden="true"
               onClick={() => setIsSettingsOpen(false)}
             />
