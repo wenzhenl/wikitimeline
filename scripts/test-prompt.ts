@@ -14,7 +14,7 @@ async function getSystemPrompt(): Promise<string> {
     return cachedSystemPrompt;
   }
 
-  const promptPath = path.join(process.cwd(), 'app/prompts/timeline-generator.txt');
+  const promptPath = path.join(process.cwd(), 'scripts/prompts/timeline-generator.txt');
   try {
     const rawPrompt = await fs.readFile(promptPath, 'utf-8');
     
