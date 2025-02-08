@@ -25,6 +25,7 @@ const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
           duration: 500,
           marker_height_min: 50,
           timenav_height_percentage: 20,
+          timenav_mobile_height_percentage: 20,
           font,
         };
 
