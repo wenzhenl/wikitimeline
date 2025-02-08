@@ -65,12 +65,6 @@ async function generateSitemaps(inputFiles: string[]) {
       const newContent = lastSitemapContent.replace('</urlset>', 
         pageNames.map(pageName => `
       <url>
-        <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}</loc>
-        <lastmod>${new Date().toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-      </url>
-      <url>
         <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}/text</loc>
         <lastmod>${new Date().toISOString()}</lastmod>
         <changefreq>weekly</changefreq>
@@ -127,12 +121,6 @@ function generateStaticSitemap() {
 
 function generateTimelineSitemap(pageNames: string[]) {
   const urls = pageNames.map(pageName => `
-      <url>
-        <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}</loc>
-        <lastmod>${new Date().toISOString()}</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.8</priority>
-      </url>
       <url>
         <loc>${SITE_CONFIG.DOMAIN}/timeline/${encodeURIComponent(pageName)}/text</loc>
         <lastmod>${new Date().toISOString()}</lastmod>
