@@ -11,6 +11,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const redis = Redis.fromEnv();
 let cachedSystemPrompt: string | null = null;
 
+// Add version constant at the top
+const CURRENT_PROMPT_VERSION = "v1";  // Manually bump this when updating the prompt
+
 async function getSystemPrompt(): Promise<string> {
   if (cachedSystemPrompt) return cachedSystemPrompt;
 
@@ -71,17 +74,27 @@ export async function GET(
         
         // Try to get cached timeline
         let timeline: TimelineEvent[] | null = null;
+        let cachedVersion: string | null = null;
+        
         try {
           const cached = await redis.get(cacheKey);
-          if (cached) {
-            timeline = cached as TimelineEvent[];
-            logger.info(`Cache hit for timeline: ${trimmedName}`);
+          if (cached && typeof cached === 'object') {
+            timeline = (cached as { timeline: TimelineEvent[], version: string }).timeline;
+            cachedVersion = (cached as { timeline: TimelineEvent[], version: string }).version;
+            
+            // Only use cache if version matches
+            if (cachedVersion !== CURRENT_PROMPT_VERSION) {
+              logger.info(`Cache version mismatch for ${trimmedName} (${cachedVersion} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+              timeline = null;
+            } else {
+              logger.info(`Cache hit for timeline: ${trimmedName} (version ${cachedVersion})`);
+            }
           }
         } catch (error) {
           logger.warn('Cache read error:', error);
         }
 
-        // If no cached timeline, generate new one
+        // Generate new timeline if no cache or version mismatch
         if (!timeline) {
           try {
             const page = await wiki.page(trimmedName);
@@ -89,8 +102,9 @@ export async function GET(
             timeline = await generateTimeline(trimmedName, content);
             
             if (timeline) {
-              await redis.set(cacheKey, timeline);
-              logger.info(`Cached new timeline for ${trimmedName}`);
+              // Store timeline with current version
+              await redis.set(cacheKey, { timeline, version: CURRENT_PROMPT_VERSION });
+              logger.info(`Cached new timeline for ${trimmedName} (version ${CURRENT_PROMPT_VERSION})`);
             } else {
               failedPages.push(trimmedName);
               return;
