@@ -251,104 +251,107 @@ export default function InteractiveTimelineContent({
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-3">
-              {/* 3. Customize Timeline */}
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="hidden md:flex justify-between items-center w-full max-w-2xl mx-auto px-4">
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                  />
-                </svg>
-                Customize Timeline
-              </button>
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                    />
+                  </svg>
+                  Customize Timeline
+                </button>
+              </div>
 
-              {/* 1. Primary Action: Switch View */}
-              <Link
-                href={`/timeline/${params.pageName}/text`}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex justify-center">
+                <Link
+                  href={`/timeline/${params.pageName}/text`}
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                Reader View
-              </Link>
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                  Reader View
+                </Link>
+              </div>
 
-              {/* 2. Share/Embed */}
-              <ShareButtons
-                url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
-                title={`Timeline of ${decodeURIComponent(
-                  params.pageName
-                ).replace(/_/g, " ")}`}
-                description={`🚀 Explore the history of ${decodeURIComponent(
-                  params.pageName
-                )
-                  .replace(/_/g, " ")
-                  .replace(
-                    /,/g,
-                    ", "
-                  )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
-                customAction={{
-                  label: "Copy Embed Code",
-                  onClick: handleCopyEmbedCode,
-                }}
-              />
+              <div className="flex justify-center">
+                <ShareButtons
+                  url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+                  title={`Timeline of ${decodeURIComponent(
+                    params.pageName
+                  ).replace(/_/g, " ")}`}
+                  description={`🚀 Explore the history of ${decodeURIComponent(
+                    params.pageName
+                  )
+                    .replace(/_/g, " ")
+                    .replace(
+                      /,/g,
+                      ", "
+                    )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
+                  customAction={{
+                    label: "Copy Embed Code",
+                    onClick: handleCopyEmbedCode,
+                  }}
+                />
+              </div>
 
-              {/* 4. Report Issue */}
-              <button
-                onClick={() => {
-                  const pageNames = decodeURIComponent(params.pageName).replace(
-                    /_/g,
-                    " "
-                  );
-                  const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`;
-                  const subject = encodeURIComponent(
-                    `Timeline Issue: ${pageNames}`
-                  );
-                  const body = encodeURIComponent(
-                    `I found an issue with the timeline for: ${pageNames}\n\n` +
-                      `Timeline URL: ${timelineUrl}\n\n` +
-                      `Issue description:\n`
-                  );
-                  window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
-                }}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    const pageNames = decodeURIComponent(
+                      params.pageName
+                    ).replace(/_/g, " ");
+                    const timelineUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`;
+                    const subject = encodeURIComponent(
+                      `Timeline Issue: ${pageNames}`
+                    );
+                    const body = encodeURIComponent(
+                      `I found an issue with the timeline for: ${pageNames}\n\n` +
+                        `Timeline URL: ${timelineUrl}\n\n` +
+                        `Issue description:\n`
+                    );
+                    window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
+                  }}
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-                Report Issue
-              </button>
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                  Report Issue
+                </button>
+              </div>
             </div>
 
             {/* Mobile Navigation */}
