@@ -493,7 +493,7 @@ export default function InteractiveTimelineContent({
       </nav>
 
       <main className="flex-1 flex justify-center px-4 py-6">
-        <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[80vw] 2xl:max-w-[85vw]">
+        <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(80vw,calc((100vh-300px)*16/9))] 2xl:max-w-[min(85vw,calc((100vh-300px)*16/9))]">
           {events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="h-[500px] lg:hidden">
@@ -501,7 +501,7 @@ export default function InteractiveTimelineContent({
                 {/* Mobile only */}
                 <MyTimelineComponent events={events} font={selectedFont} />
               </div>
-              <div className="hidden lg:block relative w-full aspect-[16/9] max-h-[calc(100vh-300px)]">
+              <div className="hidden lg:block relative w-full aspect-[16/9]">
                 {" "}
                 {/* Desktop with breakpoints */}
                 <MyTimelineComponent events={events} font={selectedFont} />
