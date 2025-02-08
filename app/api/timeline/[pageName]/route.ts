@@ -61,6 +61,7 @@ export async function GET(
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
     const failedPages: string[] = [];
+    const noTimelinePages: string[] = [];
     const timelines: Record<string, PageTimeline> = {};
 
     await Promise.all(
@@ -101,6 +102,12 @@ export async function GET(
           }
         }
 
+        // Check if timeline is empty
+        if (!timeline?.length) {
+          noTimelinePages.push(trimmedName);
+          return;
+        }
+
         // Only fetch thumbnail if we have a timeline
         let thumbnail: string | undefined;
         try {
@@ -123,13 +130,14 @@ export async function GET(
     );
 
     const response: TimelineAPIResponse = { timelines };
-    if (failedPages.length > 0) {
+    const problemPages = [...failedPages, ...noTimelinePages];
+    if (problemPages.length > 0) {
       response.errors = {
-        message: `Could not generate timeline for: ${failedPages.join(', ')}`,
-        failedPages,
+        message: `Could not generate timeline for: ${problemPages.join(', ')}`,
+        failedPages: problemPages,
         details: {
           noWikipediaData: failedPages,
-          noTimelineGenerated: []
+          noTimelineGenerated: noTimelinePages
         }
       };
     }
