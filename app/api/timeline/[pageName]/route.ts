@@ -1,36 +1,26 @@
-import { OpenAI } from 'openai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { TimelineAPIResponse, PageTimeline, WikiSummary, TimelineEvent } from '@/app/types/timeline';
+import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/timeline';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Initialize Redis
+// Initialize Gemini and Redis
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const redis = Redis.fromEnv();
-
 let cachedSystemPrompt: string | null = null;
 
 async function getSystemPrompt(): Promise<string> {
-  if (cachedSystemPrompt) {
-    return cachedSystemPrompt;
-  }
+  if (cachedSystemPrompt) return cachedSystemPrompt;
 
   const promptPath = path.join(process.cwd(), 'app/prompts/timeline-generator.txt');
   try {
-    // Read the file and sanitize the content
     const rawPrompt = await fs.readFile(promptPath, 'utf-8');
-    
-    // Remove any null characters and normalize line endings
     cachedSystemPrompt = rawPrompt
       .replace(/\0/g, '')
       .replace(/\r\n/g, '\n')
       .trim();
-    
     return cachedSystemPrompt;
   } catch (error) {
     logger.error('Error reading system prompt:', error);
@@ -38,88 +28,30 @@ async function getSystemPrompt(): Promise<string> {
   }
 }
 
-async function getWikipediaInfo(title: string): Promise<WikiSummary & { error?: string }> {
-  const cacheKey = `summary:${title}`;
+async function generateTimeline(pageName: string, content: string): Promise<TimelineEvent[] | null> {
+  const systemPrompt = await getSystemPrompt();
+  const geminiModel = genAI.getGenerativeModel({ 
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      maxOutputTokens: 8192,
+      temperature: 0
+    }
+  });
   
   try {
-    const cached = await redis.get(cacheKey);
-    if (cached && typeof cached === 'object' && 'pageUrl' in cached) {
-      logger.info(`Cache hit for Wikipedia page ${title}`);
-      return cached as WikiSummary;
-    }
+    const result = await geminiModel.generateContent(
+      `${systemPrompt}\n\nCreate a timeline for ${pageName.trim()} (${content})`
+    );
+    const response = await result.response;
+    const text = response.text();
+    
+    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const timelineData = JSON.parse(jsonStr);
+    return timelineData.timeline;
   } catch (error) {
-    logger.warn('Cache read error:', error);
-  }
-
-  try {
-    const summary = await wiki.summary(title);
-    const result: WikiSummary = {
-      pageUrl: `https://en.wikipedia.org/wiki/${title}`,
-      thumbnail: summary.thumbnail?.source,
-      summary: summary.extract
-    };
-
-    await redis.set(cacheKey, result);
-    return result;
-  } catch (error) {
-    logger.error('Error fetching Wikipedia info:', error);
-    return {
-      pageUrl: `https://en.wikipedia.org/wiki/${title}`,
-      error: 'Could not fetch Wikipedia information',
-      summary: undefined
-    };
-  }
-}
-
-async function getCachedCompletion(pageName: string, summary: string): Promise<{ timeline: TimelineEvent[] } | null> {
-  const cacheKey = `timeline:${pageName}`;
-  
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      logger.info(`Cache hit for timeline: ${pageName}`);
-      return cached as { timeline: TimelineEvent[] };
-    }
-  } catch (error) {
-    logger.warn('Cache read error:', error);
-  }
-
-  if (!summary) {
-    logger.warn(`Cannot generate timeline without summary for ${pageName}`);
+    logger.error('Error generating timeline:', error);
     return null;
   }
-
-  const systemPrompt = await getSystemPrompt();
-  
-  const completion = await openai.chat.completions.create({
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: `Create a timeline for ${pageName.trim()} (${summary})` }
-    ],
-    model: "gpt-4o",
-    response_format: { type: "json_object" },
-    temperature: 0,
-  });
-
-  // Log token usage
-  logger.debug(`Token usage for ${pageName}:`, {
-    prompt_tokens: completion.usage?.prompt_tokens,
-    completion_tokens: completion.usage?.completion_tokens,
-    total_tokens: completion.usage?.total_tokens,
-    cached_tokens: completion.usage?.prompt_tokens_details?.cached_tokens || 0,
-    model: completion.model,
-  });
-
-  const result = JSON.parse(completion.choices[0].message.content!);
-  
-  try {
-    await redis.set(cacheKey, result);
-    logger.info(`Cached timeline for ${pageName}`);
-  } catch (error) {
-    logger.warn('Cache write error:', error);
-  }
-
-  return result;
 }
 
 export async function GET(
@@ -129,49 +61,75 @@ export async function GET(
   try {
     const pageNames = decodeURIComponent(params.pageName).split(',');
     const failedPages: string[] = [];
-    const noTimelinePages: string[] = [];
     const timelines: Record<string, PageTimeline> = {};
 
     await Promise.all(
       pageNames.map(async (pageName) => {
         const trimmedName = pageName.trim();
+        const cacheKey = `timeline:${trimmedName}`;
         
-        // Get Wikipedia info first
-        const wikiInfo = await getWikipediaInfo(trimmedName);
-        if (wikiInfo.error) {
-          failedPages.push(trimmedName);
-          return;
+        // Try to get cached timeline
+        let timeline: TimelineEvent[] | null = null;
+        try {
+          const cached = await redis.get(cacheKey);
+          if (cached) {
+            timeline = cached as TimelineEvent[];
+            logger.info(`Cache hit for timeline: ${trimmedName}`);
+          }
+        } catch (error) {
+          logger.warn('Cache read error:', error);
         }
 
-        // Then get timeline data using the wiki summary
-        const timelineData = await getCachedCompletion(trimmedName, wikiInfo.summary!);
-        if (!timelineData?.timeline?.length) {
-          noTimelinePages.push(trimmedName);
-          return;
+        // If no cached timeline, generate new one
+        if (!timeline) {
+          try {
+            const page = await wiki.page(trimmedName);
+            const content = await page.content();
+            timeline = await generateTimeline(trimmedName, content);
+            
+            if (timeline) {
+              await redis.set(cacheKey, timeline);
+              logger.info(`Cached new timeline for ${trimmedName}`);
+            } else {
+              failedPages.push(trimmedName);
+              return;
+            }
+          } catch (error) {
+            logger.error('Error fetching Wikipedia content:', error);
+            failedPages.push(trimmedName);
+            return;
+          }
+        }
+
+        // Only fetch thumbnail if we have a timeline
+        let thumbnail: string | undefined;
+        try {
+          const page = await wiki.page(trimmedName);
+          const summary = await page.summary();
+          thumbnail = summary.thumbnail?.source;
+        } catch (error) {
+          logger.warn('Could not fetch thumbnail, continuing without it:', error);
         }
 
         // Store results
         timelines[trimmedName] = {
-          timeline: timelineData.timeline,
+          timeline,
           wikiSummary: {
-            pageUrl: wikiInfo.pageUrl,
-            thumbnail: wikiInfo.thumbnail,
-            summary: wikiInfo.summary
+            pageUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(trimmedName)}`,
+            thumbnail
           }
         };
       })
     );
 
     const response: TimelineAPIResponse = { timelines };
-    
-    const problemPages = [...failedPages, ...noTimelinePages];
-    if (problemPages.length > 0) {
+    if (failedPages.length > 0) {
       response.errors = {
-        message: `Could not generate timeline for: ${problemPages.join(', ')}`,
-        failedPages: problemPages,
+        message: `Could not generate timeline for: ${failedPages.join(', ')}`,
+        failedPages,
         details: {
           noWikipediaData: failedPages,
-          noTimelineGenerated: noTimelinePages
+          noTimelineGenerated: []
         }
       };
     }
