@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { PAGE_DELIMITER } from "@/app/constants";
 
 interface TimelineEvent {
   date: string;
@@ -116,7 +117,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
         >
           <p className="text-yellow-800 dark:text-yellow-200">
             Note: Could not include data from:{" "}
-            {data.errors.failedPages.join(", ")}
+            {data.errors.failedPages.join(PAGE_DELIMITER)}
           </p>
         </div>
       )}

@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { TimelineAPIResponse, TimelineJSEvent } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
+import { PAGE_DELIMITER } from "@/app/constants";
 
 interface SelectedPage {
   title: string;
@@ -55,7 +56,7 @@ export default function InteractiveTimelineContent({
   useEffect(() => {
     // Split by comma and handle encoded commas
     const pageNames = decodeURIComponent(params.pageName)
-      .split(",")
+      .split(PAGE_DELIMITER)
       .map((name) => name.trim())
       .filter(Boolean);
 
@@ -159,7 +160,7 @@ export default function InteractiveTimelineContent({
       .filter(Boolean);
 
     if (pageNames.length > 0) {
-      const newPath = `/timeline/${pageNames.join(",")}`;
+      const newPath = `/timeline/${pageNames.join(PAGE_DELIMITER)}`;
       if (newPath !== `/timeline/${params.pageName}`) {
         setLoading(true); // Show loading state immediately
         router.push(newPath, { scroll: false }); // Add scroll: false to prevent page jump
@@ -172,9 +173,9 @@ export default function InteractiveTimelineContent({
 
     // Filter out skipped pages from the URL
     const validPages = decodeURIComponent(params.pageName)
-      .split(",")
+      .split(PAGE_DELIMITER)
       .filter((page) => !skippedPages.includes(page))
-      .join(",");
+      .join(PAGE_DELIMITER);
 
     // Update URL if there are any valid pages left
     if (validPages) {
@@ -680,7 +681,7 @@ export default function InteractiveTimelineContent({
                         No timeline data could be extracted from:{" "}
                         {skippedPages
                           .map((page) => decodeURIComponent(page))
-                          .join(", ")}
+                          .join(PAGE_DELIMITER)}
                       </p>
                     </div>
                   </div>

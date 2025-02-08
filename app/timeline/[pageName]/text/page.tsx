@@ -3,9 +3,10 @@ import logger from "@/app/utils/logger";
 import { SITE_CONFIG } from "@/app/config/site";
 
 import { TimelineAPIResponse } from "@/app/types/timeline";
+import { PAGE_DELIMITER } from "@/app/constants";
 
 async function getTimelineData(pageName: string, activePageName?: string) {
-  const targetPage = activePageName || pageName.split(",")[0];
+  const targetPage = activePageName || pageName.split(PAGE_DELIMITER)[0];
 
   try {
     const response = await fetch(
@@ -65,7 +66,7 @@ export default async function TimelineTextPage({
   searchParams: { active?: string };
 }) {
   try {
-    const defaultPage = decodeURIComponent(params.pageName).split(",")[0];
+    const defaultPage = decodeURIComponent(params.pageName).split(PAGE_DELIMITER)[0];
     const data = await getTimelineData(
       defaultPage,
       searchParams.active || defaultPage
@@ -105,7 +106,7 @@ export function generateMetadata({
   params: { pageName: string };
   searchParams: { active?: string };
 }) {
-  const pageNames = params.pageName.split(",").map((name) => name.trim());
+  const pageNames = params.pageName.split(PAGE_DELIMITER).map((name) => name.trim());
   const activePage = searchParams.active || pageNames[0];
   const title = decodeURIComponent(activePage).replace(/_/g, " ");
 

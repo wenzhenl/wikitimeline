@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import WikiSearch from "./components/WikiSearch";
 import Link from "next/link";
+import { PAGE_DELIMITER } from "@/app/constants";
 
 interface SelectedPage {
   title: string;
@@ -45,8 +46,8 @@ export default function HomePage() {
       return;
     }
 
-    // Join all page names with commas and redirect to timeline page
-    router.push(`/timeline/${pageNames.join(",")}`);
+    // Join all page names with delimiter and redirect to timeline page
+    router.push(`/timeline/${pageNames.join(PAGE_DELIMITER)}`);
   };
 
   return (

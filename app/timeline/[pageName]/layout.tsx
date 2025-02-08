@@ -1,18 +1,18 @@
 import { SITE_CONFIG } from "@/app/config/site";
-
+import { PAGE_DELIMITER } from "@/app/constants";
 export async function generateMetadata({
   params,
 }: {
   params: { pageName: string };
 }) {
   const pageNames = decodeURIComponent(params.pageName)
-    .split(",")
+    .split(PAGE_DELIMITER)
     .map((name) => name.trim())
     .filter(Boolean);
 
   const title = pageNames
     .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-    .join(", ");
+    .join(PAGE_DELIMITER);
 
   const url = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`;
 

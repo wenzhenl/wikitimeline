@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
+import { PAGE_DELIMITER } from "@/app/constants";
 
 interface TimelineEvent {
   date: string;
@@ -78,7 +79,7 @@ export default function TextTimelinePageContent({
 
   // Split and decode the pageNames
   const pageNames = decodeURIComponent(params.pageName)
-    .split(",")
+    .split(PAGE_DELIMITER)
     .map((name) => name.trim())
     .filter(Boolean);
 
@@ -369,7 +370,7 @@ function Tabs({
             <Link
               key={pageName}
               href={`/timeline/${encodeURIComponent(
-                pageNames.join(",")
+                pageNames.join(PAGE_DELIMITER)
               )}/text?active=${encodeURIComponent(pageName)}`}
               className={`
                 py-2 px-3 rounded-lg font-medium text-sm transition-colors

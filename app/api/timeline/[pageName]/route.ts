@@ -5,6 +5,7 @@ import logger from '@/app/utils/logger';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/timeline';
+import { PAGE_DELIMITER } from "@/app/constants";
 
 // Initialize Gemini and Redis
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -81,23 +82,6 @@ Aim for 15-20 most meaningful events that together tell a coherent story. Qualit
 
 const CURRENT_PROMPT_VERSION = "v1";
 
-async function getSystemPrompt(): Promise<string> {
-  if (cachedSystemPrompt) return cachedSystemPrompt;
-
-  const promptPath = path.join(process.cwd(), 'app/prompts/timeline-generator.txt');
-  try {
-    const rawPrompt = await fs.readFile(promptPath, 'utf-8');
-    cachedSystemPrompt = rawPrompt
-      .replace(/\0/g, '')
-      .replace(/\r\n/g, '\n')
-      .trim();
-    return cachedSystemPrompt;
-  } catch (error) {
-    logger.error('Error reading system prompt:', error);
-    throw new Error('Failed to read system prompt file');
-  }
-}
-
 async function generateTimeline(pageName: string, content: string): Promise<TimelineEvent[] | null> {
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
@@ -128,7 +112,12 @@ export async function GET(
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   try {
-    const pageNames = decodeURIComponent(params.pageName).split(',');
+    // Split by delimiter and treat commas as normal characters
+    const pageNames = decodeURIComponent(params.pageName)
+      .split(PAGE_DELIMITER)
+      .map(name => name.trim())
+      .filter(Boolean);
+    
     const failedPages: string[] = [];
     const noTimelinePages: string[] = [];
     const timelines: Record<string, PageTimeline> = {};
@@ -213,7 +202,7 @@ export async function GET(
     const problemPages = [...failedPages, ...noTimelinePages];
     if (problemPages.length > 0) {
       response.errors = {
-        message: `Could not generate timeline for: ${problemPages.join(', ')}`,
+        message: `Could not generate timeline for: ${problemPages.join(PAGE_DELIMITER)}`,
         failedPages: problemPages,
         details: {
           noWikipediaData: failedPages,

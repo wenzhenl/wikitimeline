@@ -1,7 +1,7 @@
 import EmbeddedTimeline from "@/app/components/EmbeddedTimeline";
 import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
-
+import { PAGE_DELIMITER } from "@/app/constants";
 async function getTimelineData(pageName: string) {
   try {
     const response = await fetch(
@@ -38,13 +38,13 @@ export default async function EmbedPage({
 
 export function generateMetadata({ params }: { params: { pageName: string } }) {
   const pageNames = decodeURIComponent(params.pageName)
-    .split(",")
+    .split(PAGE_DELIMITER)
     .map((name) => name.trim())
     .filter(Boolean);
 
   const title = pageNames
     .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-    .join(", ");
+    .join(PAGE_DELIMITER);
 
   return {
     title: `Timeline of ${title} - Embedded View`,
