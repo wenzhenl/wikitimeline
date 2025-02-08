@@ -96,38 +96,23 @@ export default function InteractiveTimelineContent({
     localStorage.setItem("timeline-color-scheme", value);
   };
 
-  const handleCopyEmbedCode = () => {
+  const handleCopyEmbedCode = async () => {
     const embedCode = `<iframe
-  src="${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/embed"
-  width="100%"
-  height="600"
-  frameborder="0"
-  allow="fullscreen"
-  style="border: 1px solid #e5e7eb; border-radius: 8px;"
-></iframe>`;
+      src="${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/embed"
+      width="100%"
+      height="600"
+      frameborder="0"
+      allow="fullscreen"
+      style="border: 1px solid #e5e7eb; border-radius: 8px;"
+    ></iframe>`;
 
-    navigator.clipboard
-      .writeText(embedCode)
-      .then(() => {
-        // Optional: Show a toast notification
-        alert("Embed code copied to clipboard!");
-      })
-      .catch((err) => {
-        console.error("Failed to copy embed code:", err);
-        // Fallback for browsers that don't support clipboard API
-        const textarea = document.createElement("textarea");
-        textarea.value = embedCode;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          document.execCommand("copy");
-          alert("Embed code copied to clipboard!");
-        } catch (err) {
-          console.error("Fallback copy failed:", err);
-          alert("Failed to copy embed code. Please try again.");
-        }
-        document.body.removeChild(textarea);
-      });
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      alert("Embed code copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      alert("Failed to copy embed code. Please try again.");
+    }
   };
 
   // Initialize skipped pages from initial data
