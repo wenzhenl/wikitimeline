@@ -505,12 +505,10 @@ export default function InteractiveTimelineContent({
                 {/* Mobile only */}
                 <MyTimelineComponent events={events} font={selectedFont} />
               </div>
-              <div className="hidden lg:block lg:h-0 lg:pb-[56.25%] lg:max-h-[600px] lg:relative">
+              <div className="hidden lg:block h-[400px] xl:h-[500px] 2xl:h-[600px]">
                 {" "}
-                {/* Desktop only */}
-                <div className="lg:absolute lg:inset-0">
-                  <MyTimelineComponent events={events} font={selectedFont} />
-                </div>
+                {/* Desktop with breakpoints */}
+                <MyTimelineComponent events={events} font={selectedFont} />
               </div>
               <TimelineControls
                 selectedPages={selectedPages}
