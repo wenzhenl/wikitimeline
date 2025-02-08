@@ -499,7 +499,14 @@ export default function InteractiveTimelineContent({
         <div className="flex-1 w-full max-w-3xl lg:max-w-6xl xl:max-w-[1920px]">
           {events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-              <div className="h-[400px] lg:h-0 lg:pb-[56.25%] lg:max-h-[600px] relative">
+              <div className="h-[500px] lg:hidden">
+                {" "}
+                {/* Mobile only */}
+                <MyTimelineComponent events={events} font={selectedFont} />
+              </div>
+              <div className="hidden lg:block lg:h-0 lg:pb-[56.25%] lg:max-h-[600px] lg:relative">
+                {" "}
+                {/* Desktop only */}
                 <div className="lg:absolute lg:inset-0">
                   <MyTimelineComponent events={events} font={selectedFont} />
                 </div>
