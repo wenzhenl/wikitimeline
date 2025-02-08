@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import TextTimelineView from "@/app/components/TextTimelineView";
 import html2canvas from "html2canvas";
-import { deviceDetection } from "@/app/utils/deviceDetection";
 import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER } from "@/app/constants";
@@ -29,8 +28,6 @@ export default function TextTimelinePageContent({
   searchParams,
   initialData,
 }: TextTimelinePageContentProps) {
-  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
-  const isMobile = deviceDetection.isMobile();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
