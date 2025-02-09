@@ -1,3 +1,28 @@
+/**
+ * Test script for timeline generation using different LLM providers
+ * 
+ * Usage:
+ *   npm run ts-node scripts/test-prompt.ts "<page_name>" [model]
+ * 
+ * Arguments:
+ *   page_name: Wikipedia page name (required)
+ *   model: LLM provider (optional, defaults to 'gemini')
+ *          Supported values: 'deepseek', 'gemini', 'openai'
+ * 
+ * Examples:
+ *   npm run ts-node scripts/test-prompt.ts "World War II" gemini
+ *   npm run ts-node scripts/test-prompt.ts "Albert Einstein" openai
+ *   npm run ts-node scripts/test-prompt.ts "Ancient Rome" deepseek
+ * 
+ * Environment Variables Required:
+ *   DEEPSEEK_API_KEY: For Deepseek model
+ *   GEMINI_API_KEY: For Google Gemini model
+ *   OPENAI_API_KEY: For OpenAI model
+ * 
+ * Output:
+ *   Results will be written to prompt-tests/<page_name>-<model>.json
+ */
+
 require('dotenv').config({ path: '.env.development.local' });
 const { OpenAI } = require('openai');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -5,7 +30,7 @@ const wiki = require('wikipedia');
 const path = require('path');
 const fs = require('fs').promises;
 
-type SupportedModel = 'deepseek' | 'gemini';
+type SupportedModel = 'deepseek' | 'gemini' | 'openai';
 
 let cachedSystemPrompt = '';
 
@@ -39,6 +64,7 @@ async function getWikipediaInfo(title: string) {
     
     const page = await wiki.page(encodedTitle);
     const content = await page.content();
+    console.log('content', content);
     return {
       pageUrl: `https://en.wikipedia.org/wiki/${encodedTitle}`,
       thumbnail: page.thumbnail?.source,
@@ -58,6 +84,8 @@ async function getCompletion(pageName: string, summary: string, model: Supported
       return getDeepseekCompletion(pageName, summary, systemPrompt);
     case 'gemini':
       return getGeminiCompletion(pageName, summary, systemPrompt);
+    case 'openai':
+      return getOpenAICompletion(pageName, summary, systemPrompt);
     default:
       throw new Error(`Unsupported model: ${model}`);
   }
@@ -120,6 +148,36 @@ async function getGeminiCompletion(pageName: string, summary: string, systemProm
   }
 }
 
+async function getOpenAICompletion(pageName: string, summary: string, systemPrompt: string) {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const completion = await openai.chat.completions.create({
+    messages: [
+      {
+        role: "system",
+        content: systemPrompt
+      },
+      {
+        role: "user",
+        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`
+      }
+    ],
+    model: "gpt-4o",
+    temperature: 0,
+  });
+
+  console.log('OpenAI token usage:', {
+    prompt_tokens: completion.usage?.prompt_tokens,
+    completion_tokens: completion.usage?.completion_tokens,
+    total_tokens: completion.usage?.total_tokens,
+    model: completion.model,
+  });
+
+  return JSON.parse(completion.choices[0].message.content!);
+}
+
 async function main() {
   const [,, pageName, modelArg = 'gemini'] = process.argv;
   const model = modelArg as SupportedModel;
@@ -129,8 +187,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (!['deepseek', 'gemini'].includes(model)) {
-    console.error('Invalid model. Supported models: deepseek, gemini');
+  if (!['deepseek', 'gemini', 'openai'].includes(model)) {
+    console.error('Invalid model. Supported models: deepseek, gemini, openai');
     process.exit(1);
   }
 
