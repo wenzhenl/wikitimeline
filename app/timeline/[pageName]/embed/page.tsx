@@ -2,6 +2,7 @@ import EmbeddedTimeline from "@/app/components/EmbeddedTimeline";
 import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
+
 async function getTimelineData(pageName: string) {
   try {
     const response = await fetch(
@@ -14,13 +15,7 @@ async function getTimelineData(pageName: string) {
     }
 
     const data: TimelineAPIResponse = await response.json();
-
-    // Return empty if no valid timelines
-    if (!data.timelines || Object.keys(data.timelines).length === 0) {
-      return {};
-    }
-
-    return data.timelines;
+    return data.timelines || {};
   } catch (error) {
     console.error(`Failed to fetch timeline data for ${pageName}:`, error);
     return {};

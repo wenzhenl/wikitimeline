@@ -9,11 +9,14 @@ export default function EmbeddedTimeline({
 }: {
   timelines: Record<string, PageTimeline>;
 }) {
+  const formattedData = formatTimelineEventsForInteractive(timelines);
+
   return (
     <div className="w-full h-screen">
       {Object.keys(timelines).length > 0 && (
         <MyTimelineComponent
-          events={formatTimelineEventsForInteractive(timelines)}
+          events={formattedData.events}
+          scale={formattedData.scale}
           font="default"
         />
       )}
