@@ -9,7 +9,11 @@ import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import TimelineControls from "@/app/components/TimelineControls";
 import { useRouter } from "next/navigation";
-import { TimelineAPIResponse, TimelineJSEvent } from "@/app/types/timeline";
+import {
+  TimelineAPIResponse,
+  TimelineJSEvent,
+  TimelineData,
+} from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
@@ -36,7 +40,7 @@ export default function InteractiveTimelineContent({
 }: InteractiveTimelineContentProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<TimelineJSEvent[]>(
+  const [events, setEvents] = useState<TimelineData>(
     formatTimelineEventsForInteractive(initialData.timelines, "default")
   );
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
@@ -482,17 +486,25 @@ export default function InteractiveTimelineContent({
 
       <main className="flex-1 flex justify-center px-4 py-6">
         <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
-          {events.length > 0 && (
+          {events.events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="h-[500px] lg:hidden">
                 {" "}
                 {/* Mobile only */}
-                <MyTimelineComponent events={events} font={selectedFont} />
+                <MyTimelineComponent
+                  events={events.events}
+                  scale={events.scale}
+                  font={selectedFont}
+                />
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
                 {" "}
                 {/* Desktop with breakpoints */}
-                <MyTimelineComponent events={events} font={selectedFont} />
+                <MyTimelineComponent
+                  events={events.events}
+                  scale={events.scale}
+                  font={selectedFont}
+                />
               </div>
               <TimelineControls
                 selectedPages={selectedPages}

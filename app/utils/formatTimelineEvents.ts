@@ -1,6 +1,7 @@
 import { PageTimeline } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "../constants/colorSchemes";
 import { TimelineJSEvent } from "@/app/types/timeline";
+import { TimelineData } from "@/app/types/timeline";
 
 function formatGroupName(name: string): string {
   return name
@@ -15,7 +16,7 @@ function formatGroupName(name: string): string {
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, PageTimeline>, 
   colorSchemeId = 'default'
-): TimelineJSEvent[] {
+): TimelineData {
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
 
@@ -35,40 +36,51 @@ export function formatTimelineEventsForInteractive(
     }));
   });
 
-  return allEvents.map((event) => {
-    // Check if it's a negative year first
-    const isNegativeYear = event.date.startsWith("-");
-    const normalizedDate = isNegativeYear ? event.date.slice(1) : event.date;
-    const dateParts = normalizedDate.split("-");
+  // Check if any dates are outside human scale range (-271821 to 275760)
+  const needsCosmologicalScale = Object.values(timelines).some(pageData =>
+    pageData.timeline.some(event => {
+      const year = parseInt(event.date.startsWith("-") ? event.date.slice(1) : event.date);
+      return event.date.startsWith("-") ? year > 271821 : year > 275760;
+    })
+  );
 
-    // Handle partial dates
-    const initialYear = parseInt(dateParts[0]) || 0;
-    const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
-    const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
+  return {
+    events: allEvents.map((event) => {
+      // Check if it's a negative year first
+      const isNegativeYear = event.date.startsWith("-");
+      const normalizedDate = isNegativeYear ? event.date.slice(1) : event.date;
+      const dateParts = normalizedDate.split("-");
 
-    // Convert year back to negative if needed
-    const year = isNegativeYear ? -initialYear : initialYear;
+      // Handle partial dates
+      const initialYear = parseInt(dateParts[0]) || 0;
+      const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
+      const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
 
-    // Assign a consistent index to each group
-    const groupKey = event.group || 'default';
-    if (!groupIndices.has(groupKey)) {
-      groupIndices.set(groupKey, groupIndices.size);
-    }
-    const groupIndex = groupIndices.get(groupKey)!;
-    const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
-    const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
+      // Convert year back to negative if needed
+      const year = isNegativeYear ? -initialYear : initialYear;
 
-    return {
-      start_date: { year, month, day },
-      text: {
-        headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-        text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text}</span>`,
-      },
-      group: event.group,
-      ...(event.media && { media: event.media }), // Only include media if it exists
-      background: {
-        color: colors.color,
-      },
-    };
-  });
+      // Assign a consistent index to each group
+      const groupKey = event.group || 'default';
+      if (!groupIndices.has(groupKey)) {
+        groupIndices.set(groupKey, groupIndices.size);
+      }
+      const groupIndex = groupIndices.get(groupKey)!;
+      const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
+      const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
+
+      return {
+        start_date: { year, month, day },
+        text: {
+          headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
+          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text}</span>`,
+        },
+        group: event.group,
+        ...(event.media && { media: event.media }), // Only include media if it exists
+        background: {
+          color: colors.color,
+        },
+      };
+    }),
+    ...(needsCosmologicalScale && { scale: 'cosmological' })
+  };
 } 

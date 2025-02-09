@@ -7,9 +7,14 @@ import { TimelineJSEvent } from "@/app/types/timeline";
 interface MyTimelineComponentProps {
   events: TimelineJSEvent[];
   font: string;
+  scale?: "human" | "cosmological";
 }
 
-const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
+const MyTimelineComponent = ({
+  events,
+  font,
+  scale,
+}: MyTimelineComponentProps) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
 
@@ -31,7 +36,7 @@ const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
 
         const timeline = new Timeline(
           timelineRef.current!,
-          { events },
+          { events: events, scale: scale },
           options
         );
         setTimelineInstance(timeline);
@@ -43,7 +48,7 @@ const MyTimelineComponent = ({ events, font }: MyTimelineComponentProps) => {
         timelineRef.current.innerHTML = "";
       }
     };
-  }, [events, font]);
+  }, [events, font, scale]);
 
   return <div ref={timelineRef} id="timeline-embed" />;
 };

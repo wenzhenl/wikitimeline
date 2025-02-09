@@ -58,3 +58,8 @@ export interface TimelineJSEvent {
     color: string;
   };
 }
+
+export interface TimelineData {
+  events: TimelineJSEvent[];
+  scale?: 'human' | 'cosmological';
+}
