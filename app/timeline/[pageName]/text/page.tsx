@@ -67,7 +67,9 @@ export default async function TimelineTextPage({
   searchParams: { active?: string };
 }) {
   try {
-    const defaultPage = decodeURIComponent(params.pageName).split(PAGE_DELIMITER)[0];
+    const defaultPage = decodeURIComponent(params.pageName).split(
+      PAGE_DELIMITER
+    )[0];
     const data = await getTimelineData(
       defaultPage,
       searchParams.active || defaultPage
@@ -107,12 +109,39 @@ export function generateMetadata({
   params: { pageName: string };
   searchParams: { active?: string };
 }) {
-  const pageNames = params.pageName.split(PAGE_DELIMITER).map((name) => name.trim());
+  const pageNames = params.pageName
+    .split(PAGE_DELIMITER)
+    .map((name) => name.trim());
   const activePage = searchParams.active || pageNames[0];
   const title = decodeURIComponent(activePage).replace(/_/g, " ");
+  const allPages = pageNames
+    .map((name) => decodeURIComponent(name).replace(/_/g, " "))
+    .join(", ");
 
   return {
-    title: `Timeline of ${title} - Text Version`,
-    description: `Text version of the historical timeline for ${title}, generated from Wikipedia content.`,
+    title: `Historical Timeline of ${title} - Chronological History & Key Events (Text Version)`,
+    description: `Read the complete historical timeline of ${title} in text format. A detailed chronological record of significant events, dates, and historical milestones ${
+      pageNames.length > 1 ? `covering ${allPages}` : ""
+    }, sourced from Wikipedia. Perfect for research and historical reference.`,
+    keywords: `${title} history, ${title} chronology, historical events, historical timeline, ${title} key dates, historical research, ${title} historical record${
+      pageNames.length > 1 ? `, ${allPages}` : ""
+    }`,
+    robots: {
+      index: true,
+      follow: true,
+    },
+    openGraph: {
+      title: `Historical Timeline of ${title} - Chronological History & Key Events`,
+      description: `Comprehensive historical timeline of ${title} in text format. A detailed chronological record of significant events and dates throughout history.`,
+      type: "article",
+      url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text${
+        searchParams.active ? `?active=${searchParams.active}` : ""
+      }`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Historical Timeline of ${title} - Chronological History`,
+      description: `Detailed historical timeline showing key events and dates throughout the history of ${title}. Text-based format ideal for research.`,
+    },
   };
 }
