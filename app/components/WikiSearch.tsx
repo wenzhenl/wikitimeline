@@ -185,7 +185,6 @@ export default function WikiSearch({
     const newPages = selectedPages.filter(
       (_, index) => index !== indexToRemove
     );
-    if (newPages.length === 0) return; // Prevent removing last page
     onPagesChange(newPages);
   };
 
