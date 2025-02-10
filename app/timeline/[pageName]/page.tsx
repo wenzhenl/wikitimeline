@@ -16,6 +16,7 @@ async function getTimelineData(pageName: string) {
     }
 
     const data: TimelineAPIResponse = await response.json();
+    logger.debug("Fetched timeline data from API:", JSON.stringify(data, null, 2));
     logger.info(`Fetched timeline data for ${decodeURIComponent(pageName)}`);
 
     return data;
