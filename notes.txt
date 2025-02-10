@@ -65,3 +65,31 @@ Fix soft 404s, I think it's because the api is called from client side which is 
 Paid subscriptions:
 it unlocks the ability to trigger LLM to generate new timelines, not the content. any content which is already generated is free. so that early adopters actually contribute to the content
 which will be free for everyone. Early adopters will get cheaper deal on the subscription, and enjoy free ads, and also the ability to enforce update of certain timelines.
+
+
+[INFO] Cache version mismatch for Peter_Scully (undefined vs v1), regenerating...
+
+[ERROR] Error generating timeline: w [Error]: [GoogleGenerativeAI Error]: Text not available. Response was blocked due to PROHIBITED_CONTENT
+    at U.e.text (/var/task/.next/server/app/api/timeline/[pageName]/route.js:1:6302)
+    at iA (/var/task/.next/server/app/api/timeline/[pageName]/route.js:68:65)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /var/task/.next/server/app/api/timeline/[pageName]/route.js:68:800
+    at async Promise.all (index 0)
+    at async iN (/var/task/.next/server/app/api/timeline/[pageName]/route.js:68:384)
+    at async /var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+    at async e_.execute (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/var/task/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943)
+    at async en (/var/task/node_modules/next/dist/compiled/next-server/server.runtime.prod.js:16:25516) {
+  response: {
+    promptFeedback: { blockReason: 'PROHIBITED_CONTENT' },
+    usageMetadata: {
+      promptTokenCount: 2414,
+      totalTokenCount: 2414,
+      promptTokensDetails: [Array]
+    },
+    modelVersion: 'gemini-2.0-flash',
+    text: [Function (anonymous)],
+    functionCall: [Function (anonymous)],
+    functionCalls: [Function (anonymous)]
+  }
+}
