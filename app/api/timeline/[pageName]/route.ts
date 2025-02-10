@@ -2,16 +2,18 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/timeline';
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
-
+import { SITE_CONFIG } from "@/app/config/site";
 // Initialize Gemini and Redis
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const redis = Redis.fromEnv();
-let cachedSystemPrompt: string | null = null;
+
+// Initialize Wikipedia with User-Agent
+const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; wikitimeline2024@gmail.com)`;
+wiki.setUserAgent(userAgent);
+logger.info('Wikipedia User-Agent set:', userAgent);
 
 // Move prompt to a constant string
 const SYSTEM_PROMPT = `
