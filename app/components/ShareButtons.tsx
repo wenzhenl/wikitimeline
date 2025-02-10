@@ -37,6 +37,14 @@ export default function ShareButtons({
     }
   };
 
+  // For Telegram, we need to ensure the URL is properly encoded
+  const getTelegramUrl = (url: string, description: string) => {
+    // Double encode the URL to preserve slashes
+    const encodedUrl = encodeURIComponent(encodeURIComponent(url));
+    const encodedText = encodeURIComponent(description);
+    return `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+  };
+
   return (
     <>
       {isMobile ? (
@@ -165,9 +173,7 @@ export default function ShareButtons({
                 </a>
 
                 <a
-                  href={`https://t.me/share/url?url=${encodeURIComponent(
-                    url
-                  )}&text=${encodeURIComponent(description)}`}
+                  href={getTelegramUrl(url, description)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex flex-col items-center gap-2 p-3 bg-[#0088cc] text-white rounded-lg hover:bg-[#0077b3] transition-colors"
