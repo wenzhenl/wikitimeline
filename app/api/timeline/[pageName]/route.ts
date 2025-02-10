@@ -185,8 +185,7 @@ export async function GET(
         // Only fetch thumbnail if we have a timeline
         let thumbnail: string | undefined;
         try {
-          const page = await wiki.page(trimmedName);
-          const summary = await page.summary();
+          const summary = await wiki.summary(trimmedName);
           thumbnail = summary.thumbnail?.source;
         } catch (error) {
           logger.warn('Could not fetch thumbnail, continuing without it:', error);
