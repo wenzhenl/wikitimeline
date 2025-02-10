@@ -92,13 +92,16 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
   });
   
   try {
-    const result = await geminiModel.generateContent(
-      `${SYSTEM_PROMPT}\n\nCreate a timeline for ${pageName.trim()} (${content})`
-    );
-    const response = await result.response;
+    const prompt = `${SYSTEM_PROMPT}\n\nCreate a timeline for ${pageName.trim()} (${content})`;
+    logger.debug("Prompt:", prompt);
+
+    const result = await geminiModel.generateContent(prompt);
+    logger.debug("Result from gemini:", result);
+
+    const response = result.response;
     const text = response.text();
-    logger.debug('text', text);
-    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const timelineData = JSON.parse(jsonStr);
     return timelineData.timeline;
   } catch (error) {
@@ -154,6 +157,7 @@ export async function GET(
         if (!timeline) {
           try {
             // Use decoded name for Wikipedia API
+            logger.debug("Fetching wiki page for:", trimmedName);
             const page = await wiki.page(trimmedName);
             const content = await page.content();
             timeline = await generateTimeline(trimmedName, content);
