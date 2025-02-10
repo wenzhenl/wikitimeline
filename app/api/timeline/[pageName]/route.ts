@@ -6,6 +6,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/timeline';
 import { PAGE_DELIMITER } from "@/app/constants";
+import { unstable_cache } from 'next/cache';
 
 // Initialize Gemini and Redis
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
@@ -110,6 +111,28 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
   }
 }
 
+// Add route segment config
+export const runtime = 'edge';
+export const revalidate = 3600; // Cache for 1 hour
+
+// Create a cached version of the thumbnail fetch
+const getCachedThumbnail = unstable_cache(
+  async (pageName: string) => {
+    try {
+      const summary = await wiki.summary(pageName);
+      return summary.thumbnail?.source;
+    } catch (error) {
+      logger.warn('Could not fetch thumbnail, continuing without it:', error);
+      return undefined;
+    }
+  },
+  ['wiki-thumbnail'], // Cache key prefix
+  {
+    revalidate: 3600, // Cache for 1 hour
+    tags: ['thumbnail']
+  }
+);
+
 export async function GET(
   _request: Request,
   { params }: { params: { pageName: string } }
@@ -185,10 +208,9 @@ export async function GET(
         // Only fetch thumbnail if we have a timeline
         let thumbnail: string | undefined;
         try {
-          const summary = await wiki.summary(trimmedName);
-          thumbnail = summary.thumbnail?.source;
+          thumbnail = await getCachedThumbnail(trimmedName);
         } catch (error) {
-          logger.warn('Could not fetch thumbnail, continuing without it:', error);
+          logger.warn('Could not fetch cached thumbnail:', error);
         }
 
         // Store results
