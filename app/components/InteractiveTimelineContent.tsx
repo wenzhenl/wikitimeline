@@ -36,9 +36,12 @@ export default function InteractiveTimelineContent({
 }: InteractiveTimelineContentProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<TimelineData>(
-    formatTimelineEventsForInteractive(initialData.timelines, "default")
+  const formattedEvents = formatTimelineEventsForInteractive(
+    initialData.timelines,
+    "default"
   );
+  console.log("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
+  const [events, setEvents] = useState<TimelineData>(formattedEvents);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
