@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { deviceDetection } from "@/app/utils/deviceDetection";
+import logger from "@/app/utils/logger";
 
 interface ShareButtonsProps {
   url: string;
@@ -30,7 +31,7 @@ export default function ShareButtons({
           url,
         });
       } catch (error) {
-        console.error("Sharing failed:", error);
+        logger.error("Sharing failed:", error);
       }
     } else {
       setIsModalOpen(true);

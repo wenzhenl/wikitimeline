@@ -1,4 +1,4 @@
-import { AVAILABLE_FONTS } from "../constants/fonts";
+import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 
 export interface TimelinePreferences {
   font: string;

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
-import { SITE_CONFIG } from "../config/site";
+import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineJSEvent } from "@/app/types/timeline";
 
 interface MyTimelineComponentProps {

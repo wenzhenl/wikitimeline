@@ -1,5 +1,5 @@
 import { PageTimeline } from "@/app/types/timeline";
-import { COLOR_SCHEMES } from "../constants/colorSchemes";
+import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { TimelineData } from "@/app/types/timeline";
 
 function formatGroupName(name: string): string {

@@ -7,7 +7,7 @@ import html2canvas from "html2canvas";
 import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER } from "@/app/constants";
-
+import logger from "@/app/utils/logger";
 interface TimelineEvent {
   date: string;
   headline: string;
@@ -39,7 +39,7 @@ export default function TextTimelinePageContent({
     try {
       const timelineElement = document.querySelector("#timeline-content");
       if (!timelineElement) {
-        console.error("Timeline element not found");
+        logger.error("Timeline element not found");
         return;
       }
 
@@ -51,7 +51,7 @@ export default function TextTimelinePageContent({
       // Convert canvas to blob
       canvas.toBlob(async (blob) => {
         if (!blob) {
-          console.error("Failed to create blob from canvas");
+          logger.error("Failed to create blob from canvas");
           return;
         }
 
@@ -66,11 +66,11 @@ export default function TextTimelinePageContent({
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
         } catch (error) {
-          console.error("Error downloading image:", error);
+          logger.error("Error downloading image:", error);
         }
       }, "image/png");
     } catch (error) {
-      console.error("Error capturing timeline:", error);
+      logger.error("Error capturing timeline:", error);
     }
   };
 

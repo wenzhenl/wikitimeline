@@ -2,7 +2,7 @@ import EmbeddedTimeline from "@/app/components/EmbeddedTimeline";
 import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
-
+import logger from "@/app/utils/logger";
 async function getTimelineData(pageName: string) {
   try {
     // pageName is already encoded from the URL
@@ -18,7 +18,7 @@ async function getTimelineData(pageName: string) {
     const data: TimelineAPIResponse = await response.json();
     return data.timelines || {};
   } catch (error) {
-    console.error(
+    logger.error(
       `Failed to fetch timeline data for ${decodeURIComponent(pageName)}:`,
       error
     );

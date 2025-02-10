@@ -13,6 +13,7 @@ import { TimelineAPIResponse, TimelineData } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
+import logger from "@/app/utils/logger";
 
 interface SelectedPage {
   title: string;
@@ -40,7 +41,7 @@ export default function InteractiveTimelineContent({
     initialData.timelines,
     "default"
   );
-  console.log("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
+  logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
   const [events, setEvents] = useState<TimelineData>(formattedEvents);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
@@ -114,7 +115,7 @@ export default function InteractiveTimelineContent({
       await navigator.clipboard.writeText(embedCode);
       alert("Embed code copied to clipboard!");
     } catch (err) {
-      console.error("Failed to copy:", err);
+      logger.error("Failed to copy:", err);
       alert("Failed to copy embed code. Please try again.");
     }
   };
