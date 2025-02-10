@@ -87,7 +87,7 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
     model: "gemini-2.0-flash",
     generationConfig: {
       maxOutputTokens: 8192,
-      temperature: 0.1
+      temperature: 0
     }
   });
   
