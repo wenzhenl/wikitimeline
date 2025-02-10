@@ -1,6 +1,5 @@
 import { PageTimeline } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "../constants/colorSchemes";
-import { TimelineJSEvent } from "@/app/types/timeline";
 import { TimelineData } from "@/app/types/timeline";
 
 function formatGroupName(name: string): string {
@@ -11,6 +10,29 @@ function formatGroupName(name: string): string {
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     )
     .join(' ');
+}
+
+function formatCosmologicalDate(year: number): string {
+  const absYear = Math.abs(year);
+  
+  // Handle dates within human range differently
+  if (absYear <= 275760) {
+    const formattedYear = absYear >= 10000 ? absYear.toLocaleString() : absYear.toString();
+    return year < 0 ? `${formattedYear} BCE` : formattedYear;
+  }
+  
+  // Format cosmological dates
+  let display = '';
+  if (absYear >= 1_000_000_000) {
+    display = `${(absYear / 1_000_000_000).toFixed(1)} billion`;
+  } else if (absYear >= 1_000_000) {
+    display = `${(absYear / 1_000_000).toFixed(1)} million`;
+  } else {
+    display = absYear.toLocaleString();
+  }
+  
+  const suffix = year < 0 ? 'YEARS AGO' : 'YEARS IN THE FUTURE';
+  return `<span style="font-weight: 700;">${display.toUpperCase()} ${suffix}</span>`;
 }
 
 export function formatTimelineEventsForInteractive(
@@ -70,6 +92,9 @@ export function formatTimelineEventsForInteractive(
 
       return {
         start_date: { year, month, day },
+        ...(needsCosmologicalScale && {
+          display_date: formatCosmologicalDate(year)
+        }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
           text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text}</span>`,
@@ -81,6 +106,6 @@ export function formatTimelineEventsForInteractive(
         },
       };
     }),
-    ...(needsCosmologicalScale && { scale: 'cosmological' })
+    ...(needsCosmologicalScale && { scale: 'cosmological' as const })
   };
 } 
