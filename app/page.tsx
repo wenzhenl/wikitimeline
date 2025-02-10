@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import WikiSearch from "./components/WikiSearch";
+import WikiSearch from "@/app/components/WikiSearch";
 import Link from "next/link";
 import { PAGE_DELIMITER } from "@/app/constants";
 

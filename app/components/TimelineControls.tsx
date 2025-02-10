@@ -1,4 +1,4 @@
-import WikiSearch from "./WikiSearch";
+import WikiSearch from "@/app/components/WikiSearch";
 
 interface SelectedPage {
   title: string;
