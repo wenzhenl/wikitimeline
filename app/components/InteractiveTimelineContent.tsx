@@ -51,6 +51,7 @@ export default function InteractiveTimelineContent({
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [hasSeenSwipeTip, setHasSeenSwipeTip] = useState(false);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -208,6 +209,26 @@ export default function InteractiveTimelineContent({
   useEffect(() => {
     if (document.querySelector(".tl-timeline .tl-slider-container")) {
       setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check if user has seen the swipe tip before
+    const tipSeen = localStorage.getItem("timeline-swipe-tip-seen");
+    if (tipSeen) {
+      setHasSeenSwipeTip(true);
+    } else {
+      // Listen for swipe/navigation actions
+      const handleNavigation = () => {
+        localStorage.setItem("timeline-swipe-tip-seen", "true");
+        setHasSeenSwipeTip(true);
+      };
+      document.addEventListener("keydown", handleNavigation);
+      document.addEventListener("touchend", handleNavigation);
+      return () => {
+        document.removeEventListener("keydown", handleNavigation);
+        document.removeEventListener("touchend", handleNavigation);
+      };
     }
   }, []);
 
@@ -710,11 +731,15 @@ export default function InteractiveTimelineContent({
           opacity: 0.9 !important;
         }
 
-        /* Hide TimelineJS loading elements immediately */
+        ${hasSeenSwipeTip
+          ? `
+        /* Hide TimelineJS loading elements after tip is shown */
         .tl-loading-icon,
         .tl-message-full {
           display: none !important;
         }
+        `
+          : ""}
       `}</style>
     </div>
   );
