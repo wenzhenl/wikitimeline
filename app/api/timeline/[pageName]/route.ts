@@ -112,7 +112,7 @@ export async function GET(
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   try {
-    // Split by delimiter and treat commas as normal characters
+    // First decode the URL parameters
     const pageNames = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
       .map(name => name.trim())
@@ -125,6 +125,7 @@ export async function GET(
     await Promise.all(
       pageNames.map(async (pageName) => {
         const trimmedName = pageName.trim();
+        // Use the decoded name for the cache key
         const cacheKey = `timeline:${trimmedName}`;
         
         // Try to get cached timeline
@@ -152,12 +153,12 @@ export async function GET(
         // Generate new timeline if no cache or version mismatch
         if (!timeline) {
           try {
+            // Use decoded name for Wikipedia API
             const page = await wiki.page(trimmedName);
             const content = await page.content();
             timeline = await generateTimeline(trimmedName, content);
             
             if (timeline) {
-              // Store timeline with current version
               await redis.set(cacheKey, { timeline, version: CURRENT_PROMPT_VERSION });
               logger.info(`Cached new timeline for ${trimmedName} (version ${CURRENT_PROMPT_VERSION})`);
             } else {

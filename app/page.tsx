@@ -27,14 +27,16 @@ export default function HomePage() {
     setLoading(true);
     setError("");
 
-    // Get all page names
+    // Get all page names and encode them
     const pageNames = selectedPages
       .map((page) => {
-        // Handle both title and URL formats
         const titleFromUrl = page.link.split("/wiki/").pop();
         if (titleFromUrl) {
-          // Remove any hash or query parameters and decode
-          return decodeURIComponent(titleFromUrl.split("#")[0].split("?")[0]);
+          // First decode to get clean title, then encode for URL
+          const cleanTitle = decodeURIComponent(
+            titleFromUrl.split("#")[0].split("?")[0]
+          );
+          return encodeURIComponent(cleanTitle);
         }
         return null;
       })
@@ -46,8 +48,10 @@ export default function HomePage() {
       return;
     }
 
-    // Join all page names with delimiter and redirect to timeline page
-    router.push(`/timeline/${pageNames.join(PAGE_DELIMITER)}`);
+    // Join with encoded delimiter
+    router.push(
+      `/timeline/${pageNames.join(encodeURIComponent(PAGE_DELIMITER))}`
+    );
   };
 
   return (

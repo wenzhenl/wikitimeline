@@ -117,7 +117,9 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
         >
           <p className="text-yellow-800 dark:text-yellow-200">
             Note: Could not include data from:{" "}
-            {data.errors.failedPages.join(PAGE_DELIMITER)}
+            {data.errors.failedPages
+              .map((page) => decodeURIComponent(page))
+              .join(PAGE_DELIMITER)}
           </p>
         </div>
       )}

@@ -6,7 +6,9 @@ import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
 
 async function getTimelineData(pageName: string, activePageName?: string) {
-  const targetPage = activePageName || pageName.split(PAGE_DELIMITER)[0];
+  const targetPage = decodeURIComponent(
+    activePageName || pageName.split(PAGE_DELIMITER)[0]
+  );
 
   try {
     const response = await fetch(
@@ -109,7 +111,7 @@ export function generateMetadata({
   params: { pageName: string };
   searchParams: { active?: string };
 }) {
-  const pageNames = params.pageName
+  const pageNames = decodeURIComponent(params.pageName)
     .split(PAGE_DELIMITER)
     .map((name) => name.trim());
   const activePage = searchParams.active || pageNames[0];
@@ -135,7 +137,9 @@ export function generateMetadata({
       description: `Comprehensive historical timeline of ${title} in text format. A detailed chronological record of significant events and dates throughout history.`,
       type: "article",
       url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text${
-        searchParams.active ? `?active=${searchParams.active}` : ""
+        searchParams.active
+          ? `?active=${encodeURIComponent(searchParams.active)}`
+          : ""
       }`,
     },
     twitter: {

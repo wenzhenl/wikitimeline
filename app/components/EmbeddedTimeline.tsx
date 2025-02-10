@@ -1,6 +1,6 @@
 "use client";
 
-import MyTimelineComponent from "./MyTimelineComponent";
+import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import { formatTimelineEventsForInteractive } from "@/app/utils/formatTimelineEvents";
 import { PageTimeline } from "@/app/types/timeline";
 

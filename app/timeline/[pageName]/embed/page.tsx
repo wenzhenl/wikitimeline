@@ -5,6 +5,7 @@ import { PAGE_DELIMITER } from "@/app/constants";
 
 async function getTimelineData(pageName: string) {
   try {
+    // pageName is already encoded from the URL
     const response = await fetch(
       `${SITE_CONFIG.DOMAIN}/api/timeline/${pageName}`,
       { cache: "no-store" }
@@ -17,7 +18,10 @@ async function getTimelineData(pageName: string) {
     const data: TimelineAPIResponse = await response.json();
     return data.timelines || {};
   } catch (error) {
-    console.error(`Failed to fetch timeline data for ${pageName}:`, error);
+    console.error(
+      `Failed to fetch timeline data for ${decodeURIComponent(pageName)}:`,
+      error
+    );
     return {};
   }
 }

@@ -9,11 +9,7 @@ import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import TimelineControls from "@/app/components/TimelineControls";
 import { useRouter } from "next/navigation";
-import {
-  TimelineAPIResponse,
-  TimelineJSEvent,
-  TimelineData,
-} from "@/app/types/timeline";
+import { TimelineAPIResponse, TimelineData } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
@@ -142,17 +138,22 @@ export default function InteractiveTimelineContent({
       .map((page) => {
         const titleFromUrl = page.link.split("/wiki/").pop();
         if (titleFromUrl) {
-          return decodeURIComponent(titleFromUrl.split("#")[0].split("?")[0]);
+          const cleanTitle = decodeURIComponent(
+            titleFromUrl.split("#")[0].split("?")[0]
+          );
+          return encodeURIComponent(cleanTitle);
         }
         return null;
       })
       .filter(Boolean);
 
     if (pageNames.length > 0) {
-      const newPath = `/timeline/${pageNames.join(PAGE_DELIMITER)}`;
+      const newPath = `/timeline/${pageNames.join(
+        encodeURIComponent(PAGE_DELIMITER)
+      )}`;
       if (newPath !== `/timeline/${params.pageName}`) {
-        setLoading(true); // Show loading state immediately
-        router.push(newPath, { scroll: false }); // Add scroll: false to prevent page jump
+        setLoading(true);
+        router.push(newPath, { scroll: false });
       }
     }
   };
@@ -160,11 +161,12 @@ export default function InteractiveTimelineContent({
   const handleSkippedModalClose = () => {
     setShowSkippedModal(false);
 
-    // Filter out skipped pages from the URL
+    // Filter out skipped pages and properly encode the URL
     const validPages = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
       .filter((page) => !skippedPages.includes(page))
-      .join(PAGE_DELIMITER);
+      .map((page) => encodeURIComponent(page))
+      .join(encodeURIComponent(PAGE_DELIMITER));
 
     // Update URL if there are any valid pages left
     if (validPages) {

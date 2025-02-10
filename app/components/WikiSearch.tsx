@@ -46,12 +46,11 @@ export default function WikiSearch({
 
   const extractWikiTitle = (url: string): string | null => {
     try {
-      // Handle both full URLs and partial paths
       const urlPattern = /(?:https?:\/\/[^\/]+)?\/wiki\/([^#?]+)/;
       const match = url.match(urlPattern);
       if (match) {
-        // Decode URL components and replace underscores with spaces
-        return decodeURIComponent(match[1].replace(/_/g, " "));
+        // First decode any existing encoding to get clean title
+        return decodeURIComponent(match[1]);
       }
       return null;
     } catch (error) {
@@ -162,13 +161,15 @@ export default function WikiSearch({
 
   const handleResultClick = (result: SearchResult) => {
     const newPage = {
-      title: result.title,
-      link: `https://en.wikipedia.org/wiki/${result.title.replace(/ /g, "_")}`,
+      title: result.title, // Store the clean title for display
+      link:
+        result.fullurl ||
+        `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title)}`,
     };
 
     // Check if page already exists
     if (selectedPages.some((page) => page.link === newPage.link)) {
-      return; // Skip if already exists
+      return;
     }
 
     onPagesChange([...selectedPages, newPage]);
@@ -176,8 +177,6 @@ export default function WikiSearch({
     setSearchResults([]);
     setShowDropdown(false);
     setSelectedIndex(-1);
-
-    // Re-focus the input after selection
     inputRef.current?.focus();
   };
 

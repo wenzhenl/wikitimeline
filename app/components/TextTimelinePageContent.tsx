@@ -74,17 +74,19 @@ export default function TextTimelinePageContent({
     }
   };
 
-  // Split and decode the pageNames
+  // Decode for display, keep encoded for URLs
   const pageNames = decodeURIComponent(params.pageName)
     .split(PAGE_DELIMITER)
     .map((name) => name.trim())
     .filter(Boolean);
 
-  // Use the active param or first page
   const activePage = searchParams.active || pageNames[0];
 
+  // Keep URLs encoded
   const pageUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text${
-    searchParams.active ? `?active=${searchParams.active}` : ""
+    searchParams.active
+      ? `?active=${encodeURIComponent(searchParams.active)}`
+      : ""
   }`;
 
   // Show loading state before hydration
@@ -185,10 +187,7 @@ export default function TextTimelinePageContent({
                     activePage
                   )
                     .replace(/_/g, " ")
-                    .replace(
-                      /,/g,
-                      ", "
-                    )} in chronological order! Powered by wiki-timeline.com`}
+                    .replace(/,/g, ", ")} in chronological order!`}
                   customAction={{
                     label: "Save as Image",
                     onClick: handleCaptureImage,

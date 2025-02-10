@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 async function getTimelineData(pageName: string) {
   try {
     const response = await fetch(
-      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(pageName)}`,
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${pageName}`,
       { cache: "no-store" }
     );
 
@@ -16,7 +16,7 @@ async function getTimelineData(pageName: string) {
     }
 
     const data: TimelineAPIResponse = await response.json();
-    logger.info(`Fetched timeline data for ${pageName}`);
+    logger.info(`Fetched timeline data for ${decodeURIComponent(pageName)}`);
 
     return data;
   } catch (error) {
