@@ -113,6 +113,7 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
   }
 }
 
+// Cache the wiki summary
 // Add route segment config
 export const runtime = 'edge';
 export const revalidate = 3600; // Cache for 1 hour
