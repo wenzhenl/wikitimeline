@@ -117,21 +117,26 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
 export const runtime = 'edge';
 export const revalidate = 3600; // Cache for 1 hour
 
-// Create a cached version of the thumbnail fetch
-const getCachedThumbnail = unstable_cache(
+const getCachedWikiSummary = unstable_cache(
   async (pageName: string) => {
     try {
       const summary = await wiki.summary(pageName);
-      return summary.thumbnail?.source;
+      return {
+        canonicalTitle: summary.titles.canonical,
+        thumbnail: summary.thumbnail?.source
+      };
     } catch (error) {
-      logger.warn('Could not fetch thumbnail, continuing without it:', error);
-      return undefined;
+      logger.warn('Could not fetch wiki summary, using fallback:', error);
+      return {
+        canonicalTitle: pageName,
+        thumbnail: undefined
+      };
     }
   },
-  ['wiki-thumbnail'], // Cache key prefix
+  ['wiki-summary'],
   {
-    revalidate: 3600, // Cache for 1 hour
-    tags: ['thumbnail']
+    revalidate: 3600,
+    tags: ['wiki-summary']
   }
 );
 
@@ -145,13 +150,24 @@ export async function GET(
       .split(PAGE_DELIMITER)
       .map(name => name.trim())
       .filter(Boolean);
-    
+
+    // Get canonical names first
+    const canonicalNames = await Promise.all(
+      pageNames.map(async (name) => {
+        const summary = await getCachedWikiSummary(name);
+        if (summary.canonicalTitle !== name) {
+          logger.info(`Redirecting ${name} to canonical title: ${summary.canonicalTitle}`);
+        }
+        return summary.canonicalTitle;
+      })
+    );
+
     const failedPages: string[] = [];
     const noTimelinePages: string[] = [];
     const timelines: Record<string, PageTimeline> = {};
 
     await Promise.all(
-      pageNames.map(async (pageName) => {
+      canonicalNames.map(async (pageName) => {
         const trimmedName = pageName.trim();
         // Use the decoded name for the cache key
         const cacheKey = `timeline:${trimmedName}`;
@@ -210,7 +226,7 @@ export async function GET(
         // Only fetch thumbnail if we have a timeline
         let thumbnail: string | undefined;
         try {
-          thumbnail = await getCachedThumbnail(trimmedName);
+          thumbnail = (await getCachedWikiSummary(trimmedName)).thumbnail;
         } catch (error) {
           logger.warn('Could not fetch cached thumbnail:', error);
         }

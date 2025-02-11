@@ -41,7 +41,7 @@ export default function InteractiveTimelineContent({
     initialData.timelines,
     "default"
   );
-  logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
+  // logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
   const [events, setEvents] = useState<TimelineData>(formattedEvents);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
