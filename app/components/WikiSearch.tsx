@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import logger from "@/app/utils/logger";
+import wiki from "wikipedia";
 
 interface SearchResult {
   title: string;
@@ -96,43 +97,29 @@ export default function WikiSearch({
 
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `https://en.wikipedia.org/w/api.php?` +
-            `action=query&format=json&origin=*&` +
-            `generator=prefixsearch&` +
-            `gpssearch=${encodeURIComponent(value)}&` +
-            `gpsnamespace=0&` +
-            `gpslimit=10&` +
-            `prop=extracts|description|info|pageimages|pageviews&` +
-            `inprop=url&exintro=1&explaintext=1&` +
-            `pithumbsize=80&pilimit=10&` +
-            `pvipdays=30`
+        const results = await wiki.search(value, {
+          limit: 10,
+          suggestion: true,
+        });
+
+        // Convert to our SearchResult format
+        const searchResults = await Promise.all(
+          results.results.map(async (result) => {
+            const summary = await wiki.summary(result.title);
+            return {
+              title: result.title,
+              description: summary.description || summary.extract || "",
+              pageid: summary.pageid,
+              fullurl: `https://en.wikipedia.org/wiki/${encodeURIComponent(
+                summary.titles.canonical
+              )}`,
+              thumbnail: summary.thumbnail,
+              pageviews: 0, // Note: pageviews not available in this API
+            };
+          })
         );
 
-        const data = await response.json();
-
-        if (data.query && data.query.pages) {
-          const results = Object.values(data.query.pages)
-            .map((page: any) => ({
-              title: page.title,
-              description: page.description || page.extract || "",
-              pageid: page.pageid,
-              fullurl:
-                page.fullurl ||
-                `https://en.wikipedia.org/wiki/${encodeURIComponent(
-                  page.title
-                )}`,
-              thumbnail: page.thumbnail,
-              pageviews: Object.values(page.pageviews || {}).reduce<number>(
-                (a, b) => a + (typeof b === "number" ? b : 0),
-                0
-              ),
-            }))
-            .sort((a, b) => (b.pageviews ?? 0) - (a.pageviews ?? 0));
-          setSearchResults(results as SearchResult[]);
-        } else {
-          setSearchResults([]);
-        }
+        setSearchResults(searchResults);
       } catch (error) {
         logger.error("Error fetching Wikipedia search results:", error);
         setSearchResults([]);
