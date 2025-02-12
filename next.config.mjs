@@ -16,24 +16,17 @@ const nextConfig = {
     ];
   },
   webpack(config, { isServer }) {
-    config.module.rules.push(
-      {
-        test: /\.less$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'less-loader'
-        ]
-      },
-      {
-        test: /\.css$/,
+    if (!isServer) {
+      config.module.rules.push({
+        test: /\.(less|css)$/,
         use: [
           'style-loader',
           'css-loader',
           'postcss-loader',
-        ],
-      }
-    );
+          'less-loader'
+        ]
+      });
+    }
 
     return config;
   },
