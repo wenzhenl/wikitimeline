@@ -8,7 +8,12 @@ async function getTimelineData(pageName: string) {
     // pageName is already encoded from the URL
     const response = await fetch(
       `${SITE_CONFIG.DOMAIN}/api/timeline/${pageName}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+        headers: {
+          "x-api-key": process.env.API_SECRET_KEY!,
+        },
+      }
     );
 
     if (!response.ok) {

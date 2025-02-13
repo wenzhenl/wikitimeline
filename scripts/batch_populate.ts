@@ -22,7 +22,13 @@ async function populateTimeline(page: string): Promise<void> {
     
     const response = await fetch(
       `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(page)}`,
-      { cache: 'no-store' }
+      { 
+        cache: 'no-store',
+        headers: {
+          'x-api-key': process.env.CLI_SECRET_KEY!,
+          'x-client-type': 'cli'
+        }
+      }
     );
 
     if (!response.ok) {

@@ -13,7 +13,12 @@ async function getTimelineData(pageName: string, activePageName?: string) {
   try {
     const response = await fetch(
       `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+        headers: {
+          "x-api-key": process.env.API_SECRET_KEY!,
+        },
+      }
     );
 
     if (!response.ok) {
