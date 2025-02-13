@@ -61,6 +61,12 @@ export default function HomePage() {
             >
               WikiTimeline
             </Link>
+            <Link
+              href="/about"
+              className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              About
+            </Link>
           </div>
         </div>
       </nav>
@@ -180,12 +186,6 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center space-x-6">
-              <Link
-                href="/about"
-                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                About
-              </Link>
               <a
                 href="https://github.com/wenzhenl/wikitimeline"
                 target="_blank"
