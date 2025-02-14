@@ -128,8 +128,8 @@ export default function HomePage() {
           )}
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-16">
-          <div className="text-center p-6">
+        <div className="grid md:grid-cols-3 gap-8 mt-16 mb-20">
+          <div className="text-center p-6 h-full bg-white/50 dark:bg-gray-800/50 rounded-xl">
             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-6 h-6 text-blue-500"
@@ -152,7 +152,7 @@ export default function HomePage() {
               Convert any Wikipedia article into a timeline in seconds
             </p>
           </div>
-          <div className="text-center p-6">
+          <div className="text-center p-6 h-full bg-white/50 dark:bg-gray-800/50 rounded-xl">
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-6 h-6 text-purple-500"
@@ -175,7 +175,7 @@ export default function HomePage() {
               Compare multiple timelines side by side
             </p>
           </div>
-          <div className="text-center p-6">
+          <div className="text-center p-6 h-full bg-white/50 dark:bg-gray-800/50 rounded-xl">
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-6 h-6 text-green-500"
@@ -207,23 +207,20 @@ export default function HomePage() {
         </div>
 
         {/* Featured Timeline Section */}
-        <div className="max-w-6xl mx-auto px-4 py-20">
+        <div className="w-full max-w-4xl mx-auto px-4 py-12">
           <h2 className="text-4xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
             Featured Timeline Comparisons
           </h2>
 
           <EmblaCarousel>
             {FEATURED_TIMELINES.map((timeline) => (
-              <div
-                key={timeline.id}
-                className="flex-[0_0_90%] md:flex-[0_0_70%] mx-4"
-              >
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden transform transition-all hover:shadow-2xl">
+              <div key={timeline.id} className="flex-[0_0_100%] mx-4 h-full">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden transform transition-all hover:shadow-2xl h-full flex flex-col">
                   <Link
                     href={`/timeline/${timeline.path}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group block relative"
+                    className="group relative flex-1 flex flex-col"
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="p-4 bg-gray-50 dark:bg-gray-900">
@@ -235,11 +232,11 @@ export default function HomePage() {
                         />
                       </div>
                     </div>
-                    <div className="p-8">
+                    <div className="p-8 flex-1 flex flex-col">
                       <h3 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-200 transition-colors">
                         {timeline.title}
                       </h3>
-                      <p className="text-base text-gray-600 dark:text-gray-400">
+                      <p className="text-base text-gray-600 dark:text-gray-400 flex-1">
                         {timeline.description}
                       </p>
                       <div className="mt-4 inline-flex items-center text-blue-500 font-medium group-hover:text-blue-600">
