@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # Enable version updates for npm/yarn
+  - package-ecosystem: "npm"
+    # Look for `package.json` and `lock` files in the `root` directory
+    directory: "/"
+    # Check for updates once a week (Monday)
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    # Group all updates into a single PR
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+    # Specify labels for pull requests
+    labels:
+      - "dependencies"
+      - "automerge"
+    # Set review requirements
+    open-pull-requests-limit: 10
+    # Specify target branch
+    target-branch: "main"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automerge"
