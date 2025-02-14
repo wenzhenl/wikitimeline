@@ -12,7 +12,7 @@
 ## ✨ Features
 
 - 🔄 **Instant Conversion**: Transform any Wikipedia article into a timeline in seconds
-- 🤖 **AI-Powered**: Utilizes GPT-4 to extract and organize chronological events
+- 🤖 **AI-Powered**: Utilizes Google Gemini to extract and organize chronological events
 - 📱 **Responsive Design**: Beautiful interface that works on all devices
 - 🌓 **Dark Mode**: Seamless experience in both light and dark themes
 - 🔄 **Multi-Timeline**: Compare multiple timelines side by side
