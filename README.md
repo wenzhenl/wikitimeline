@@ -2,7 +2,7 @@
   <h1>🌟 WikiTimeline</h1>
   <p>Transform Wikipedia articles into beautiful, interactive timelines powered by AI</p>
   <p>
-    <a href="https://wiki-timeline.com">Live Demo</a> •
+    <a href="https://wiki-timeline.com/timeline/Nikola_Tesla%7CThomas_Edison">Live Demo</a> •
     <a href="#features">Features</a> •
     <a href="#installation">Installation</a> •
     <a href="#usage">Usage</a>
