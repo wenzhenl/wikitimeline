@@ -6,33 +6,82 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
       description: Also tell us, what did you expect to happen?
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
     validations:
       required: true
-  - type: input
-    id: version
+
+  - type: dropdown
+    id: device-type
     attributes:
-      label: Version
-      description: What version of the software are you running?
+      label: What type of device are you using?
+      options:
+        - Desktop
+        - Mobile
+        - Tablet
     validations:
       required: true
+
   - type: dropdown
     id: browsers
     attributes:
-      label: What browsers are you seeing the problem on?
-      multiple: true
+      label: What browser are you using?
+      multiple: false
       options:
         - Chrome
         - Firefox
         - Safari
         - Microsoft Edge
+        - Opera
+        - Brave
+        - Other (please specify below)
+    validations:
+      required: true
+
+  - type: input
+    id: browser-other
+    attributes:
+      label: If you selected "Other" above, please specify your browser
+      description: Please include the browser name and version if known
+      placeholder: e.g., Samsung Internet Browser
+
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: e.g., Windows 11, macOS Sonoma, iOS 17, Android 14
+
   - type: textarea
     id: logs
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output
+      label: Relevant console logs
+      description: Please check your browser's developer tools (F12) for any error messages
       render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: |
+        If applicable, add screenshots to help explain your problem.
+        Tip: You can attach images by clicking this area to highlight it and then dragging files in.
+      placeholder: |
+        1. Click this text area
+        2. Drag and drop your screenshots here
+        3. Or paste them from your clipboard
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here (videos, etc.)
