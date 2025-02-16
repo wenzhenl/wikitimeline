@@ -137,7 +137,7 @@ export default function TextTimelineView({
                   }}
                   className="inline-block px-2 py-1 rounded-tl-lg text-xs"
                 >
-                  {event.source}
+                  {event.source.replace(/_/g, " ")}
                 </span>
               </div>
             )}
