@@ -26,6 +26,7 @@ const MyTimelineComponent = ({
         }
 
         const options = {
+          hash_bookmark: true,
           ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
           duration: 500,
           marker_height_min: 50,
