@@ -7,6 +7,7 @@ interface TimelineEvent {
   date: string;
   headline: string;
   text: string;
+  source?: string;
 }
 
 interface TextTimelineViewProps {
@@ -14,9 +15,15 @@ interface TextTimelineViewProps {
     timeline: TimelineEvent[];
     errors?: { failedPages: string[] };
   } | null;
+  viewMode?: "combined" | "tabs";
+  showSource?: boolean;
 }
 
-export default function TextTimelineView({ data }: TextTimelineViewProps) {
+export default function TextTimelineView({
+  data,
+  viewMode = "combined",
+  showSource = false,
+}: TextTimelineViewProps) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -29,7 +36,7 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <p
         className="
         text-gray-600 dark:text-gray-400
@@ -41,70 +48,27 @@ export default function TextTimelineView({ data }: TextTimelineViewProps) {
         dates and events in order.
       </p>
 
-      {data.timeline.map((event, index) => {
-        const isNegativeYear = event.date.startsWith("-");
-        const normalizedDate = isNegativeYear
-          ? event.date.slice(1)
-          : event.date;
-        const dateParts = normalizedDate.split("-");
-        const year = parseInt(dateParts[0]);
-
-        return (
-          <article
-            key={index}
-            className="
-              p-6 
-              bg-white dark:bg-gray-800 
-              rounded-lg 
-              shadow-sm
-              border border-gray-100 dark:border-gray-700
-              hover:shadow-md 
-              transition-shadow 
-              duration-200
-            "
-          >
-            <time
-              className="
-              block 
-              mb-3
-              text-lg 
-              font-semibold 
-              text-blue-600 dark:text-blue-400
-            "
-            >
-              {year} {isNegativeYear ? "BC" : ""}
-              {dateParts[1] &&
-                ` ${new Date(2000, parseInt(dateParts[1]) - 1).toLocaleString(
-                  "default",
-                  { month: "short" }
-                )}`}
-              {dateParts[2] && ` ${parseInt(dateParts[2])}`}
-            </time>
-
-            <h2
-              className="
-              text-xl 
-              font-bold 
-              text-gray-900 dark:text-white 
-              mb-3
-            "
-            >
-              {event.headline}
-            </h2>
-
-            {event.text && (
-              <p
-                className="
-                text-gray-700 dark:text-gray-300
-                leading-relaxed
-              "
-              >
-                {event.text}
-              </p>
+      {data.timeline.map((event: TimelineEvent, index: number) => (
+        <div
+          key={index}
+          className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+        >
+          <div className="text-sm mb-2 flex items-center">
+            {showSource && (
+              <span className="mr-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500 dark:text-gray-400">
+                {event.source}
+              </span>
             )}
-          </article>
-        );
-      })}
+            <span className="font-semibold text-blue-600 dark:text-blue-400">
+              {event.date}
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {event.headline}
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300">{event.text}</p>
+        </div>
+      ))}
 
       {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
         <div

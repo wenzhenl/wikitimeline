@@ -8,6 +8,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER } from "@/app/constants";
 import logger from "@/app/utils/logger";
+
 interface TimelineEvent {
   date: string;
   headline: string;
@@ -16,9 +17,17 @@ interface TimelineEvent {
 
 interface TextTimelinePageContentProps {
   params: { pageName: string };
-  searchParams: { active?: string };
+  searchParams: {
+    active?: string;
+    viewMode?: "combined" | "tabs";
+  };
   initialData: {
-    timeline: TimelineEvent[];
+    timeline: Array<{
+      date: string;
+      headline: string;
+      text: string;
+      source: string;
+    }>;
     errors?: { failedPages: string[] };
   };
 }
@@ -74,13 +83,13 @@ export default function TextTimelinePageContent({
     }
   };
 
-  // Decode for display, keep encoded for URLs
   const pageNames = decodeURIComponent(params.pageName)
     .split(PAGE_DELIMITER)
     .map((name) => name.trim())
     .filter(Boolean);
 
   const activePage = searchParams.active || pageNames[0];
+  const viewMode = searchParams.viewMode || "combined";
 
   // Keep URLs encoded
   const pageUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text${
@@ -157,6 +166,43 @@ export default function TextTimelinePageContent({
               </div>
 
               <div className="flex gap-4 items-center">
+                {/* View Mode Toggle for multiple pages */}
+                {pageNames.length > 1 && (
+                  <Link
+                    href={`/timeline/${params.pageName}/text?viewMode=${
+                      viewMode === "combined" ? "tabs" : "combined"
+                    }`}
+                    className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      {viewMode === "combined" ? (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7h12M8 12h12M8 17h12M4 7h0M4 12h0M4 17h0"
+                        />
+                      ) : (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v12M3 13l3 3m0 0l3-3m-3 3V8m12-1l-3-3m0 0l-3 3m3-3v8"
+                        />
+                      )}
+                    </svg>
+                    {viewMode === "combined"
+                      ? "Separate Timelines"
+                      : "Merge Timelines"}
+                  </Link>
+                )}
+
+                {/* Interactive View button */}
                 <Link
                   href={`/timeline/${params.pageName}`}
                   className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
@@ -254,9 +300,47 @@ export default function TextTimelinePageContent({
 
               {isOptionsOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50">
+                  {pageNames.length > 1 && (
+                    <Link
+                      href={`/timeline/${params.pageName}/text?viewMode=${
+                        viewMode === "combined" ? "tabs" : "combined"
+                      }`}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => setIsOptionsOpen(false)}
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        {viewMode === "combined" ? (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7h12M8 12h12M8 17h12M4 7h0M4 12h0M4 17h0"
+                          />
+                        ) : (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v12M3 13l3 3m0 0l3-3m-3 3V8m12-1l-3-3m0 0l-3 3m3-3v8"
+                          />
+                        )}
+                      </svg>
+                      {viewMode === "combined"
+                        ? "Separate Timelines"
+                        : "Merge Timelines"}
+                    </Link>
+                  )}
+
+                  {/* Interactive View button */}
                   <Link
                     href={`/timeline/${params.pageName}`}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => setIsOptionsOpen(false)}
                   >
                     <svg
                       className="w-4 h-4 mr-2"
@@ -273,6 +357,7 @@ export default function TextTimelinePageContent({
                     </svg>
                     Interactive View
                   </Link>
+
                   <ShareButtons
                     url={pageUrl}
                     title={`Timeline of ${decodeURIComponent(
@@ -337,18 +422,32 @@ export default function TextTimelinePageContent({
           <div id="timeline-content">
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-                {decodeURIComponent(activePage).replace(/_/g, " ")}
+                {viewMode === "combined"
+                  ? pageNames
+                      .map((name) =>
+                        decodeURIComponent(name).replace(/_/g, " ")
+                      )
+                      .join(" • ")
+                  : decodeURIComponent(activePage).replace(/_/g, " ")}
               </h1>
             </div>
 
-            {pageNames.length > 1 && (
+            {pageNames.length > 1 && viewMode === "tabs" && (
               <div className="min-h-[48px]">
-                <Tabs pageNames={pageNames} currentPage={activePage} />
+                <Tabs
+                  pageNames={pageNames}
+                  currentPage={activePage}
+                  viewMode={viewMode}
+                />
               </div>
             )}
 
             <div className="mt-8">
-              <TextTimelineView data={initialData} />
+              <TextTimelineView
+                data={initialData}
+                viewMode={viewMode}
+                showSource={viewMode === "combined" && pageNames.length > 1}
+              />
             </div>
           </div>
         </div>
@@ -360,9 +459,11 @@ export default function TextTimelinePageContent({
 function Tabs({
   pageNames,
   currentPage,
+  viewMode,
 }: {
   pageNames: string[];
   currentPage: string;
+  viewMode: string;
 }) {
   return (
     <div className="border-b border-gray-200 mb-8">
@@ -374,7 +475,9 @@ function Tabs({
               key={pageName}
               href={`/timeline/${encodeURIComponent(
                 pageNames.join(PAGE_DELIMITER)
-              )}/text?active=${encodeURIComponent(pageName)}`}
+              )}/text?active=${encodeURIComponent(
+                pageName
+              )}&viewMode=${viewMode}`}
               className={`
                 py-2 px-3 rounded-lg font-medium text-sm transition-colors
                 ${

@@ -6,37 +6,49 @@ import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
 
 async function getTimelineData(pageName: string, activePageName?: string) {
-  const targetPage = decodeURIComponent(
-    activePageName || pageName.split(PAGE_DELIMITER)[0]
-  );
+  // If no activePageName is provided, fetch all pages
+  const targetPages = activePageName
+    ? [decodeURIComponent(activePageName)]
+    : decodeURIComponent(pageName).split(PAGE_DELIMITER);
 
   try {
-    const response = await fetch(
-      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(targetPage)}`,
-      {
-        cache: "no-store",
-        headers: {
-          "x-api-key": process.env.API_SECRET_KEY!,
-        },
-      }
+    const responses = await Promise.all(
+      targetPages.map((page) =>
+        fetch(
+          `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(page)}`,
+          {
+            cache: "no-store",
+            headers: {
+              "x-api-key": process.env.API_SECRET_KEY!,
+            },
+          }
+        )
+      )
     );
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch timeline data: ${response.statusText}`);
-    }
+    const data = await Promise.all(
+      responses.map(async (response) => {
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch timeline data: ${response.statusText}`
+          );
+        }
+        return response.json() as Promise<TimelineAPIResponse>;
+      })
+    );
 
-    const data: TimelineAPIResponse = await response.json();
-    logger.info(`Fetched timeline data for ${targetPage}`);
-
-    // Transform API response to text format
+    // Combine all timeline data
     const transformedData = {
-      timeline: Object.values(data.timelines)
-        .flatMap((page) =>
-          page.timeline.map((event) => ({
-            date: event.date,
-            headline: event.headline,
-            text: event.text,
-          }))
+      timeline: data
+        .flatMap((pageData) =>
+          Object.entries(pageData.timelines).flatMap(([pageName, page]) =>
+            page.timeline.map((event) => ({
+              date: event.date,
+              headline: event.headline,
+              text: event.text,
+              source: pageName,
+            }))
+          )
         )
         .sort((a, b) => {
           const aIsNegative = a.date.startsWith("-");
@@ -56,12 +68,17 @@ async function getTimelineData(pageName: string, activePageName?: string) {
           if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
           return aParts.length - bParts.length;
         }),
-      errors: data.errors,
+      errors: {
+        failedPages: data.reduce<string[]>(
+          (acc, curr) => [...acc, ...(curr.errors?.failedPages || [])],
+          []
+        ),
+      },
     };
 
     return transformedData;
   } catch (error) {
-    logger.error(`Failed to fetch timeline data for ${targetPage}:`, error);
+    logger.error(`Failed to fetch timeline data:`, error);
     throw error;
   }
 }
@@ -71,16 +88,10 @@ export default async function TimelineTextPage({
   searchParams,
 }: {
   params: { pageName: string };
-  searchParams: { active?: string };
+  searchParams: { active?: string; viewMode?: "combined" | "tabs" };
 }) {
   try {
-    const defaultPage = decodeURIComponent(params.pageName).split(
-      PAGE_DELIMITER
-    )[0];
-    const data = await getTimelineData(
-      defaultPage,
-      searchParams.active || defaultPage
-    );
+    const data = await getTimelineData(params.pageName, searchParams.active);
 
     return (
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
@@ -88,7 +99,7 @@ export default async function TimelineTextPage({
           params={params}
           searchParams={{
             ...searchParams,
-            active: searchParams.active || defaultPage,
+            viewMode: searchParams.viewMode || "combined", // Default to combined view
           }}
           initialData={data || { timeline: [], errors: { failedPages: [] } }}
         />
@@ -114,7 +125,7 @@ export function generateMetadata({
   searchParams,
 }: {
   params: { pageName: string };
-  searchParams: { active?: string };
+  searchParams: { active?: string; viewMode?: "combined" | "tabs" };
 }) {
   const pageNames = decodeURIComponent(params.pageName)
     .split(PAGE_DELIMITER)
