@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PAGE_DELIMITER } from "@/app/constants";
+import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 
 interface TimelineEvent {
   date: string;
@@ -52,6 +53,28 @@ export default function TextTimelineView({
 }: TextTimelineViewProps) {
   const [isHydrated, setIsHydrated] = useState(false);
 
+  // Get the default color scheme
+  const defaultScheme = COLOR_SCHEMES[0];
+
+  // Create a map of sources to colors
+  const sourceColorMap = new Map<
+    string,
+    { color: string; textColor: string }
+  >();
+
+  // Assign colors to unique sources
+  if (data?.timeline) {
+    const uniqueSources = Array.from(
+      new Set(data.timeline.map((event) => event.source).filter(Boolean))
+    );
+    uniqueSources.forEach((source, index) => {
+      if (source) {
+        const colorIndex = index % Object.keys(defaultScheme.colors).length;
+        sourceColorMap.set(source, defaultScheme.colors[colorIndex]);
+      }
+    });
+  }
+
   useEffect(() => {
     setIsHydrated(true);
   }, []);
@@ -96,37 +119,51 @@ export default function TextTimelineView({
         const dateParts = normalizedDate.split("-");
         const year = parseInt(dateParts[0]) * (isNegativeYear ? -1 : 1);
 
+        const sourceColors = event.source
+          ? sourceColorMap.get(event.source)
+          : null;
+
         return (
           <div
             key={index}
-            className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+            className="relative p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
           >
-            <div className="text-sm mb-2 flex items-center">
-              {showSource && (
-                <span className="mr-2 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-500 dark:text-gray-400">
+            {showSource && event.source && (
+              <div className="absolute -top-px -left-px rounded-tl-lg">
+                <span
+                  style={{
+                    backgroundColor: sourceColors?.color || "#f3f4f6",
+                    color: sourceColors?.textColor || "#4b5563",
+                  }}
+                  className="inline-block px-2 py-1 rounded-tl-lg text-xs"
+                >
                   {event.source}
                 </span>
-              )}
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {needsCosmologicalScale ? (
-                  formatCosmologicalDate(year)
-                ) : (
-                  <>
-                    {Math.abs(year)} {isNegativeYear ? "BCE" : ""}
-                    {dateParts[1] &&
-                      ` ${new Date(
-                        2000,
-                        parseInt(dateParts[1]) - 1
-                      ).toLocaleString("default", { month: "short" })}`}
-                    {dateParts[2] && ` ${parseInt(dateParts[2])}`}
-                  </>
-                )}
-              </span>
+              </div>
+            )}
+            <div className="mt-4">
+              <div className="text-sm mb-4">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                  {needsCosmologicalScale ? (
+                    formatCosmologicalDate(year)
+                  ) : (
+                    <>
+                      {Math.abs(year)} {isNegativeYear ? "BCE" : ""}
+                      {dateParts[1] &&
+                        ` ${new Date(
+                          2000,
+                          parseInt(dateParts[1]) - 1
+                        ).toLocaleString("default", { month: "short" })}`}
+                      {dateParts[2] && ` ${parseInt(dateParts[2])}`}
+                    </>
+                  )}
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                {event.headline}
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300">{event.text}</p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {event.headline}
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">{event.text}</p>
           </div>
         );
       })}
