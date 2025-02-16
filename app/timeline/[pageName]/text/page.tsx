@@ -5,50 +5,38 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
 
-async function getTimelineData(pageName: string, activePageName?: string) {
-  // If no activePageName is provided, fetch all pages
-  const targetPages = activePageName
-    ? [decodeURIComponent(activePageName)]
-    : decodeURIComponent(pageName).split(PAGE_DELIMITER);
+async function getTimelineData(pageName: string) {
+  const targetPages = decodeURIComponent(pageName).split(PAGE_DELIMITER);
 
   try {
-    const responses = await Promise.all(
-      targetPages.map((page) =>
-        fetch(
-          `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(page)}`,
-          {
-            cache: "no-store",
-            headers: {
-              "x-api-key": process.env.API_SECRET_KEY!,
-            },
-          }
-        )
-      )
+    const response = await fetch(
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(
+        targetPages.join(PAGE_DELIMITER)
+      )}`,
+      {
+        cache: "no-store",
+        headers: {
+          "x-api-key": process.env.API_SECRET_KEY!,
+        },
+      }
     );
 
-    const data = await Promise.all(
-      responses.map(async (response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch timeline data: ${response.statusText}`
-          );
-        }
-        return response.json() as Promise<TimelineAPIResponse>;
-      })
-    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch timeline data: ${response.statusText}`);
+    }
 
-    // Combine all timeline data
+    const data = (await response.json()) as TimelineAPIResponse;
+
+    // Transform all data without filtering
     const transformedData = {
-      timeline: data
-        .flatMap((pageData) =>
-          Object.entries(pageData.timelines).flatMap(([pageName, page]) =>
-            page.timeline.map((event) => ({
-              date: event.date,
-              headline: event.headline,
-              text: event.text,
-              source: pageName,
-            }))
-          )
+      timeline: Object.entries(data.timelines)
+        .flatMap(([pageName, page]) =>
+          page.timeline.map((event) => ({
+            date: event.date,
+            headline: event.headline,
+            text: event.text,
+            source: pageName,
+          }))
         )
         .sort((a, b) => {
           const aIsNegative = a.date.startsWith("-");
@@ -68,12 +56,7 @@ async function getTimelineData(pageName: string, activePageName?: string) {
           if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
           return aParts.length - bParts.length;
         }),
-      errors: {
-        failedPages: data.reduce<string[]>(
-          (acc, curr) => [...acc, ...(curr.errors?.failedPages || [])],
-          []
-        ),
-      },
+      errors: data.errors,
     };
 
     return transformedData;
@@ -85,22 +68,16 @@ async function getTimelineData(pageName: string, activePageName?: string) {
 
 export default async function TimelineTextPage({
   params,
-  searchParams,
 }: {
   params: { pageName: string };
-  searchParams: { active?: string; viewMode?: "combined" | "tabs" };
 }) {
   try {
-    const data = await getTimelineData(params.pageName, searchParams.active);
+    const data = await getTimelineData(params.pageName);
 
     return (
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
         <TextTimelinePageContent
           params={params}
-          searchParams={{
-            ...searchParams,
-            viewMode: searchParams.viewMode || "combined", // Default to combined view
-          }}
           initialData={data || { timeline: [], errors: { failedPages: [] } }}
         />
       </div>
@@ -120,48 +97,33 @@ export default async function TimelineTextPage({
   }
 }
 
-export function generateMetadata({
-  params,
-  searchParams,
-}: {
-  params: { pageName: string };
-  searchParams: { active?: string; viewMode?: "combined" | "tabs" };
-}) {
+export function generateMetadata({ params }: { params: { pageName: string } }) {
   const pageNames = decodeURIComponent(params.pageName)
     .split(PAGE_DELIMITER)
     .map((name) => name.trim());
-  const activePage = searchParams.active || pageNames[0];
-  const title = decodeURIComponent(activePage).replace(/_/g, " ");
+
   const allPages = pageNames
     .map((name) => decodeURIComponent(name).replace(/_/g, " "))
     .join(", ");
 
   return {
-    title: `Historical Timeline of ${title} - Chronological History & Key Events (Text Version)`,
-    description: `Read the complete historical timeline of ${title} in text format. A detailed chronological record of significant events, dates, and historical milestones ${
-      pageNames.length > 1 ? `covering ${allPages}` : ""
-    }, sourced from Wikipedia. Perfect for research and historical reference.`,
-    keywords: `${title} history, ${title} chronology, historical events, historical timeline, ${title} key dates, historical research, ${title} historical record${
-      pageNames.length > 1 ? `, ${allPages}` : ""
-    }`,
+    title: `Historical Timeline of ${allPages} - Chronological History & Key Events (Text Version)`,
+    description: `Read the complete historical timeline of ${allPages} in text format. A detailed chronological record of significant events, dates, and historical milestones, sourced from Wikipedia. Perfect for research and historical reference.`,
+    keywords: `${allPages} history, ${allPages} chronology, historical events, historical timeline, key dates, historical research, historical record`,
     robots: {
       index: true,
       follow: true,
     },
     openGraph: {
-      title: `Historical Timeline of ${title} - Chronological History & Key Events`,
-      description: `Comprehensive historical timeline of ${title} in text format. A detailed chronological record of significant events and dates throughout history.`,
+      title: `Historical Timeline of ${allPages} - Chronological History & Key Events`,
+      description: `Comprehensive historical timeline of ${allPages} in text format. A detailed chronological record of significant events and dates throughout history.`,
       type: "article",
-      url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text${
-        searchParams.active
-          ? `?active=${encodeURIComponent(searchParams.active)}`
-          : ""
-      }`,
+      url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `Historical Timeline of ${title} - Chronological History`,
-      description: `Detailed historical timeline showing key events and dates throughout the history of ${title}. Text-based format ideal for research.`,
+      title: `Historical Timeline of ${allPages} - Chronological History`,
+      description: `Detailed historical timeline showing key events and dates throughout the history of ${allPages}. Text-based format ideal for research.`,
     },
   };
 }

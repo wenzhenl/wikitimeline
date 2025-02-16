@@ -17,6 +17,7 @@ interface TextTimelineViewProps {
   } | null;
   viewMode?: "combined" | "tabs";
   showSource?: boolean;
+  activePage?: string;
 }
 
 function formatCosmologicalDate(year: number): string {
@@ -47,6 +48,7 @@ export default function TextTimelineView({
   data,
   viewMode = "combined",
   showSource = false,
+  activePage = "",
 }: TextTimelineViewProps) {
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -59,8 +61,14 @@ export default function TextTimelineView({
     return null;
   }
 
+  // Filter timeline events here based on viewMode and activePage
+  const filteredTimeline =
+    viewMode === "combined"
+      ? data.timeline
+      : data.timeline.filter((event) => event.source === activePage);
+
   // Check if any dates are outside human scale range
-  const needsCosmologicalScale = data.timeline.some((event) => {
+  const needsCosmologicalScale = filteredTimeline.some((event) => {
     const year = parseInt(
       event.date.startsWith("-") ? event.date.slice(1) : event.date
     );
@@ -80,7 +88,7 @@ export default function TextTimelineView({
         dates and events in order.
       </p>
 
-      {data.timeline.map((event: TimelineEvent, index: number) => {
+      {filteredTimeline.map((event: TimelineEvent, index: number) => {
         const isNegativeYear = event.date.startsWith("-");
         const normalizedDate = isNegativeYear
           ? event.date.slice(1)
