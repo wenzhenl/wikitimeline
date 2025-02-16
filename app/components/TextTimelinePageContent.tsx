@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import TextTimelineView from "@/app/components/TextTimelineView";
 import html2canvas from "html2canvas";
@@ -39,9 +39,29 @@ export default function TextTimelinePageContent({
 }: TextTimelinePageContentProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        menuRef.current &&
+        buttonRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsOptionsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleCaptureImage = async () => {
@@ -279,6 +299,7 @@ export default function TextTimelinePageContent({
             {/* Mobile Navigation */}
             <div className="md:hidden relative">
               <button
+                ref={buttonRef}
                 onClick={() => setIsOptionsOpen(!isOptionsOpen)}
                 className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                 aria-label="Menu"
@@ -299,7 +320,10 @@ export default function TextTimelinePageContent({
               </button>
 
               {isOptionsOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50">
+                <div
+                  ref={menuRef}
+                  className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50"
+                >
                   {pageNames.length > 1 && (
                     <Link
                       href={`/timeline/${params.pageName}/text?viewMode=${
