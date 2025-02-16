@@ -427,7 +427,7 @@ export default function TextTimelinePageContent({
                       .map((name) =>
                         decodeURIComponent(name).replace(/_/g, " ")
                       )
-                      .join(" • ")
+                      .join(` ${PAGE_DELIMITER} `)
                   : decodeURIComponent(activePage).replace(/_/g, " ")}
               </h1>
             </div>
