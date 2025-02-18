@@ -25,7 +25,7 @@
 
 require('dotenv').config({ path: '.env.development.local' });
 const { OpenAI } = require('openai');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI, SchemaType, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 const wiki = require('wikipedia');
 const path = require('path');
 const fs = require('fs').promises;
@@ -64,7 +64,6 @@ async function getWikipediaInfo(title: string) {
     
     const page = await wiki.page(encodedTitle);
     const content = await page.content();
-    console.log('content', content);
     return {
       pageUrl: `https://en.wikipedia.org/wiki/${encodedTitle}`,
       thumbnail: page.thumbnail?.source,
@@ -124,28 +123,92 @@ async function getDeepseekCompletion(pageName: string, summary: string, systemPr
 
 async function getGeminiCompletion(pageName: string, summary: string, systemPrompt: string) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  
+  // Simplified safety settings
+  const safetySettings = [
+    {
+      category: "HARM_CATEGORY_HARASSMENT",
+      threshold: "BLOCK_NONE"
+    },
+    {
+      category: "HARM_CATEGORY_HATE_SPEECH",
+      threshold: "BLOCK_NONE"
+    },
+    {
+      category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      threshold: "BLOCK_NONE"
+    },
+    {
+      category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+      threshold: "BLOCK_NONE"
+    }
+  ];
+
+  const timelineSchema = {
+    type: SchemaType.OBJECT,
+    properties: {
+      timeline: {
+        type: SchemaType.OBJECT,
+        properties: {
+          title: {
+            type: SchemaType.STRING,
+            description: "Brief description of the timeline subject",
+          },
+          isHistorical: {
+            type: SchemaType.BOOLEAN,
+            description: "Indicates if the timeline belongs entirely to the past (e.g., subject has died, event has concluded, entity no longer exists)",
+          },
+          events: {
+            type: SchemaType.ARRAY,
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                headline: {
+                  type: SchemaType.STRING,
+                  description: "Short headline of the event",
+                },
+                text: {
+                  type: SchemaType.STRING,
+                  description: "Detailed description of the event",
+                },
+                date: {
+                  type: SchemaType.STRING,
+                  description: "Date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                }
+              },
+              required: ["headline", "text", "date"]
+            }
+          }
+        },
+        required: ["title", "isHistorical", "events"]
+      }
+    },
+    required: ["timeline"]
+  };
+
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
-      maxOutputTokens: 8192,  // Set maximum output tokens
-      temperature: 0
-    }
+      temperature: 0.3,
+      responseMimeType: "application/json",
+      responseSchema: timelineSchema,
+      topP: 0.95,
+      topK: 40,
+      presencePenalty: 0.1,
+      candidateCount: 1,
+      stopSequences: ["```"],
+    },
+    safetySettings,
+    systemInstruction: systemPrompt
   });
   
-  const prompt = `${systemPrompt}\n\nCreate a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`;
+  const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`;
   
   const result = await geminiModel.generateContent(prompt);
+  console.log('result', JSON.stringify(result, null, 2));
+
   const response = await result.response;
-  const text = response.text();
-  
-  try {
-    // Remove markdown JSON formatting
-    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(jsonStr);
-  } catch (error) {
-    console.error('Failed to parse Gemini response:', text);
-    throw error;
-  }
+  return JSON.parse(response.text());
 }
 
 async function getOpenAICompletion(pageName: string, summary: string, systemPrompt: string) {

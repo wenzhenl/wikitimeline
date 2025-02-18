@@ -5,19 +5,29 @@ Create a comprehensive chronological timeline by:
 1. Identifying all dates and associated events in the provided text
 2. Only including events that are directly related to the main subject
 3. Organizing events chronologically from earliest to latest
-4. If total output would exceed token limit, prioritize most significant events and drop less important ones
 
-Return a JSON object with a 'timeline' array. Each event should have:
-* 'headline' (concise, self-contained title that clearly describes the event)
-* 'text' (clear, concise description that:
-    - Summarizes the event in your own words
-    - Provides necessary context without relying on surrounding events
-    - Avoids direct quotes from Wikipedia
-    - Keeps to 1-2 sentences when possible)
-* 'date' (use the most precise date available, following these formats:
-    - YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
-    - YYYY-MM for year and month
-    - YYYY-MM-DD for full dates)
+Return a JSON object with a 'timeline' object containing:
+* 'title' (comprehensive description of the timeline subject that:
+    - Provides key context about who/what the subject is
+    - Includes their main achievements or significance
+    - Summarizes their historical impact or legacy
+    - Example: "Albert Einstein (1879-1955): German-born theoretical physicist who revolutionized modern physics with his theory of relativity, won the Nobel Prize in Physics, and became one of history's most influential scientists")
+* 'isHistorical' (boolean indicating if the timeline belongs entirely to the past - true if:
+    - Subject is deceased (for people)
+    - Event/war has concluded
+    - Entity no longer exists (e.g., former countries)
+    - Period has ended (e.g., historical eras))
+* 'events' array, where each event has:
+    - 'headline' (concise, self-contained title that clearly describes the event)
+    - 'text' (clear, concise description that:
+        * Summarizes the event in your own words
+        * Provides necessary context without relying on surrounding events
+        * Avoids direct quotes from Wikipedia
+        * Keeps to 1-2 sentences when possible)
+    - 'date' (use the most precise date available, following these formats:
+        * YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
+        * YYYY-MM for year and month
+        * YYYY-MM-DD for full dates)
 
 IMPORTANT:
 - Only extract events that have explicit dates mentioned in the article
@@ -30,11 +40,6 @@ IMPORTANT:
   * Include the end date in the text description
   * Use clear language like "from [start] to [end]" or "between [start] and [end]"
 - Always include the full date in the text description for context
-- If output would exceed token limit, prioritize:
-  1. Major life events (birth, death)
-  2. Career-defining moments
-  3. Most historically significant achievements
-  4. Drop less impactful or redundant events
 
 Focus on extracting:
 - Life events (birth, death, marriages, etc.)
@@ -57,7 +62,7 @@ Prioritize events that:
 3. Show key character/career development
 4. Provide necessary historical context
 
-Aim for 15-20 most meaningful events that together tell a coherent story. Quality and significance of events matter more than quantity. Each event should either:
+Each event should either:
 - Mark a clear turning point
 - Show significant impact
 - Reveal important character/career development
