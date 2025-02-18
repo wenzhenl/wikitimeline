@@ -55,7 +55,15 @@ async function getSystemPrompt(): Promise<string> {
   }
 }
 
-async function getWikipediaInfo(title: string) {
+// Add interface for Wikipedia info
+interface WikipediaInfo {
+  pageUrl: string;
+  thumbnail?: string;
+  summary: string;
+  content: string;
+}
+
+async function getWikipediaInfo(title: string): Promise<WikipediaInfo> {
   try {
     // Decode the URL-encoded title first (in case it's already encoded)
     const decodedTitle = decodeURIComponent(title);
@@ -63,11 +71,16 @@ async function getWikipediaInfo(title: string) {
     const encodedTitle = encodeURIComponent(decodedTitle);
     
     const page = await wiki.page(encodedTitle);
-    const content = await page.content();
+    const [content, summary] = await Promise.all([
+      page.content(),
+      page.summary()
+    ]);
+
     return {
       pageUrl: `https://en.wikipedia.org/wiki/${encodedTitle}`,
       thumbnail: page.thumbnail?.source,
-      content: content
+      summary,
+      content
     };
   } catch (error) {
     console.error('Error fetching Wikipedia info:', error);
@@ -75,22 +88,22 @@ async function getWikipediaInfo(title: string) {
   }
 }
 
-async function getCompletion(pageName: string, summary: string, model: SupportedModel) {
+async function getCompletion(pageName: string, wikiInfo: WikipediaInfo, model: SupportedModel) {
   const systemPrompt = await getSystemPrompt();
   
   switch (model) {
     case 'deepseek':
-      return getDeepseekCompletion(pageName, summary, systemPrompt);
+      return getDeepseekCompletion(pageName, wikiInfo, systemPrompt);
     case 'gemini':
-      return getGeminiCompletion(pageName, summary, systemPrompt);
+      return getGeminiCompletion(pageName, wikiInfo, systemPrompt);
     case 'openai':
-      return getOpenAICompletion(pageName, summary, systemPrompt);
+      return getOpenAICompletion(pageName, wikiInfo, systemPrompt);
     default:
       throw new Error(`Unsupported model: ${model}`);
   }
 }
 
-async function getDeepseekCompletion(pageName: string, summary: string, systemPrompt: string) {
+async function getDeepseekCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
   const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com',
     apiKey: process.env.DEEPSEEK_API_KEY,
@@ -104,7 +117,7 @@ async function getDeepseekCompletion(pageName: string, summary: string, systemPr
       },
       {
         role: "user",
-        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`
+        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${wikiInfo.summary ? ` (${JSON.stringify(wikiInfo.summary)})` : ''}`
       }
     ],
     model: "deepseek-chat",
@@ -121,7 +134,7 @@ async function getDeepseekCompletion(pageName: string, summary: string, systemPr
   return JSON.parse(completion.choices[0].message.content!);
 }
 
-async function getGeminiCompletion(pageName: string, summary: string, systemPrompt: string) {
+async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   
   // Simplified safety settings
@@ -186,32 +199,82 @@ async function getGeminiCompletion(pageName: string, summary: string, systemProm
     required: ["timeline"]
   };
 
-  const geminiModel = genAI.getGenerativeModel({ 
-    model: "gemini-2.0-flash",
-    generationConfig: {
-      temperature: 0.3,
-      responseMimeType: "application/json",
-      responseSchema: timelineSchema,
-      topP: 0.95,
-      topK: 40,
-      presencePenalty: 0.1,
-      candidateCount: 1,
-      stopSequences: ["```"],
-    },
-    safetySettings,
-    systemInstruction: systemPrompt
-  });
-  
-  const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`;
-  
-  const result = await geminiModel.generateContent(prompt);
-  console.log('result', JSON.stringify(result, null, 2));
+  async function tryCompletion(contentChunk: string) {
+    console.log('contentChunk', contentChunk);
+    const geminiModel = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash",
+      generationConfig: {
+        temperature: 0.3,
+        responseMimeType: "application/json",
+        responseSchema: timelineSchema,
+        topP: 0.95,
+        topK: 40,
+        presencePenalty: 0.1,
+        candidateCount: 1,
+        stopSequences: ["```"],
+      },
+      safetySettings,
+      systemInstruction: systemPrompt
+    });
+    
+    const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())}.
+Summary for context: ${JSON.stringify(wikiInfo.summary)}
+Main content to extract events from: ${JSON.stringify(contentChunk)}`;
+    
+    const result = await geminiModel.generateContent(prompt);
+    console.log('result', JSON.stringify(result, null, 2));
+    const response = await result.response;
+    
+    // Check if response was truncated
+    if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+      throw new Error('MAX_TOKENS_REACHED');
+    }
 
-  const response = await result.response;
-  return JSON.parse(response.text());
+    try {
+      return JSON.parse(response.text());
+    } catch (error) {
+      console.error('Failed to parse JSON response:', error);
+      throw new Error('INVALID_JSON');
+    }
+  }
+
+  try {
+    // First attempt with full content
+    return await tryCompletion(wikiInfo.content);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === 'MAX_TOKENS_REACHED') {
+      console.log('Content too long, splitting into chunks...');
+      
+      // Split content into two roughly equal parts
+      const midPoint = Math.floor(wikiInfo.content.length / 2);
+      const splitIndex = wikiInfo.content.indexOf('. ', midPoint) + 1; // Split at sentence boundary
+      
+      const firstHalf = wikiInfo.content.substring(0, splitIndex);
+      const secondHalf = wikiInfo.content.substring(splitIndex);
+
+      // Process both halves with the same summary context
+      const [firstTimeline, secondTimeline] = await Promise.all([
+        tryCompletion(firstHalf),
+        tryCompletion(secondHalf)
+      ]);
+
+      // Merge the timelines
+      return {
+        timeline: {
+          title: firstTimeline.timeline.title,
+          isHistorical: firstTimeline.timeline.isHistorical,
+          events: [
+            ...firstTimeline.timeline.events,
+            ...secondTimeline.timeline.events
+          ].sort((a, b) => a.date.localeCompare(b.date))
+        }
+      };
+    }
+    throw error;
+  }
 }
 
-async function getOpenAICompletion(pageName: string, summary: string, systemPrompt: string) {
+async function getOpenAICompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
@@ -224,7 +287,7 @@ async function getOpenAICompletion(pageName: string, summary: string, systemProm
       },
       {
         role: "user",
-        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${summary ? ` (${JSON.stringify(summary)})` : ''}`
+        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${wikiInfo.summary ? ` (${JSON.stringify(wikiInfo.summary)})` : ''}`
       }
     ],
     model: "gpt-4o",
@@ -263,7 +326,7 @@ async function main() {
     const wikiInfo = await getWikipediaInfo(pageName);
 
     console.log(`Generating timeline using ${model}...`);
-    const timeline = await getCompletion(pageName, wikiInfo.content, model);
+    const timeline = await getCompletion(pageName, wikiInfo, model);
 
     const outputPath = path.join(outputDir, `${pageName}-${model}.json`);
     await fs.writeFile(
