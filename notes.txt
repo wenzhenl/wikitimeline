@@ -93,3 +93,13 @@ which will be free for everyone. Early adopters will get cheaper deal on the sub
     functionCalls: [Function (anonymous)]
   }
 }
+
+
+# How to support multiple languages?
+
+Clashes with wiki markup/HTML syntax
+The following characters are forbidden due to clashes with wiki markup and HTML syntax:
+
+# < > [ ] { } |
+
+/api/timeline/pageName1[zh]|pageName2[en]|pageName3[fr]
