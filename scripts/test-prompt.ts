@@ -134,26 +134,54 @@ async function getDeepseekCompletion(pageName: string, wikiInfo: WikipediaInfo, 
   return JSON.parse(completion.choices[0].message.content!);
 }
 
+interface TimelineEvent {
+  headline: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+}
+
 async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  
+  // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
+  function compareDates(dateA: string, dateB: string): number {
+    const aIsNegative = dateA.startsWith("-");
+    const bIsNegative = dateB.startsWith("-");
+    
+    const aParts = (aIsNegative ? dateA.slice(1) : dateA)
+      .split("-")
+      .map(Number);
+    const bParts = (bIsNegative ? dateB.slice(1) : dateB)
+      .split("-")
+      .map(Number);
+    
+    const aYear = aParts[0] * (aIsNegative ? -1 : 1);
+    const bYear = bParts[0] * (bIsNegative ? -1 : 1);
+
+    if (aYear !== bYear) return aYear - bYear;
+    if (aParts[1] && bParts[1] && aParts[1] !== bParts[1]) return aParts[1] - bParts[1];
+    if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
+    return aParts.length - bParts.length;
+  }
   
   // Simplified safety settings
   const safetySettings = [
     {
       category: "HARM_CATEGORY_HARASSMENT",
-      threshold: "BLOCK_NONE"
+      threshold: "OFF"
     },
     {
       category: "HARM_CATEGORY_HATE_SPEECH",
-      threshold: "BLOCK_NONE"
+      threshold: "OFF"
     },
     {
       category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-      threshold: "BLOCK_NONE"
+      threshold: "OFF"
     },
     {
       category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-      threshold: "BLOCK_NONE"
+      threshold: "OFF"
     }
   ];
 
@@ -167,9 +195,13 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
             type: SchemaType.STRING,
             description: "Brief description of the timeline subject",
           },
-          isHistorical: {
-            type: SchemaType.BOOLEAN,
-            description: "Indicates if the timeline belongs entirely to the past (e.g., subject has died, event has concluded, entity no longer exists)",
+          birthDate: {
+            type: SchemaType.STRING,
+            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+          },
+          deathDate: {
+            type: SchemaType.STRING,
+            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
           },
           events: {
             type: SchemaType.ARRAY,
@@ -180,31 +212,34 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
                   type: SchemaType.STRING,
                   description: "Short headline of the event",
                 },
-                text: {
+                description: {
                   type: SchemaType.STRING,
                   description: "Detailed description of the event",
                 },
-                date: {
+                startDate: {
                   type: SchemaType.STRING,
-                  description: "Date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                  description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                },
+                endDate: {
+                  type: SchemaType.STRING,
+                  description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
                 }
               },
-              required: ["headline", "text", "date"]
+              required: ["headline", "description", "startDate"]
             }
           }
         },
-        required: ["title", "isHistorical", "events"]
+        required: ["title", "events"]
       }
     },
     required: ["timeline"]
   };
 
   async function tryCompletion(contentChunk: string) {
-    console.log('contentChunk', contentChunk);
     const geminiModel = genAI.getGenerativeModel({ 
       model: "gemini-2.0-flash",
       generationConfig: {
-        temperature: 0.3,
+        temperature: 0,
         responseMimeType: "application/json",
         responseSchema: timelineSchema,
         topP: 0.95,
@@ -230,12 +265,14 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
       throw new Error('MAX_TOKENS_REACHED');
     }
 
-    try {
-      return JSON.parse(response.text());
-    } catch (error) {
-      console.error('Failed to parse JSON response:', error);
-      throw new Error('INVALID_JSON');
-    }
+    const timeline = JSON.parse(response.text());
+    
+    // Sort events by startDate
+    timeline.timeline.events.sort((a: TimelineEvent, b: TimelineEvent) => 
+      compareDates(a.startDate, b.startDate)
+    );
+    
+    return timeline;
   }
 
   try {
@@ -262,11 +299,14 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
       return {
         timeline: {
           title: firstTimeline.timeline.title,
-          isHistorical: firstTimeline.timeline.isHistorical,
+          birthDate: firstTimeline.timeline.birthDate || secondTimeline.timeline.birthDate,
+          deathDate: firstTimeline.timeline.deathDate || secondTimeline.timeline.deathDate,
           events: [
             ...firstTimeline.timeline.events,
             ...secondTimeline.timeline.events
-          ].sort((a, b) => a.date.localeCompare(b.date))
+          ].sort((a: TimelineEvent, b: TimelineEvent) => 
+            compareDates(a.startDate, b.startDate)
+          )
         }
       };
     }

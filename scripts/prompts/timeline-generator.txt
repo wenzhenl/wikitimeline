@@ -18,22 +18,33 @@ Return a JSON object with a 'timeline' object containing:
     - Includes their main achievements or significance
     - Summarizes their historical impact or legacy
     - Example: "Albert Einstein (1879-1955): German-born theoretical physicist who revolutionized modern physics with his theory of relativity, won the Nobel Prize in Physics, and became one of history's most influential scientists")
-* 'isHistorical' (boolean indicating if the timeline belongs entirely to the past - true if:
-    - Subject is deceased (for people)
-    - Event/war has concluded
-    - Entity no longer exists (e.g., former countries)
-    - Period has ended (e.g., historical eras))
+* 'birthDate' (if the subject is a person and birth date is known, in YYYY-MM-DD, YYYY-MM, or YYYY format)
+* 'deathDate' (if the subject is a person and death date is known, in YYYY-MM-DD, YYYY-MM, or YYYY format)
 * 'events' array, where each event has:
     - 'headline' (concise, self-contained title that clearly describes the event)
-    - 'text' (clear, concise description that:
-        * Summarizes the event in your own words
-        * Provides necessary context without relying on surrounding events
+    - 'description' (comprehensive description that:
+        * Provides full historical context by including relevant information from surrounding text
+        * Explains the significance and impact of the event
+        * Includes key preceding events or conditions that led to this event
+        * Connects the event to the broader historical narrative
         * Avoids direct quotes from Wikipedia
-        * Keeps to 1-2 sentences when possible)
-    - 'date' (use the most precise date available, following these formats:
+        * Can be multiple sentences if needed to properly explain the event
+    - 'startDate' (required, use the most precise date available, following these formats:
         * YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
         * YYYY-MM for year and month
         * YYYY-MM-DD for full dates)
+    - 'endDate' (optional, for events that span a period, using same format as startDate)
+
+When writing descriptions:
+1. Look beyond just the sentence containing the date
+2. Include relevant context from surrounding paragraphs
+3. Explain the historical progression leading to the event
+4. Connect events to form a coherent narrative
+5. Include important related events even if they don't have explicit dates
+6. Explain cause-and-effect relationships
+7. Highlight the significance and impact of each event
+8. Use as many sentences as needed for proper context
+9. Make each description self-contained but connected to the larger story
 
 IMPORTANT:
 - Extract ALL events that have explicit dates mentioned in the article - do not skip any
@@ -43,10 +54,12 @@ IMPORTANT:
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
 - If the article contains no dated events, return an empty array
 - For date ranges:
-  * Always create a single event using the start date
-  * Include the end date in the text description
+  * Use startDate for the beginning of the range
+  * Use endDate for the end of the range
+  * Include both dates in the text description
   * Use clear language like "from [start] to [end]" or "between [start] and [end]"
-- Always include the full date in the text description for context
+- For single-date events, only use startDate
+- Always include the full date(s) in the text description for context
 
 Focus on extracting:
 - ALL life events (birth, death, marriages, etc.)
