@@ -239,7 +239,7 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
     const geminiModel = genAI.getGenerativeModel({ 
       model: "gemini-2.0-flash",
       generationConfig: {
-        temperature: 0,
+        temperature: 1,
         responseMimeType: "application/json",
         responseSchema: timelineSchema,
         topP: 0.95,
