@@ -3,6 +3,12 @@ export interface TimelineEvent {
   description: string;
   startDate: string;
   endDate?: string;
+  age?: number;
+}
+
+export interface Timeline {
+  title: string;
+  events: TimelineEvent[];
 }
 
 export interface WikiSummary {
@@ -11,13 +17,13 @@ export interface WikiSummary {
   summary?: string;
 }
 
-export interface PageTimeline {
-  timeline: TimelineEvent[];
+export interface TimelineWithWikiSummary {
+  timeline: Timeline;
   wikiSummary: WikiSummary;
 }
 
 export interface TimelineAPIResponse {
-  timelines: Record<string, PageTimeline>;
+  timelines: Record<string, TimelineWithWikiSummary>;
   errors?: {
     message: string;
     failedPages: string[];
