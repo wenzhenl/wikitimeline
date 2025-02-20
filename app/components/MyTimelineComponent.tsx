@@ -2,10 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import { SITE_CONFIG } from "@/app/config/site";
-import { TimelineJSEvent, TimelineJSTitle } from "@/app/types/timeline";
+import { TimelineJSEvent } from "@/app/types/timeline";
 
 interface MyTimelineComponentProps {
-  title?: TimelineJSTitle;
+  title?: TimelineJSEvent;
   events: TimelineJSEvent[];
   font: string;
   scale?: "human" | "cosmological";

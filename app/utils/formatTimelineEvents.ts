@@ -66,7 +66,20 @@ export function formatTimelineEventsForInteractive(
     })
   );
 
+  const isMultiplePages = Object.keys(timelines).length > 1;
+  const pageNames = Object.values(timelines).map(t => t.timeline.title);
+
   return {
+    title: {
+      text: {
+        headline: isMultiplePages
+          ? '<span style="font-weight: 600;">Comparative Timeline</span>'
+          : `<span style="font-weight: 600;">Interactive Timeline of ${pageNames[0]}</span>`,
+        text: isMultiplePages
+          ? `<span style="font-size: 0.9em;">${pageNames.join(' vs. ')}</span>`
+          : `<span style="font-size: 0.9em;">${Object.values(timelines)[0].timeline.title}</span>`
+      }
+    },
     events: allEvents.map((event) => {
       // Assign a consistent index to each group
       const groupKey = event.group || 'default';

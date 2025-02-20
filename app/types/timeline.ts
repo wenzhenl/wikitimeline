@@ -47,12 +47,8 @@ export interface TimelineJSDate {
   display_date?: string;
 }
 
-export interface TimelineJSTitle {
-  text: string;
-}
-
 export interface TimelineJSEvent {
-  start_date: TimelineJSDate;
+  start_date?: TimelineJSDate;
   end_date?: TimelineJSDate;
   text: {
     headline: string;
@@ -71,6 +67,6 @@ export interface TimelineJSEvent {
 
 export interface TimelineJSTimeline {
   events: TimelineJSEvent[];
-  title?: TimelineJSTitle;
+  title?: TimelineJSEvent;
   scale?: 'human' | 'cosmological';
 }
