@@ -84,6 +84,7 @@ Aim for 15-20 most meaningful events that together tell a coherent story. Qualit
 `;
 
 const CURRENT_PROMPT_VERSION = "v1";
+const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
 
 async function generateTimeline(pageName: string, content: string): Promise<TimelineEvent[] | null> {
   const geminiModel = genAI.getGenerativeModel({ 
@@ -184,7 +185,7 @@ export async function GET(
             cachedVersion = (cached as { timeline: TimelineEvent[], version: string }).version;
             
             // Only use cache if version matches
-            if (cachedVersion !== CURRENT_PROMPT_VERSION) {
+            if (cachedVersion !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
               logger.info(`Cache version mismatch for ${trimmedName} (${cachedVersion} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
               timeline = null;
             } else {
