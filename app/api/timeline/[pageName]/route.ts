@@ -47,7 +47,7 @@ function mergeTimelines(first: Timeline, second: Timeline): Timeline {
     title: first.title,  // Use first timeline's title
     birthDate: first.birthDate || second.birthDate,
     deathDate: first.deathDate || second.deathDate,
-    events: [...first.events, ...second.events]
+    events: [...(first.events || []), ...(second.events || [])]
   };
 }
 
