@@ -21,7 +21,7 @@ const CURRENT_PROMPT_VERSION = "v1";
 const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
 
 // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
-async function compareDates(dateA: string, dateB: string): Promise<number> {
+function compareDates(dateA: string, dateB: string): number {
   const aIsNegative = dateA.startsWith("-");
   const bIsNegative = dateB.startsWith("-");
   
