@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI, SchemaType, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, Timeline, TimelineEvent } from '@/app/types/timeline';
+import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary } from '@/app/types/timeline';
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
@@ -199,6 +199,7 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
   return new GoogleGenerativeAI(apiKey!);
 }
 
+
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
@@ -226,7 +227,7 @@ export async function GET(
 
     const failedPages: string[] = [];
     const noTimelinePages: string[] = [];
-    const timelines: Record<string, PageTimeline> = {};
+    const timelines: Record<string, TimelineWithWikiSummary> = {};
 
     await Promise.all(
       canonicalNames.map(async (pageName) => {
