@@ -6,6 +6,7 @@ import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/ti
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
+import { SchemaType } from "@google/generative-ai";
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -115,26 +116,102 @@ async function generateTimeline(
   content: string, 
   genAI: GoogleGenerativeAI
 ): Promise<TimelineEvent[] | null> {
+  const timelineSchema = {
+    type: SchemaType.OBJECT,
+    properties: {
+      timeline: {
+        type: SchemaType.OBJECT,
+        properties: {
+          title: {
+            type: SchemaType.STRING,
+            description: "Brief description of the timeline subject",
+          },
+          birthDate: {
+            type: SchemaType.STRING,
+            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+          },
+          deathDate: {
+            type: SchemaType.STRING,
+            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+          },
+          events: {
+            type: SchemaType.ARRAY,
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                headline: {
+                  type: SchemaType.STRING,
+                  description: "Short headline of the event",
+                },
+                description: {
+                  type: SchemaType.STRING,
+                  description: "Detailed description of the event",
+                },
+                startDate: {
+                  type: SchemaType.STRING,
+                  description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                },
+                endDate: {
+                  type: SchemaType.STRING,
+                  description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
+                }
+              },
+              required: ["headline", "description", "startDate"]
+            }
+          }
+        },
+        required: ["title", "events"]
+      }
+    },
+    required: ["timeline"]
+  };
+
+  const safetySettings = [
+    {
+      category: "HARM_CATEGORY_HARASSMENT",
+      threshold: "OFF"
+    },
+    {
+      category: "HARM_CATEGORY_HATE_SPEECH",
+      threshold: "OFF"
+    },
+    {
+      category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      threshold: "OFF"
+    },
+    {
+      category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+      threshold: "OFF"
+    }
+  ];
+
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
-      maxOutputTokens: 8192,
-      temperature: 0
-    }
+      temperature: 1,
+      responseMimeType: "application/json",
+      responseSchema: timelineSchema,
+      topP: 0.95,
+      topK: 40,
+      presencePenalty: 0.1,
+      candidateCount: 1,
+      stopSequences: ["```"],
+    },
+    safetySettings,
+    systemInstruction: SYSTEM_PROMPT
   });
   
   try {
-    const prompt = `${SYSTEM_PROMPT}\n\nCreate a timeline for ${pageName.trim()} (${content})`;
-    logger.debug("Prompt:", prompt);
-
+    const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())}.
+Main content to extract events from: ${JSON.stringify(content)}`;
+    
     const result = await geminiModel.generateContent(prompt);
     logger.debug("Result from gemini:", result);
 
     const response = result.response;
     const text = response.text();
     
-    const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    const timelineData = JSON.parse(jsonStr);
+    const timelineData = JSON.parse(text);
     return timelineData.timeline;
   } catch (error) {
     logger.error('Error generating timeline:', error);
