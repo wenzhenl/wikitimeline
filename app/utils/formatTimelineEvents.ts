@@ -107,7 +107,7 @@ export function formatTimelineEventsForInteractive(
         }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-          text: `${event.age ? `<span style="color: ${colors.textColor}; font-weight: 500;">Age ${event.age}</span><br/><br/>` : ''}
+          text: `${event.age ? `<span style="color: ${colors.textColor}; font-weight: 500; text-shadow: none;"> [ Age ${event.age} ]</span><br/><br/>` : ''}
                 <span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
         group: event.group,
@@ -115,7 +115,7 @@ export function formatTimelineEventsForInteractive(
         background: {
           color: colors.color,
         },
-        unique_id: event.headline
+        //unique_id: event.headline
       };
     }),
     ...(needsCosmologicalScale && { scale: 'cosmological' as const }),
