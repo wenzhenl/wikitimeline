@@ -2,7 +2,7 @@ import { GoogleGenerativeAI, SchemaType, HarmCategory, HarmBlockThreshold } from
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/timeline';
+import { TimelineAPIResponse, Timeline, TimelineEvent } from '@/app/types/timeline';
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
@@ -41,7 +41,11 @@ async function compareDates(dateA: string, dateB: string): Promise<number> {
   return aParts.length - bParts.length;
 }
 
-async function generateTimelineUsingGemini(pageName: string, wikiSummary: string, contentChunk: string, genAI: GoogleGenerativeAI) {
+async function generateTimelineUsingGemini(
+  pageName: string, 
+  wikiSummary: string,
+  contentChunk: string,
+  genAI: GoogleGenerativeAI): Promise<Timeline> {
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
@@ -64,21 +68,14 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
   
   const result = await geminiModel.generateContent(prompt);
   logger.debug('result', JSON.stringify(result, null, 2));
-  const response = await result.response;
+  const response = result.response;
   
   // Check if response was truncated
   if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
     throw new Error('MAX_TOKENS_REACHED');
   }
 
-  const timeline = JSON.parse(response.text());
-  
-  // Sort events by startDate
-  timeline.timeline.events.sort((a: TimelineEvent, b: TimelineEvent) => 
-    compareDates(a.startDate, b.startDate)
-  );
-  
-  return timeline;
+  return JSON.parse(response.text());
 }
 
 async function generateTimeline(
@@ -86,11 +83,14 @@ async function generateTimeline(
   wikiSummary: string,
   wikiContent: string, 
   genAI: GoogleGenerativeAI
-): Promise<TimelineEvent[] | null> {
+): Promise<Timeline | null> {
   try {
     // First attempt with full content
-    return await generateTimelineUsingGemini(pageName, wikiSummary, wikiContent, genAI);
+    const timeline = await generateTimelineUsingGemini(pageName, wikiSummary, wikiContent, genAI);
   } catch (error: unknown) {
+
+    logger.error('Error generating timeline:', error);
+
     if (error instanceof Error && error.message === 'MAX_TOKENS_REACHED') {
       console.log('Content too long, splitting into chunks...');
       
@@ -107,6 +107,7 @@ async function generateTimeline(
         generateTimelineUsingGemini(pageName, wikiSummary, secondHalf, genAI)
       ]);
 
+      
       // Merge the timelines
       return {
         timeline: {

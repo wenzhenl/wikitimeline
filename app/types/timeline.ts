@@ -9,6 +9,10 @@ export interface TimelineEvent {
 export interface Timeline {
   title: string;
   events: TimelineEvent[];
+  birthDate?: string;
+  deathDate?: string;
+  isDead?: boolean;
+  lastUpdatedAt?: number; // Unix timestamp in milliseconds
 }
 
 export interface WikiSummary {
