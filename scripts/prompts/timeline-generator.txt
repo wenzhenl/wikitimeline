@@ -53,3 +53,11 @@ Event Consolidation Guidelines:
 - Use date ranges when appropriate
 - Provide context that connects the consolidated events
 - Ensure the combined description tells a coherent story
+
+CORE REQUIREMENTS:
+- Only include events with dates explicitly mentioned in the article
+- Do not make up or infer dates not present in the source text
+- Identify the main temporal scope of the article
+- Exclude extreme temporal outliers disconnected from the main timeframe
+  Example: In a history of China article focused on human civilization,
+  skip prehistoric events millions of years ago
