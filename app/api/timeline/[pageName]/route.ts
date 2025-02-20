@@ -236,20 +236,18 @@ export async function GET(
         
         // Try to get cached timeline
         let timeline: Timeline | null = null;
-        let cachedVersion: string | null = null;
         
         try {
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
-            timeline = (cached as { timeline: Timeline, version: string }).timeline;
-            cachedVersion = (cached as { timeline: TimelineEvent[], version: string }).version;
+            timeline = cached as Timeline;
             
             // Only use cache if version matches
-            if (cachedVersion !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-              logger.info(`Cache version mismatch for ${trimmedName} (${cachedVersion} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+            if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+              logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
               timeline = null;
             } else {
-              logger.info(`Cache hit for timeline: ${trimmedName} (version ${cachedVersion})`);
+              logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version})`);
             }
           }
         } catch (error) {
