@@ -67,7 +67,7 @@ export function formatTimelineEventsForInteractive(
   );
 
   const isMultiplePages = Object.keys(timelines).length > 1;
-  const pageNames = Object.values(timelines).map(t => t.timeline.title);
+  const pageNames = Object.keys(timelines).map(name => formatGroupName(name));
 
   return {
     title: {
