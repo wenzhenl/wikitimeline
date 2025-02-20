@@ -126,7 +126,9 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
     throw new Error('MAX_TOKENS_REACHED');
   }
 
-  return JSON.parse(response.text());
+  // The response should be { timeline: Timeline }
+  const timelineData = JSON.parse(response.text());
+  return timelineData.timeline;  // Make sure we're returning the timeline object
 }
 
 async function generateTimeline(
