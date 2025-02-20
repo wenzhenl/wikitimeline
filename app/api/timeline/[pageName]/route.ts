@@ -8,6 +8,7 @@ import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
 import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
+import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -19,24 +20,6 @@ logger.info('Wikipedia User-Agent set:', userAgent);
 const CURRENT_PROMPT_VERSION = "v1";
 const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
 
-const safetySettings = [
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_NONE
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_NONE
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_NONE
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_NONE
-  }
-];
 
 // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
 async function compareDates(dateA: string, dateB: string): Promise<number> {
@@ -72,7 +55,7 @@ async function generateTimelineUsingGemini(pageName: string, wikiSummary: string
       candidateCount: 1,
       stopSequences: ["```"],
     },
-    safetySettings,
+    safetySettings: SAFETY_SETTINGS,
     systemInstruction: SYSTEM_PROMPT
   });
   
