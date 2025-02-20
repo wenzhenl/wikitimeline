@@ -15,6 +15,13 @@ The input consists of two parts:
 Use the summary to understand the subject context, but only extract events from the main content. 
 Events mentioned only in the summary should not be included in the timeline.
 
+LANGUAGE HANDLING:
+- Detect the language of the input article
+- Generate all text content (title, headlines, descriptions) in the same language as the source
+- Maintain the same writing style and terminology as the source article
+- Only the date formats should be standardized to the universal YYYY-MM-DD format
+- Keep proper nouns, names, and specialized terms in their original form
+
 TIMELINE STRUCTURE & FLOW:
 For Biographical Timelines:
 - Begin with birth event, incorporating relevant background context
