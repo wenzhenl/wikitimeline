@@ -88,18 +88,40 @@ function mergeTimelines(first: Timeline, second: Timeline): Timeline {
   };
 }
 
+function calculateAge(birthDate: string, eventDate: string): number | null {
+  const birth = new Date(birthDate);
+  const event = new Date(eventDate);
+  if (isNaN(birth.getTime()) || isNaN(event.getTime())) return null;
+  return Math.floor((event.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+}
+
 function postProcessTimeline(timeline: Timeline): Timeline {
+  const isValidDate = (date: string) => !isNaN(new Date(date).getTime());
+  const isPerson = timeline.birthDate && isValidDate(timeline.birthDate);
+  
   return {
     ...timeline,
     events: timeline.events
       .sort((a, b) => compareDates(a.startDate, b.startDate))
-      // Optional: Remove duplicate events based on headline and date
       .filter((event, index, self) => 
         index === self.findIndex(e => 
           e.startDate === event.startDate && 
           e.headline === event.headline
         )
       )
+      .map(event => {
+        if (isPerson && timeline.birthDate) {
+          const age = calculateAge(timeline.birthDate, event.startDate);
+          if (age !== null && age >= 0) {
+            if (!timeline.deathDate || compareDates(event.startDate, timeline.deathDate) <= 0) {
+              return { ...event, age };
+            }
+          }
+        }
+        return event;
+      }),
+    lastUpdatedAt: Date.now(),
+    isDead: Boolean(timeline.deathDate && compareDates(timeline.deathDate, new Date().toISOString().split('T')[0]) <= 0)
   };
 }
 
