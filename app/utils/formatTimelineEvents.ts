@@ -99,7 +99,8 @@ export function formatTimelineEventsForInteractive(
         unique_id: event.headline
       };
     }),
-    ...(needsCosmologicalScale && { scale: 'cosmological' as const })
+    ...(needsCosmologicalScale && { scale: 'cosmological' as const }),
+    
   };
 }
 
