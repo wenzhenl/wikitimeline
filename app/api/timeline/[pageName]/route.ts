@@ -6,8 +6,7 @@ import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/ti
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
-// Initialize Gemini and Redis
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// Initialize Redis
 const redis = Redis.fromEnv();
 
 // Initialize Wikipedia with User-Agent
@@ -86,7 +85,11 @@ Aim for 15-20 most meaningful events that together tell a coherent story. Qualit
 const CURRENT_PROMPT_VERSION = "v1";
 const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
 
-async function generateTimeline(pageName: string, content: string): Promise<TimelineEvent[] | null> {
+async function generateTimeline(
+  pageName: string, 
+  content: string, 
+  genAI: GoogleGenerativeAI
+): Promise<TimelineEvent[] | null> {
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
@@ -142,10 +145,22 @@ const getCachedWikiSummary = unstable_cache(
   }
 );
 
+// Initialize Gemini with appropriate key based on client type
+function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
+  const apiKey = clientType === 'cli' 
+    ? process.env.GEMINI_CLI_API_KEY 
+    : process.env.GEMINI_API_KEY;
+  
+  return new GoogleGenerativeAI(apiKey!);
+}
+
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
+  const clientType = request.headers.get('x-internal-client-type');
+  const genAI = getGeminiClient(clientType);
+  
   try {
     // First decode the URL parameters
     const pageNames = decodeURIComponent(params.pageName)
@@ -203,7 +218,7 @@ export async function GET(
             logger.debug("Fetching wiki page for:", trimmedName);
             const page = await wiki.page(trimmedName);
             const content = await page.content();
-            timeline = await generateTimeline(trimmedName, content);
+            timeline = await generateTimeline(trimmedName, content, genAI);
             
             if (timeline) {
               await redis.set(cacheKey, { timeline, version: CURRENT_PROMPT_VERSION });
