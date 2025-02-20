@@ -91,3 +91,42 @@ Return a JSON object with a 'timeline' object containing:
         * Can use multiple sentences if needed
     - 'startDate': The date when the event occurred
     - 'endDate': Optional, for events that span a period
+
+DATE FORMATTING:
+All dates (birthDate, deathDate, startDate, endDate) must follow these formats:
+- YYYY for year only (e.g., '1945' or '-0220' for 220 BCE)
+- YYYY-MM for year and month (e.g., '1945-08' or '-0220-03')
+- YYYY-MM-DD for full dates (e.g., '1945-08-15' or '-0220-03-15')
+
+Important Date Rules:
+1. For BCE dates:
+   - Use negative years
+   - Add leading zeros for years 1-999
+   Examples:
+   - 500 BCE → '-0500'
+   - 2000 BCE → '-2000'
+   - 50 BCE → '-0050'
+
+2. For CE dates:
+   - Use positive years without plus sign
+   - No leading zeros needed for years
+   Examples:
+   - 500 CE → '500'
+   - 2000 CE → '2000'
+   - 50 CE → '50'
+
+3. For date ranges:
+   - Use startDate for the beginning
+   - Use endDate for the end
+   - Both dates must follow the same formatting rules
+   Example:
+   - A war from 200 BCE to 150 BCE:
+     startDate: '-0200'
+     endDate: '-0150'
+
+4. For partial dates:
+   - Use the most precise format available in the source
+   - Don't add month or day if not mentioned in the article
+   Example:
+   - "March 1945" → '1945-03'
+   - "220 BCE" → '-0220'
