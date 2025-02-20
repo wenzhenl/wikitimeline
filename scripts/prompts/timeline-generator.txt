@@ -73,11 +73,13 @@ CORE REQUIREMENTS:
 OUTPUT FORMAT:
 Return a JSON object with a 'timeline' object containing:
 
-* 'title': A comprehensive description of the subject that:
-    - Provides key context about who/what the subject is
-    - Includes their main achievements or significance
-    - Summarizes their historical impact or legacy
-    Example: "Albert Einstein (1879-1955): German-born theoretical physicist who revolutionized modern physics with his theory of relativity, won the Nobel Prize in Physics, and became one of history's most influential scientists"
+* 'title': A concise description that:
+    - For people: States their name, years (if known), nationality/background, and primary significance
+    - For events/periods: States what it is and its historical importance
+    Examples:
+    - "Albert Einstein (1879-1955): German-born physicist who revolutionized modern physics with his theory of relativity"
+    - "World War II (1939-1945): Global conflict that reshaped international politics and ended the Nazi regime"
+    - "French Revolution (1789-1799): Major upheaval that transformed France from a monarchy to a republic"
 
 * 'birthDate': If the subject is a person and birth date is known
 * 'deathDate': If the subject is a person and death date is known
