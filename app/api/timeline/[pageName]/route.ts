@@ -89,10 +89,13 @@ function mergeTimelines(first: Timeline, second: Timeline): Timeline {
 }
 
 function calculateAge(birthDate: string, eventDate: string): number | null {
-  const birth = new Date(birthDate);
-  const event = new Date(eventDate);
-  if (isNaN(birth.getTime()) || isNaN(event.getTime())) return null;
-  return Math.floor((event.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+  // Handle negative years (BCE)
+  const birthYear = parseInt(birthDate.startsWith('-') ? birthDate.slice(1) : birthDate.split('-')[0]) * (birthDate.startsWith('-') ? -1 : 1);
+  const eventYear = parseInt(eventDate.startsWith('-') ? eventDate.slice(1) : eventDate.split('-')[0]) * (eventDate.startsWith('-') ? -1 : 1);
+  
+  if (isNaN(birthYear) || isNaN(eventYear)) return null;
+  
+  return eventYear - birthYear;
 }
 
 function postProcessTimeline(timeline: Timeline): Timeline {
