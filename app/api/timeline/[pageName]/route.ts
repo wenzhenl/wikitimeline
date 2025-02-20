@@ -3,7 +3,7 @@ import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
 import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary } from '@/app/types/timeline';
-import { PAGE_DELIMITER } from "@/app/constants";
+import { MIN_NUM_EVENTS_FOR_TIMELINE, PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
 import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
@@ -268,7 +268,13 @@ export async function GET(
               page.summary()
             ]);
 
-            timeline = await generateTimeline(trimmedName, summary.extract, content, genAI);
+            try {
+              timeline = await generateTimeline(trimmedName, summary.extract, content, genAI);
+            } catch (error) {
+              logger.error('Error generating timeline:', error);
+              failedPages.push(trimmedName);
+              return;
+            }
             
             if (timeline) {
               await redis.set(cacheKey, { timeline });
@@ -285,7 +291,7 @@ export async function GET(
         }
 
         // Check if timeline is empty
-        if (!timeline?.events?.length) {
+        if (!timeline?.events?.length || timeline.events.length < MIN_NUM_EVENTS_FOR_TIMELINE) {
           noTimelinePages.push(trimmedName);
           return;
         }
