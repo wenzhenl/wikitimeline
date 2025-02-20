@@ -1,4 +1,4 @@
-import { TimelineWithWikiSummary } from "@/app/types/timeline";
+import { TimelineJSDate, TimelineWithWikiSummary } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { TimelineJSTimeline } from "@/app/types/timeline";
 
@@ -68,19 +68,6 @@ export function formatTimelineEventsForInteractive(
 
   return {
     events: allEvents.map((event) => {
-      // Check if it's a negative year first
-      const isNegativeYear = event.startDate.startsWith("-");
-      const normalizedDate = isNegativeYear ? event.startDate.slice(1) : event.startDate;
-      const dateParts = normalizedDate.split("-");
-
-      // Handle partial dates
-      const initialYear = parseInt(dateParts[0]) || 0;
-      const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
-      const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
-
-      // Convert year back to negative if needed
-      const year = isNegativeYear ? -initialYear : initialYear;
-
       // Assign a consistent index to each group
       const groupKey = event.group || 'default';
       if (!groupIndices.has(groupKey)) {
@@ -91,21 +78,38 @@ export function formatTimelineEventsForInteractive(
       const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
       return {
-        start_date: { year, month, day },
+        start_date: parseDate(event.startDate),
+        end_date: event.endDate ? parseDate(event.endDate) : undefined,
         ...(needsCosmologicalScale && {
-          display_date: formatCosmologicalDate(year)
+          display_date: formatCosmologicalDate(parseDate(event.startDate).year)
         }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
+          text: `${event.age ? `<span style="color: ${colors.textColor}; font-weight: 500;">Age ${event.age}</span><br/><br/>` : ''}
+                <span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
         group: event.group,
         ...(event.media && { media: event.media }), // Only include media if it exists
         background: {
           color: colors.color,
         },
+        unique_id: event.headline // Using headline as unique identifier
       };
     }),
     ...(needsCosmologicalScale && { scale: 'cosmological' as const })
   };
+}
+
+// Helper function to parse date string into TimelineJSDate
+function parseDate(dateStr: string): TimelineJSDate {
+  const isNegativeYear = dateStr.startsWith("-");
+  const normalizedDate = isNegativeYear ? dateStr.slice(1) : dateStr;
+  const dateParts = normalizedDate.split("-");
+
+  const initialYear = parseInt(dateParts[0]) || 0;
+  const year = isNegativeYear ? -initialYear : initialYear;
+  const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
+  const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
+
+  return { year, month, day };
 } 
