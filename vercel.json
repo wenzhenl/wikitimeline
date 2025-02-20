@@ -1,10 +1,10 @@
 {
   "functions": {
     "app/api/**/*": {
-      "maxDuration": 60
+      "maxDuration": 300
     },
     "app/timeline/**/*": {
-      "maxDuration": 60
+      "maxDuration": 300
     }
   }
 }
