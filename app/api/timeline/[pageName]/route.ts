@@ -78,6 +78,31 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
   return JSON.parse(response.text());
 }
 
+function mergeTimelines(first: Timeline, second: Timeline): Timeline {
+  return {
+    title: first.title,  // Use first timeline's title
+    birthDate: first.birthDate || second.birthDate,
+    deathDate: first.deathDate || second.deathDate,
+    events: [...first.events, ...second.events],
+    lastUpdatedAt: Date.now()
+  };
+}
+
+function postProcessTimeline(timeline: Timeline): Timeline {
+  return {
+    ...timeline,
+    events: timeline.events
+      .sort((a, b) => compareDates(a.startDate, b.startDate))
+      // Optional: Remove duplicate events based on headline and date
+      .filter((event, index, self) => 
+        index === self.findIndex(e => 
+          e.startDate === event.startDate && 
+          e.headline === event.headline
+        )
+      )
+  };
+}
+
 async function generateTimeline(
   pageName: string, 
   wikiSummary: string,
@@ -87,41 +112,26 @@ async function generateTimeline(
   try {
     // First attempt with full content
     const timeline = await generateTimelineUsingGemini(pageName, wikiSummary, wikiContent, genAI);
+    return postProcessTimeline(timeline);
   } catch (error: unknown) {
-
     logger.error('Error generating timeline:', error);
 
     if (error instanceof Error && error.message === 'MAX_TOKENS_REACHED') {
       console.log('Content too long, splitting into chunks...');
       
-      // Split content into two roughly equal parts
       const midPoint = Math.floor(wikiContent.length / 2);
-      const splitIndex = wikiContent.indexOf('. ', midPoint) + 1; // Split at sentence boundary
+      const splitIndex = wikiContent.indexOf('. ', midPoint) + 1;
       
       const firstHalf = wikiContent.substring(0, splitIndex);
       const secondHalf = wikiContent.substring(splitIndex);
 
-      // Process both halves with the same summary context
       const [firstTimeline, secondTimeline] = await Promise.all([
         generateTimelineUsingGemini(pageName, wikiSummary, firstHalf, genAI),
         generateTimelineUsingGemini(pageName, wikiSummary, secondHalf, genAI)
       ]);
 
-      
-      // Merge the timelines
-      return {
-        timeline: {
-          title: firstTimeline.timeline.title,
-          birthDate: firstTimeline.timeline.birthDate || secondTimeline.timeline.birthDate,
-          deathDate: firstTimeline.timeline.deathDate || secondTimeline.timeline.deathDate,
-          events: [
-            ...firstTimeline.timeline.events,
-            ...secondTimeline.timeline.events
-          ].sort((a: TimelineEvent, b: TimelineEvent) => 
-            compareDates(a.startDate, b.startDate)
-          )
-        }
-      };
+      const mergedTimeline = mergeTimelines(firstTimeline, secondTimeline);
+      return postProcessTimeline(mergedTimeline);
     }
     throw error;
   }
