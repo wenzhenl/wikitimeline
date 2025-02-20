@@ -42,6 +42,9 @@ export function formatTimelineEventsForInteractive(
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
 
+  // Get the first color from the scheme
+  const firstGroupColors = colorScheme.colors[0];
+
   // Merge and format all events from all timelines
   const allEvents = Object.entries(timelines).flatMap(([pageName, pageData]) => {
     // Only add group if there are multiple pages
@@ -73,11 +76,14 @@ export function formatTimelineEventsForInteractive(
     title: {
       text: {
         headline: isMultiplePages
-          ? '<span style="font-weight: 600;">Comparative Timeline</span>'
-          : `<span style="font-weight: 600;">Interactive Timeline of ${pageNames[0]}</span>`,
+          ? `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">Comparative Timeline</span>`
+          : `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">Interactive Timeline of ${pageNames[0]}</span>`,
         text: isMultiplePages
-          ? `<span style="font-size: 0.9em;">${pageNames.join(' vs. ')}</span>`
-          : `<span style="font-size: 0.9em;">${Object.values(timelines)[0].timeline.title}</span>`
+          ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${pageNames.join(' vs. ')}</span>`
+          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline.title}</span>`
+      },
+      background: {
+        color: firstGroupColors.color
       }
     },
     events: allEvents.map((event) => {
