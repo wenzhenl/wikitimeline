@@ -77,11 +77,14 @@ export function formatTimelineEventsForInteractive(
       const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
       const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
+      const startDate = parseDate(event.startDate);
+      const endDate = event.endDate ? parseDate(event.endDate) : undefined;
+
       return {
-        start_date: parseDate(event.startDate),
-        end_date: event.endDate ? parseDate(event.endDate) : undefined,
+        start_date: startDate,
+        ...(endDate && { end_date: endDate }), // Only include if endDate exists
         ...(needsCosmologicalScale && {
-          display_date: formatCosmologicalDate(parseDate(event.startDate).year)
+          display_date: formatCosmologicalDate(startDate.year)
         }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
@@ -89,11 +92,11 @@ export function formatTimelineEventsForInteractive(
                 <span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
         group: event.group,
-        ...(event.media && { media: event.media }), // Only include media if it exists
+        ...(event.media && { media: event.media }),
         background: {
           color: colors.color,
         },
-        unique_id: event.headline // Using headline as unique identifier
+        unique_id: event.headline
       };
     }),
     ...(needsCosmologicalScale && { scale: 'cosmological' as const })
