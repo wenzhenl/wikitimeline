@@ -1,6 +1,6 @@
 import { SchemaType } from "@google/generative-ai";
 
-export const GEMINI_TIMELINE_SCHEMA = {
+export const TIMELINE_SCHEMA = {
     type: SchemaType.OBJECT,
     properties: {
       timeline: {

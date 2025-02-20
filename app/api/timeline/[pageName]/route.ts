@@ -6,8 +6,8 @@ import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/ti
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
-import { SYSTEM_PROMPT } from "@/app/constants/geminiSystemPrompt";
-import { GEMINI_TIMELINE_SCHEMA } from "@/app/constants/geminiTimelineSchema";
+import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
+import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -65,7 +65,7 @@ async function generateTimelineUsingGemini(pageName: string, wikiSummary: string
     generationConfig: {
       temperature: 1,
       responseMimeType: "application/json",
-      responseSchema: GEMINI_TIMELINE_SCHEMA,
+      responseSchema: TIMELINE_SCHEMA,
       topP: 0.95,
       topK: 40,
       presencePenalty: 0.1,
