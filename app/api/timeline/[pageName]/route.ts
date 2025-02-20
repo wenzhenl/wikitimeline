@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
@@ -6,7 +6,7 @@ import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/ti
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
-import { SchemaType } from "@google/generative-ai";
+
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -168,20 +168,20 @@ async function generateTimeline(
 
   const safetySettings = [
     {
-      category: "HARM_CATEGORY_HARASSMENT",
-      threshold: "OFF"
+      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+      threshold: HarmBlockThreshold.BLOCK_NONE
     },
     {
-      category: "HARM_CATEGORY_HATE_SPEECH",
-      threshold: "OFF"
+      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+      threshold: HarmBlockThreshold.BLOCK_NONE
     },
     {
-      category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-      threshold: "OFF"
+      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+      threshold: HarmBlockThreshold.BLOCK_NONE
     },
     {
-      category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-      threshold: "OFF"
+      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+      threshold: HarmBlockThreshold.BLOCK_NONE
     }
   ];
 
