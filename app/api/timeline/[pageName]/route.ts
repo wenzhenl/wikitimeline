@@ -15,6 +15,9 @@ const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; wikitimeline2024@g
 wiki.setUserAgent(userAgent);
 logger.info('Wikipedia User-Agent set:', userAgent);
 
+const CURRENT_PROMPT_VERSION = "v1";
+const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
+
 // Move prompt to a constant string
 const SYSTEM_PROMPT = `
 You are a timeline generator that extracts events from provided Wikipedia article content. 
@@ -108,82 +111,80 @@ Each event should either:
 - Provide crucial historical context
 `;
 
-const CURRENT_PROMPT_VERSION = "v1";
-const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
+const timelineSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    timeline: {
+      type: SchemaType.OBJECT,
+      properties: {
+        title: {
+          type: SchemaType.STRING,
+          description: "Brief description of the timeline subject",
+        },
+        birthDate: {
+          type: SchemaType.STRING,
+          description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+        },
+        deathDate: {
+          type: SchemaType.STRING,
+          description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+        },
+        events: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              headline: {
+                type: SchemaType.STRING,
+                description: "Short headline of the event",
+              },
+              description: {
+                type: SchemaType.STRING,
+                description: "Detailed description of the event",
+              },
+              startDate: {
+                type: SchemaType.STRING,
+                description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+              },
+              endDate: {
+                type: SchemaType.STRING,
+                description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
+              }
+            },
+            required: ["headline", "description", "startDate"]
+          }
+        }
+      },
+      required: ["title", "events"]
+    }
+  },
+  required: ["timeline"]
+};
+
+const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    threshold: HarmBlockThreshold.BLOCK_NONE
+  }
+];
 
 async function generateTimeline(
   pageName: string, 
   content: string, 
   genAI: GoogleGenerativeAI
 ): Promise<TimelineEvent[] | null> {
-  const timelineSchema = {
-    type: SchemaType.OBJECT,
-    properties: {
-      timeline: {
-        type: SchemaType.OBJECT,
-        properties: {
-          title: {
-            type: SchemaType.STRING,
-            description: "Brief description of the timeline subject",
-          },
-          birthDate: {
-            type: SchemaType.STRING,
-            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
-          },
-          deathDate: {
-            type: SchemaType.STRING,
-            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
-          },
-          events: {
-            type: SchemaType.ARRAY,
-            items: {
-              type: SchemaType.OBJECT,
-              properties: {
-                headline: {
-                  type: SchemaType.STRING,
-                  description: "Short headline of the event",
-                },
-                description: {
-                  type: SchemaType.STRING,
-                  description: "Detailed description of the event",
-                },
-                startDate: {
-                  type: SchemaType.STRING,
-                  description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
-                },
-                endDate: {
-                  type: SchemaType.STRING,
-                  description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
-                }
-              },
-              required: ["headline", "description", "startDate"]
-            }
-          }
-        },
-        required: ["title", "events"]
-      }
-    },
-    required: ["timeline"]
-  };
-
-  const safetySettings = [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_NONE
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_NONE
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_NONE
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_NONE
-    }
-  ];
 
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
