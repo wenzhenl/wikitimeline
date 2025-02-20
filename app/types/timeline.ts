@@ -13,6 +13,7 @@ export interface Timeline {
   deathDate?: string;
   isDead?: boolean;
   lastUpdatedAt?: number; // Unix timestamp in milliseconds
+  version?: string;
 }
 
 export interface WikiSummary {

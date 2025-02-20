@@ -83,8 +83,7 @@ function mergeTimelines(first: Timeline, second: Timeline): Timeline {
     title: first.title,  // Use first timeline's title
     birthDate: first.birthDate || second.birthDate,
     deathDate: first.deathDate || second.deathDate,
-    events: [...first.events, ...second.events],
-    lastUpdatedAt: Date.now()
+    events: [...first.events, ...second.events]
   };
 }
 
@@ -124,7 +123,8 @@ function postProcessTimeline(timeline: Timeline): Timeline {
         return event;
       }),
     lastUpdatedAt: Date.now(),
-    isDead: Boolean(timeline.deathDate && compareDates(timeline.deathDate, new Date().toISOString().split('T')[0]) <= 0)
+    isDead: Boolean(timeline.deathDate && compareDates(timeline.deathDate, new Date().toISOString().split('T')[0]) <= 0),
+    version: CURRENT_PROMPT_VERSION
   };
 }
 
@@ -235,13 +235,13 @@ export async function GET(
         const cacheKey = `timeline:${trimmedName}`;
         
         // Try to get cached timeline
-        let timeline: TimelineEvent[] | null = null;
+        let timeline: Timeline | null = null;
         let cachedVersion: string | null = null;
         
         try {
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
-            timeline = (cached as { timeline: TimelineEvent[], version: string }).timeline;
+            timeline = (cached as { timeline: Timeline, version: string }).timeline;
             cachedVersion = (cached as { timeline: TimelineEvent[], version: string }).version;
             
             // Only use cache if version matches
@@ -261,9 +261,14 @@ export async function GET(
           try {
             // Use decoded name for Wikipedia API
             logger.debug("Fetching wiki page for:", trimmedName);
+            
             const page = await wiki.page(trimmedName);
-            const content = await page.content();
-            timeline = await generateTimeline(trimmedName, content, genAI);
+            const [content, summary] = await Promise.all([
+              page.content(),
+              page.summary()
+            ]);
+
+            timeline = await generateTimeline(trimmedName, summary, content, genAI);
             
             if (timeline) {
               await redis.set(cacheKey, { timeline, version: CURRENT_PROMPT_VERSION });
