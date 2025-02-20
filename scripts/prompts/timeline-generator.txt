@@ -86,11 +86,14 @@ Return a JSON object with a 'timeline' object containing:
 
 * 'events': An array of events, where each event has:
     - 'headline': Concise, self-contained title describing the event
-    - 'description': Comprehensive description that:
-        * Provides full historical context
-        * Explains the significance and impact
-        * Includes key preceding conditions
-        * Can use multiple sentences if needed
+    - 'description': Comprehensive but concise description that:
+        * Synthesizes key information from surrounding context
+        * Focuses on significance and impact
+        * Includes essential background or preceding conditions
+        * Avoids direct Wikipedia quotes
+        * Uses clear, information-dense language
+        * Prioritizes relevant details over general statements
+        * Keeps to 2-3 focused sentences unless exceptional context is needed
     - 'startDate': The date when the event occurred
     - 'endDate': Optional, for events that span a period
 
