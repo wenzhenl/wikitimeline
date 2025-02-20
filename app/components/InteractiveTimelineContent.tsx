@@ -9,7 +9,7 @@ import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import TimelineControls from "@/app/components/TimelineControls";
 import { useRouter } from "next/navigation";
-import { TimelineAPIResponse, TimelineData } from "@/app/types/timeline";
+import { TimelineAPIResponse, TimelineJSTimeline } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
@@ -36,12 +36,13 @@ export default function InteractiveTimelineContent({
   initialData,
 }: InteractiveTimelineContentProps) {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const formattedEvents = formatTimelineEventsForInteractive(
     initialData.timelines,
     "default"
   );
   // logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
-  const [events, setEvents] = useState<TimelineData>(formattedEvents);
+  const [events, setEvents] = useState<TimelineJSTimeline>(formattedEvents);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
