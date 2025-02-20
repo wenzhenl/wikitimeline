@@ -101,13 +101,13 @@ export function formatTimelineEventsForInteractive(
 
       return {
         start_date: startDate,
-        ...(endDate && { end_date: endDate }), // Only include if endDate exists
+        //...(endDate && { end_date: endDate }), // Only include if endDate exists
         ...(needsCosmologicalScale && {
           display_date: formatCosmologicalDate(startDate.year)
         }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-          text: `${event.age ? `<span style="color: ${colors.textColor}; font-weight: 500; text-shadow: none;"> [ Age ${event.age} ]</span><br/><br/>` : ''}
+          text: `${event.age ? `<span style="color: ${colors.textColor}; text-shadow: none;"> [ Age ${event.age} ]</span><br/><br/>` : ''}
                 <span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
         group: event.group,
