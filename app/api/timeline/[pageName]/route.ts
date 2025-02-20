@@ -7,6 +7,7 @@ import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
 import { SYSTEM_PROMPT } from "@/app/constants/geminiSystemPrompt";
+import { GEMINI_TIMELINE_SCHEMA } from "@/app/constants/geminiTimelineSchema";
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -17,56 +18,6 @@ logger.info('Wikipedia User-Agent set:', userAgent);
 
 const CURRENT_PROMPT_VERSION = "v1";
 const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
-
-const timelineSchema = {
-  type: SchemaType.OBJECT,
-  properties: {
-    timeline: {
-      type: SchemaType.OBJECT,
-      properties: {
-        title: {
-          type: SchemaType.STRING,
-          description: "Brief description of the timeline subject",
-        },
-        birthDate: {
-          type: SchemaType.STRING,
-          description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
-        },
-        deathDate: {
-          type: SchemaType.STRING,
-          description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
-        },
-        events: {
-          type: SchemaType.ARRAY,
-          items: {
-            type: SchemaType.OBJECT,
-            properties: {
-              headline: {
-                type: SchemaType.STRING,
-                description: "Short headline of the event",
-              },
-              description: {
-                type: SchemaType.STRING,
-                description: "Detailed description of the event",
-              },
-              startDate: {
-                type: SchemaType.STRING,
-                description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
-              },
-              endDate: {
-                type: SchemaType.STRING,
-                description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
-              }
-            },
-            required: ["headline", "description", "startDate"]
-          }
-        }
-      },
-      required: ["title", "events"]
-    }
-  },
-  required: ["timeline"]
-};
 
 const safetySettings = [
   {
@@ -114,7 +65,7 @@ async function generateTimelineUsingGemini(pageName: string, wikiSummary: string
     generationConfig: {
       temperature: 1,
       responseMimeType: "application/json",
-      responseSchema: timelineSchema,
+      responseSchema: GEMINI_TIMELINE_SCHEMA,
       topP: 0.95,
       topK: 40,
       presencePenalty: 0.1,
