@@ -180,6 +180,67 @@ const safetySettings = [
   }
 ];
 
+// Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
+async function compareDates(dateA: string, dateB: string): Promise<number> {
+  const aIsNegative = dateA.startsWith("-");
+  const bIsNegative = dateB.startsWith("-");
+  
+  const aParts = (aIsNegative ? dateA.slice(1) : dateA)
+    .split("-")
+    .map(Number);
+  const bParts = (bIsNegative ? dateB.slice(1) : dateB)
+    .split("-")
+    .map(Number);
+  
+  const aYear = aParts[0] * (aIsNegative ? -1 : 1);
+  const bYear = bParts[0] * (bIsNegative ? -1 : 1);
+
+  if (aYear !== bYear) return aYear - bYear;
+  if (aParts[1] && bParts[1] && aParts[1] !== bParts[1]) return aParts[1] - bParts[1];
+  if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
+  return aParts.length - bParts.length;
+}
+
+async function generateTimelineUsingGemini(pageName: string, wikiSummary: string, contentChunk: string, genAI: GoogleGenerativeAI) {
+  const geminiModel = genAI.getGenerativeModel({ 
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      temperature: 1,
+      responseMimeType: "application/json",
+      responseSchema: timelineSchema,
+      topP: 0.95,
+      topK: 40,
+      presencePenalty: 0.1,
+      candidateCount: 1,
+      stopSequences: ["```"],
+    },
+    safetySettings,
+    systemInstruction: SYSTEM_PROMPT
+  });
+  
+  const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())}.
+Summary for context: ${JSON.stringify(wikiSummary)}
+Main content to extract events from: ${JSON.stringify(contentChunk)}`;
+  
+  const result = await geminiModel.generateContent(prompt);
+  logger.debug('result', JSON.stringify(result, null, 2));
+  const response = await result.response;
+  
+  // Check if response was truncated
+  if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+    throw new Error('MAX_TOKENS_REACHED');
+  }
+
+  const timeline = JSON.parse(response.text());
+  
+  // Sort events by startDate
+  timeline.timeline.events.sort((a: TimelineEvent, b: TimelineEvent) => 
+    compareDates(a.startDate, b.startDate)
+  );
+  
+  return timeline;
+}
+
 async function generateTimeline(
   pageName: string, 
   content: string, 

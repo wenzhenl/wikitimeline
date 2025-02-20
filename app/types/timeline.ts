@@ -10,9 +10,10 @@ export interface TimelinePreferences {
 export type AvailableFont = typeof AVAILABLE_FONTS[number]['value'];
 
 export interface TimelineEvent {
-  date: string;
   headline: string;
-  text: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
 }
 
 export interface WikiSummary {
