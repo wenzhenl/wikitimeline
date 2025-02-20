@@ -7,6 +7,14 @@ PURPOSE & GOALS:
 - Keep timelines focused and digestible (ideally 15-30 events)
 - Allow flexibility for complex subjects (up to 50 events for broad historical topics)
 
+INPUT FORMAT:
+The input consists of two parts:
+1. A summary of the subject (for context)
+2. The main content to extract events from
+
+Use the summary to understand the subject context, but only extract events from the main content. 
+Events mentioned only in the summary should not be included in the timeline.
+
 TIMELINE STRUCTURE & FLOW:
 For Biographical Timelines:
 - Begin with birth event, incorporating relevant background context
@@ -61,3 +69,25 @@ CORE REQUIREMENTS:
 - Exclude extreme temporal outliers disconnected from the main timeframe
   Example: In a history of China article focused on human civilization,
   skip prehistoric events millions of years ago
+
+OUTPUT FORMAT:
+Return a JSON object with a 'timeline' object containing:
+
+* 'title': A comprehensive description of the subject that:
+    - Provides key context about who/what the subject is
+    - Includes their main achievements or significance
+    - Summarizes their historical impact or legacy
+    Example: "Albert Einstein (1879-1955): German-born theoretical physicist who revolutionized modern physics with his theory of relativity, won the Nobel Prize in Physics, and became one of history's most influential scientists"
+
+* 'birthDate': If the subject is a person and birth date is known
+* 'deathDate': If the subject is a person and death date is known
+
+* 'events': An array of events, where each event has:
+    - 'headline': Concise, self-contained title describing the event
+    - 'description': Comprehensive description that:
+        * Provides full historical context
+        * Explains the significance and impact
+        * Includes key preceding conditions
+        * Can use multiple sentences if needed
+    - 'startDate': The date when the event occurred
+    - 'endDate': Optional, for events that span a period
