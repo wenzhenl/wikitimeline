@@ -36,7 +36,6 @@ export default function InteractiveTimelineContent({
   initialData,
 }: InteractiveTimelineContentProps) {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const formattedEvents = formatTimelineEventsForInteractive(
     initialData.timelines,
     "default"

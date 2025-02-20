@@ -40,27 +40,37 @@ export interface TimelineAPIResponse {
 }
 
 // Interface for TimelineJS format
+export interface TimelineJSDate {
+  year: number;
+  month?: number;
+  day?: number;
+  display_date?: string;
+}
+
+export interface TimelineJSTitle {
+  text: string;
+}
+
 export interface TimelineJSEvent {
-  start_date: {
-    year: number;
-    month?: number;
-    day?: number;
-  };
+  start_date: TimelineJSDate;
+  end_date?: TimelineJSDate;
   text: {
     headline: string;
     text: string;
   };
-  group?: string;
   media?: {
     url?: string;
     thumbnail?: string;
   };
+  group?: string;
   background?: {
     color: string;
   };
+  unique_id?: string;
 }
 
-export interface TimelineData {
+export interface TimelineJSTimeline {
   events: TimelineJSEvent[];
+  title?: TimelineJSTitle;
   scale?: 'human' | 'cosmological';
 }
