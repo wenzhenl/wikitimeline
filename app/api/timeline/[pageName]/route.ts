@@ -9,6 +9,9 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
+import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
+import { CURRENT_PROMPT_VERSION } from "@/app/constants/gemini";
+
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -16,9 +19,6 @@ const redis = Redis.fromEnv();
 const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; wikitimeline2024@gmail.com)`;
 wiki.setUserAgent(userAgent);
 logger.info('Wikipedia User-Agent set:', userAgent);
-
-const CURRENT_PROMPT_VERSION = "v1";
-const FORCE_REGENERATE_ON_VERSION_MISMATCH = false;  // Set to true to regenerate on version mismatch
 
 // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
 function compareDates(dateA: string, dateB: string): number {
