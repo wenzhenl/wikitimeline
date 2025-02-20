@@ -31,10 +31,10 @@ async function getTimelineData(pageName: string) {
     const transformedData = {
       timeline: Object.entries(data.timelines)
         .flatMap(([pageName, page]) =>
-          page.timeline.map((event) => ({
-            date: event.date,
+          page.timeline.events.map((event) => ({
+            date: event.startDate,
             headline: event.headline,
-            text: event.text,
+            text: event.description,
             source: pageName,
           }))
         )
