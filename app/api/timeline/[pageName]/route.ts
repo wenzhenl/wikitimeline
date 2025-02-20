@@ -41,42 +41,6 @@ function compareDates(dateA: string, dateB: string): number {
   return aParts.length - bParts.length;
 }
 
-async function generateTimelineUsingGemini(
-  pageName: string, 
-  wikiSummary: string,
-  contentChunk: string,
-  genAI: GoogleGenerativeAI): Promise<Timeline> {
-  const geminiModel = genAI.getGenerativeModel({ 
-    model: "gemini-2.0-flash",
-    generationConfig: {
-      temperature: 1,
-      responseMimeType: "application/json",
-      responseSchema: TIMELINE_SCHEMA,
-      topP: 0.95,
-      topK: 40,
-      presencePenalty: 0.1,
-      candidateCount: 1,
-      stopSequences: ["```"],
-    },
-    safetySettings: SAFETY_SETTINGS,
-    systemInstruction: SYSTEM_PROMPT
-  });
-  
-  const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())}.
-Summary for context: ${JSON.stringify(wikiSummary)}
-Main content to extract events from: ${JSON.stringify(contentChunk)}`;
-  
-  const result = await geminiModel.generateContent(prompt);
-  logger.debug('result', JSON.stringify(result, null, 2));
-  const response = result.response;
-  
-  // Check if response was truncated
-  if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-    throw new Error('MAX_TOKENS_REACHED');
-  }
-
-  return JSON.parse(response.text());
-}
 
 function mergeTimelines(first: Timeline, second: Timeline): Timeline {
   return {
@@ -126,6 +90,43 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     isDead: Boolean(timeline.deathDate && compareDates(timeline.deathDate, new Date().toISOString().split('T')[0]) <= 0),
     version: CURRENT_PROMPT_VERSION
   };
+}
+
+async function generateTimelineUsingGemini(
+  pageName: string, 
+  wikiSummary: string,
+  contentChunk: string,
+  genAI: GoogleGenerativeAI): Promise<Timeline> {
+  const geminiModel = genAI.getGenerativeModel({ 
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      temperature: 1,
+      responseMimeType: "application/json",
+      responseSchema: TIMELINE_SCHEMA,
+      topP: 0.95,
+      topK: 40,
+      presencePenalty: 0.1,
+      candidateCount: 1,
+      stopSequences: ["```"],
+    },
+    safetySettings: SAFETY_SETTINGS,
+    systemInstruction: SYSTEM_PROMPT
+  });
+  
+  const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())}.
+Summary for context: ${JSON.stringify(wikiSummary)}
+Main content to extract events from: ${JSON.stringify(contentChunk)}`;
+  
+  const result = await geminiModel.generateContent(prompt);
+  logger.debug('result', JSON.stringify(result, null, 2));
+  const response = result.response;
+  
+  // Check if response was truncated
+  if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+    throw new Error('MAX_TOKENS_REACHED');
+  }
+
+  return JSON.parse(response.text());
 }
 
 async function generateTimeline(
