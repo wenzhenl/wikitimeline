@@ -240,7 +240,7 @@ export async function GET(
         try {
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
-            timeline = cached as Timeline;
+            timeline = (cached as { timeline: Timeline }).timeline;
             
             // Only use cache if version matches
             if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
@@ -258,7 +258,7 @@ export async function GET(
         if (!timeline) {
           try {
             // Use decoded name for Wikipedia API
-            logger.debug("Fetching wiki page for:", trimmedName);
+            logger.info("Fetching wiki page for:", trimmedName);
             
             const page = await wiki.page(trimmedName);
             const [content, summary] = await Promise.all([
@@ -266,11 +266,11 @@ export async function GET(
               page.summary()
             ]);
 
-            timeline = await generateTimeline(trimmedName, summary, content, genAI);
+            timeline = await generateTimeline(trimmedName, summary.extract, content, genAI);
             
             if (timeline) {
-              await redis.set(cacheKey, { timeline, version: CURRENT_PROMPT_VERSION });
-              logger.info(`Cached new timeline for ${trimmedName} (version ${CURRENT_PROMPT_VERSION})`);
+              await redis.set(cacheKey, { timeline });
+              logger.info(`Cached new timeline for ${trimmedName} (version ${timeline.version})`);
             } else {
               failedPages.push(trimmedName);
               return;
@@ -283,7 +283,7 @@ export async function GET(
         }
 
         // Check if timeline is empty
-        if (!timeline?.length) {
+        if (!timeline?.events?.length) {
           noTimelinePages.push(trimmedName);
           return;
         }
