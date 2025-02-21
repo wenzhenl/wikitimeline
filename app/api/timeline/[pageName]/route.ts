@@ -6,6 +6,7 @@ import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/ti
 import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
+import { safetySettings } from "@/app/constants/safetySettings";
 // Initialize Gemini and Redis
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const redis = Redis.fromEnv();
@@ -91,7 +92,8 @@ async function generateTimeline(pageName: string, content: string): Promise<Time
     generationConfig: {
       maxOutputTokens: 8192,
       temperature: 0
-    }
+    },
+    safetySettings: safetySettings
   });
   
   try {
