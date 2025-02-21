@@ -236,6 +236,7 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
       compareDates(a.startDate, b.startDate)
     );
     
+    console.log("total events", timeline.timeline.events.length);
     return timeline;
   }
 
@@ -259,6 +260,7 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
         tryCompletion(secondHalf)
       ]);
 
+      console.log("total events", firstTimeline.timeline.events.length + secondTimeline.timeline.events.length);
       // Merge the timelines
       return {
         timeline: {
