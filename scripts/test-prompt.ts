@@ -157,36 +157,37 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
         properties: {
           title: {
             type: SchemaType.STRING,
-            description: "Brief description of the timeline subject",
+            description: "Concise description that states the subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.",
           },
           birthDate: {
             type: SchemaType.STRING,
-            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+            description: "Birth date in YYYY-MM-DD, YYYY-MM, or YYYY format. For BCE dates, use negative years with leading zeros (e.g., -0500 for 500 BCE)"
           },
           deathDate: {
             type: SchemaType.STRING,
-            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+            description: "Death date in YYYY-MM-DD, YYYY-MM, or YYYY format. For BCE dates, use negative years with leading zeros (e.g., -0500 for 500 BCE)"
           },
           events: {
             type: SchemaType.ARRAY,
+            description: "Array of chronologically ordered events, typically 15-30 events (up to 50 for broad historical topics)",
             items: {
               type: SchemaType.OBJECT,
               properties: {
                 headline: {
                   type: SchemaType.STRING,
-                  description: "Short headline of the event",
+                  description: "Concise, self-contained title describing the event"
                 },
                 description: {
                   type: SchemaType.STRING,
-                  description: "Detailed description of the event",
+                  description: "2-3 focused sentences that synthesize key information, explain significance and impact, include essential context, and use information-dense language"
                 },
                 startDate: {
                   type: SchemaType.STRING,
-                  description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                  description: "Event date in YYYY-MM-DD, YYYY-MM, or YYYY format. For BCE dates, use negative years with leading zeros"
                 },
                 endDate: {
                   type: SchemaType.STRING,
-                  description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
+                  description: "Optional end date for events spanning a period, using same format as startDate"
                 }
               },
               required: ["headline", "description", "startDate"]
