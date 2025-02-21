@@ -92,46 +92,11 @@ async function getCompletion(pageName: string, wikiInfo: WikipediaInfo, model: S
   const systemPrompt = await getSystemPrompt();
   
   switch (model) {
-    case 'deepseek':
-      return getDeepseekCompletion(pageName, wikiInfo, systemPrompt);
     case 'gemini':
       return getGeminiCompletion(pageName, wikiInfo, systemPrompt);
-    case 'openai':
-      return getOpenAICompletion(pageName, wikiInfo, systemPrompt);
     default:
       throw new Error(`Unsupported model: ${model}`);
   }
-}
-
-async function getDeepseekCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
-  const openai = new OpenAI({
-    baseURL: 'https://api.deepseek.com',
-    apiKey: process.env.DEEPSEEK_API_KEY,
-  });
-
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt
-      },
-      {
-        role: "user",
-        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${wikiInfo.summary ? ` (${JSON.stringify(wikiInfo.summary)})` : ''}`
-      }
-    ],
-    model: "deepseek-chat",
-    temperature: 0,
-  });
-
-  console.log('Deepseek token usage:', {
-    prompt_tokens: completion.usage?.prompt_tokens,
-    completion_tokens: completion.usage?.completion_tokens,
-    total_tokens: completion.usage?.total_tokens,
-    model: completion.model,
-  });
-
-  return JSON.parse(completion.choices[0].message.content!);
 }
 
 interface TimelineEvent {
@@ -142,6 +107,7 @@ interface TimelineEvent {
 }
 
 async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
+
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   
   // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
@@ -314,36 +280,6 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
   }
 }
 
-async function getOpenAICompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt
-      },
-      {
-        role: "user",
-        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${wikiInfo.summary ? ` (${JSON.stringify(wikiInfo.summary)})` : ''}`
-      }
-    ],
-    model: "gpt-4o",
-    temperature: 0,
-  });
-
-  console.log('OpenAI token usage:', {
-    prompt_tokens: completion.usage?.prompt_tokens,
-    completion_tokens: completion.usage?.completion_tokens,
-    total_tokens: completion.usage?.total_tokens,
-    model: completion.model,
-  });
-
-  return JSON.parse(completion.choices[0].message.content!);
-}
-
 async function main() {
   const [,, pageName, modelArg = 'gemini'] = process.argv;
   const model = modelArg as SupportedModel;
@@ -353,7 +289,7 @@ async function main() {
     process.exit(1);
   }
 
-  if (!['deepseek', 'gemini', 'openai'].includes(model)) {
+  if (!['gemini'].includes(model)) {
     console.error('Invalid model. Supported models: deepseek, gemini, openai');
     process.exit(1);
   }
