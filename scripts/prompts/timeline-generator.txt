@@ -25,13 +25,21 @@ LANGUAGE HANDLING:
 TIMELINE GENERATION PROCESS:
 
 1. First Round - Initial Extraction:
-   - Extract ALL events with any dates mentioned
+   - Identify the central temporal scope and scale:
+     * For biographical timelines: human lifespan
+     * For historical events: human civilization timeframe
+     * For geological/evolutionary topics: relevant geological/evolutionary scale
+   - Extract ALL events with any dates mentioned within identified scope
    - Include both major and minor events
    - Note any contextual information around each event
    - Don't evaluate importance yet
    - Keep track of date precision (year, month, day)
 
 2. Second Round - Filtering:
+   - Remove events outside the identified central temporal scope
+     * For human civilization topics, focus on documented historical events
+     * Exclude geological/prehistoric events unless directly relevant
+     * Skip extreme temporal outliers disconnected from main timeframe
    - Remove events without explicit dates
    - Remove events not directly related to the subject
    - Remove events with minimal significance
