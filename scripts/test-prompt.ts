@@ -15,9 +15,7 @@
  *   npm run ts-node scripts/test-prompt.ts "Ancient Rome" deepseek
  * 
  * Environment Variables Required:
- *   DEEPSEEK_API_KEY: For Deepseek model
  *   GEMINI_API_KEY: For Google Gemini model
- *   OPENAI_API_KEY: For OpenAI model
  * 
  * Output:
  *   Results will be written to prompt-tests/<page_name>-<model>.json
