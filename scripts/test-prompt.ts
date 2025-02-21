@@ -15,9 +15,7 @@
  *   npm run ts-node scripts/test-prompt.ts "Ancient Rome" deepseek
  * 
  * Environment Variables Required:
- *   DEEPSEEK_API_KEY: For Deepseek model
  *   GEMINI_API_KEY: For Google Gemini model
- *   OPENAI_API_KEY: For OpenAI model
  * 
  * Output:
  *   Results will be written to prompt-tests/<page_name>-<model>.json
@@ -92,46 +90,11 @@ async function getCompletion(pageName: string, wikiInfo: WikipediaInfo, model: S
   const systemPrompt = await getSystemPrompt();
   
   switch (model) {
-    case 'deepseek':
-      return getDeepseekCompletion(pageName, wikiInfo, systemPrompt);
     case 'gemini':
       return getGeminiCompletion(pageName, wikiInfo, systemPrompt);
-    case 'openai':
-      return getOpenAICompletion(pageName, wikiInfo, systemPrompt);
     default:
       throw new Error(`Unsupported model: ${model}`);
   }
-}
-
-async function getDeepseekCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
-  const openai = new OpenAI({
-    baseURL: 'https://api.deepseek.com',
-    apiKey: process.env.DEEPSEEK_API_KEY,
-  });
-
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt
-      },
-      {
-        role: "user",
-        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${wikiInfo.summary ? ` (${JSON.stringify(wikiInfo.summary)})` : ''}`
-      }
-    ],
-    model: "deepseek-chat",
-    temperature: 0,
-  });
-
-  console.log('Deepseek token usage:', {
-    prompt_tokens: completion.usage?.prompt_tokens,
-    completion_tokens: completion.usage?.completion_tokens,
-    total_tokens: completion.usage?.total_tokens,
-    model: completion.model,
-  });
-
-  return JSON.parse(completion.choices[0].message.content!);
 }
 
 interface TimelineEvent {
@@ -142,6 +105,7 @@ interface TimelineEvent {
 }
 
 async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
+
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   
   // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
@@ -193,36 +157,37 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
         properties: {
           title: {
             type: SchemaType.STRING,
-            description: "Brief description of the timeline subject",
+            description: "Concise description that states the subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance."
           },
           birthDate: {
             type: SchemaType.STRING,
-            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+            description: "Birth date in YYYY-MM-DD, YYYY-MM, or YYYY format. Only include for biographical timelines."
           },
           deathDate: {
             type: SchemaType.STRING,
-            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+            description: "Death date in YYYY-MM-DD, YYYY-MM, or YYYY format. Only include for biographical timelines if the person is deceased."
           },
           events: {
             type: SchemaType.ARRAY,
+            description: "Array of chronologically ordered events, typically 15-30 events (up to 50 for broad historical topics)",
             items: {
               type: SchemaType.OBJECT,
               properties: {
                 headline: {
                   type: SchemaType.STRING,
-                  description: "Short headline of the event",
+                  description: "Concise, self-contained title describing the event"
                 },
                 description: {
                   type: SchemaType.STRING,
-                  description: "Detailed description of the event",
+                  description: "2-3 focused sentences that synthesize and paraphrase key information. Do NOT directly quote Wikipedia. Explain significance and impact, include essential context, and use information-dense language. Focus on what matters to the overall narrative."
                 },
                 startDate: {
                   type: SchemaType.STRING,
-                  description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                  description: "Event date in YYYY-MM-DD, YYYY-MM, or YYYY format. For BCE dates, use negative years with leading zeros"
                 },
                 endDate: {
                   type: SchemaType.STRING,
-                  description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
+                  description: "Optional end date for events spanning a period, using same format as startDate"
                 }
               },
               required: ["headline", "description", "startDate"]
@@ -239,7 +204,7 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
     const geminiModel = genAI.getGenerativeModel({ 
       model: "gemini-2.0-flash",
       generationConfig: {
-        temperature: 0,
+        temperature: 1,
         responseMimeType: "application/json",
         responseSchema: timelineSchema,
         topP: 0.95,
@@ -272,6 +237,7 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
       compareDates(a.startDate, b.startDate)
     );
     
+    console.log("total events", timeline.timeline.events.length);
     return timeline;
   }
 
@@ -295,6 +261,7 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
         tryCompletion(secondHalf)
       ]);
 
+      console.log("total events", firstTimeline.timeline.events.length + secondTimeline.timeline.events.length);
       // Merge the timelines
       return {
         timeline: {
@@ -314,36 +281,6 @@ Main content to extract events from: ${JSON.stringify(contentChunk)}`;
   }
 }
 
-async function getOpenAICompletion(pageName: string, wikiInfo: WikipediaInfo, systemPrompt: string) {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: systemPrompt
-      },
-      {
-        role: "user",
-        content: `Create a timeline for ${JSON.stringify(pageName.trim())} ${wikiInfo.summary ? ` (${JSON.stringify(wikiInfo.summary)})` : ''}`
-      }
-    ],
-    model: "gpt-4o",
-    temperature: 0,
-  });
-
-  console.log('OpenAI token usage:', {
-    prompt_tokens: completion.usage?.prompt_tokens,
-    completion_tokens: completion.usage?.completion_tokens,
-    total_tokens: completion.usage?.total_tokens,
-    model: completion.model,
-  });
-
-  return JSON.parse(completion.choices[0].message.content!);
-}
-
 async function main() {
   const [,, pageName, modelArg = 'gemini'] = process.argv;
   const model = modelArg as SupportedModel;
@@ -353,7 +290,7 @@ async function main() {
     process.exit(1);
   }
 
-  if (!['deepseek', 'gemini', 'openai'].includes(model)) {
+  if (!['gemini'].includes(model)) {
     console.error('Invalid model. Supported models: deepseek, gemini, openai');
     process.exit(1);
   }

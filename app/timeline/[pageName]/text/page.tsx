@@ -29,33 +29,15 @@ async function getTimelineData(pageName: string) {
 
     // Transform all data without filtering
     const transformedData = {
-      timeline: Object.entries(data.timelines)
-        .flatMap(([pageName, page]) =>
-          page.timeline.map((event) => ({
-            date: event.date,
-            headline: event.headline,
-            text: event.text,
-            source: pageName,
-          }))
-        )
-        .sort((a, b) => {
-          const aIsNegative = a.date.startsWith("-");
-          const bIsNegative = b.date.startsWith("-");
-          const aParts = (aIsNegative ? a.date.slice(1) : a.date)
-            .split("-")
-            .map(Number);
-          const bParts = (bIsNegative ? b.date.slice(1) : b.date)
-            .split("-")
-            .map(Number);
-          const aYear = aParts[0] * (aIsNegative ? -1 : 1);
-          const bYear = bParts[0] * (bIsNegative ? -1 : 1);
-
-          if (aYear !== bYear) return aYear - bYear;
-          if (aParts[1] && bParts[1] && aParts[1] !== bParts[1])
-            return aParts[1] - bParts[1];
-          if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
-          return aParts.length - bParts.length;
-        }),
+      timeline: Object.entries(data.timelines).flatMap(([pageName, page]) =>
+        page.timeline.events.map((event) => ({
+          date: event.startDate,
+          headline: event.headline,
+          text: event.description,
+          source: pageName,
+          age: event.age,
+        }))
+      ),
       errors: data.errors,
     };
 

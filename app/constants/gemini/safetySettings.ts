@@ -1,7 +1,6 @@
 import { HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
-// Simplified safety settings
-export const safetySettings = [
+export const SAFETY_SETTINGS = [
     {
       category: HarmCategory.HARM_CATEGORY_HARASSMENT,
       threshold: HarmBlockThreshold.BLOCK_NONE

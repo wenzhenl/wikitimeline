@@ -1,6 +1,6 @@
-import { PageTimeline } from "@/app/types/timeline";
+import { TimelineJSDate, TimelineWithWikiSummary } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
-import { TimelineData } from "@/app/types/timeline";
+import { TimelineJSTimeline } from "@/app/types/timeline";
 
 function formatGroupName(name: string): string {
   return name
@@ -36,18 +36,21 @@ function formatCosmologicalDate(year: number): string {
 }
 
 export function formatTimelineEventsForInteractive(
-  timelines: Record<string, PageTimeline>, 
+  timelines: Record<string, TimelineWithWikiSummary>, 
   colorSchemeId = 'default'
-): TimelineData {
+): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
+
+  // Get the first color from the scheme
+  const firstGroupColors = colorScheme.colors[0];
 
   // Merge and format all events from all timelines
   const allEvents = Object.entries(timelines).flatMap(([pageName, pageData]) => {
     // Only add group if there are multiple pages
     const hasMultiplePages = Object.keys(timelines).length > 1;
     
-    return pageData.timeline.map(event => ({
+    return pageData.timeline.events.map(event => ({
       ...event,
       ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
       ...(pageData.wikiSummary?.thumbnail && {  // Only add media if thumbnail exists
@@ -60,27 +63,30 @@ export function formatTimelineEventsForInteractive(
 
   // Check if any dates are outside human scale range (-271821 to 275760)
   const needsCosmologicalScale = Object.values(timelines).some(pageData =>
-    pageData.timeline.some(event => {
-      const year = parseInt(event.date.startsWith("-") ? event.date.slice(1) : event.date);
-      return event.date.startsWith("-") ? year > 271821 : year > 275760;
+    pageData.timeline.events.some(event => {
+      const year = parseInt(event.startDate.startsWith("-") ? event.startDate.slice(1) : event.startDate);
+      return event.startDate.startsWith("-") ? year > 271821 : year > 275760;
     })
   );
 
+  const isMultiplePages = Object.keys(timelines).length > 1;
+  const pageNames = Object.keys(timelines).map(name => formatGroupName(name));
+
   return {
+    title: {
+      text: {
+        headline: isMultiplePages
+          ? `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">Comparative Timeline</span>`
+          : `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">Interactive Timeline of ${pageNames[0]}</span>`,
+        text: isMultiplePages
+          ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${pageNames.join(' vs. ')}</span>`
+          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline.title}</span>`
+      },
+      background: {
+        color: firstGroupColors.color
+      }
+    },
     events: allEvents.map((event) => {
-      // Check if it's a negative year first
-      const isNegativeYear = event.date.startsWith("-");
-      const normalizedDate = isNegativeYear ? event.date.slice(1) : event.date;
-      const dateParts = normalizedDate.split("-");
-
-      // Handle partial dates
-      const initialYear = parseInt(dateParts[0]) || 0;
-      const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
-      const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
-
-      // Convert year back to negative if needed
-      const year = isNegativeYear ? -initialYear : initialYear;
-
       // Assign a consistent index to each group
       const groupKey = event.group || 'default';
       if (!groupIndices.has(groupKey)) {
@@ -90,22 +96,43 @@ export function formatTimelineEventsForInteractive(
       const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
       const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
+      const startDate = parseDate(event.startDate);
+      const endDate = event.endDate ? parseDate(event.endDate) : undefined;
+
       return {
-        start_date: { year, month, day },
+        start_date: startDate,
+        //...(endDate && { end_date: endDate }), // Only include if endDate exists
         ...(needsCosmologicalScale && {
-          display_date: formatCosmologicalDate(year)
+          display_date: formatCosmologicalDate(startDate.year)
         }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.text}</span>`,
+          text: `${event.age ? `<span style="color: ${colors.textColor}; text-shadow: none;"> [ Age ${event.age} ]</span><br/><br/>` : ''}
+                <span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
         group: event.group,
-        ...(event.media && { media: event.media }), // Only include media if it exists
+        ...(event.media && { media: event.media }),
         background: {
           color: colors.color,
         },
+        //unique_id: event.headline
       };
     }),
-    ...(needsCosmologicalScale && { scale: 'cosmological' as const })
+    ...(needsCosmologicalScale && { scale: 'cosmological' as const }),
+    
   };
+}
+
+// Helper function to parse date string into TimelineJSDate
+function parseDate(dateStr: string): TimelineJSDate {
+  const isNegativeYear = dateStr.startsWith("-");
+  const normalizedDate = isNegativeYear ? dateStr.slice(1) : dateStr;
+  const dateParts = normalizedDate.split("-");
+
+  const initialYear = parseInt(dateParts[0]) || 0;
+  const year = isNegativeYear ? -initialYear : initialYear;
+  const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
+  const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
+
+  return { year, month, day };
 } 

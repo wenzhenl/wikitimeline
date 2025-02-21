@@ -5,12 +5,14 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineJSEvent } from "@/app/types/timeline";
 
 interface MyTimelineComponentProps {
+  title?: TimelineJSEvent;
   events: TimelineJSEvent[];
   font: string;
   scale?: "human" | "cosmological";
 }
 
 const MyTimelineComponent = ({
+  title,
   events,
   font,
   scale,
@@ -37,7 +39,7 @@ const MyTimelineComponent = ({
 
         const timeline = new Timeline(
           timelineRef.current!,
-          { events: events, scale: scale },
+          { title: title, events: events, scale: scale },
           options
         );
         setTimelineInstance(timeline);
@@ -49,7 +51,7 @@ const MyTimelineComponent = ({
         timelineRef.current.innerHTML = "";
       }
     };
-  }, [events, font, scale]);
+  }, [title, events, font, scale]);
 
   return <div ref={timelineRef} id="timeline-embed" />;
 };
