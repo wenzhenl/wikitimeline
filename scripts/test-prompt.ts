@@ -157,15 +157,15 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
         properties: {
           title: {
             type: SchemaType.STRING,
-            description: "Concise description that states the subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.",
+            description: "Concise description that states the subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance."
           },
           birthDate: {
             type: SchemaType.STRING,
-            description: "Birth date in YYYY-MM-DD, YYYY-MM, or YYYY format. For BCE dates, use negative years with leading zeros (e.g., -0500 for 500 BCE)"
+            description: "Birth date in YYYY-MM-DD, YYYY-MM, or YYYY format. Only include for biographical timelines."
           },
           deathDate: {
             type: SchemaType.STRING,
-            description: "Death date in YYYY-MM-DD, YYYY-MM, or YYYY format. For BCE dates, use negative years with leading zeros (e.g., -0500 for 500 BCE)"
+            description: "Death date in YYYY-MM-DD, YYYY-MM, or YYYY format. Only include for biographical timelines if the person is deceased."
           },
           events: {
             type: SchemaType.ARRAY,
@@ -179,7 +179,7 @@ async function getGeminiCompletion(pageName: string, wikiInfo: WikipediaInfo, sy
                 },
                 description: {
                   type: SchemaType.STRING,
-                  description: "2-3 focused sentences that synthesize key information, explain significance and impact, include essential context, and use information-dense language"
+                  description: "2-3 focused sentences that synthesize and paraphrase key information. Do NOT directly quote Wikipedia. Explain significance and impact, include essential context, and use information-dense language. Focus on what matters to the overall narrative."
                 },
                 startDate: {
                   type: SchemaType.STRING,
