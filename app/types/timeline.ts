@@ -1,19 +1,18 @@
-export interface TimelineEvent {
-  headline: string;
-  description: string;
-  startDate: string;
-  endDate?: string;
-  age?: number;
+import { AVAILABLE_FONTS } from "@/app/constants/fonts";
+
+export interface TimelinePreferences {
+  font: string;
+  // Add more preferences here as needed, such as:
+  // colorScheme: string;
+  // groupColors: Record<number, { color: string; textColor: string }>;
 }
 
-export interface Timeline {
-  title: string;
-  events: TimelineEvent[];
-  birthDate?: string;
-  deathDate?: string;
-  isDead?: boolean;
-  lastUpdatedAt?: number; // Unix timestamp in milliseconds
-  version?: string;
+export type AvailableFont = typeof AVAILABLE_FONTS[number]['value'];
+
+export interface TimelineEvent {
+  date: string;
+  headline: string;
+  text: string;
 }
 
 export interface WikiSummary {
@@ -22,13 +21,13 @@ export interface WikiSummary {
   summary?: string;
 }
 
-export interface TimelineWithWikiSummary {
-  timeline: Timeline;
+export interface PageTimeline {
+  timeline: TimelineEvent[];
   wikiSummary: WikiSummary;
 }
 
 export interface TimelineAPIResponse {
-  timelines: Record<string, TimelineWithWikiSummary>;
+  timelines: Record<string, PageTimeline>;
   errors?: {
     message: string;
     failedPages: string[];
@@ -40,33 +39,27 @@ export interface TimelineAPIResponse {
 }
 
 // Interface for TimelineJS format
-export interface TimelineJSDate {
-  year: number;
-  month?: number;
-  day?: number;
-  display_date?: string;
-}
-
 export interface TimelineJSEvent {
-  start_date?: TimelineJSDate;
-  end_date?: TimelineJSDate;
+  start_date: {
+    year: number;
+    month?: number;
+    day?: number;
+  };
   text: {
     headline: string;
     text: string;
   };
+  group?: string;
   media?: {
     url?: string;
     thumbnail?: string;
   };
-  group?: string;
   background?: {
     color: string;
   };
-  unique_id?: string;
 }
 
-export interface TimelineJSTimeline {
+export interface TimelineData {
   events: TimelineJSEvent[];
-  title?: TimelineJSEvent;
   scale?: 'human' | 'cosmological';
 }

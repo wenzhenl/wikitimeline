@@ -9,7 +9,7 @@ import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import TimelineControls from "@/app/components/TimelineControls";
 import { useRouter } from "next/navigation";
-import { TimelineAPIResponse, TimelineJSTimeline } from "@/app/types/timeline";
+import { TimelineAPIResponse, TimelineData } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
@@ -41,8 +41,8 @@ export default function InteractiveTimelineContent({
     initialData.timelines,
     "default"
   );
-  logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
-  const [timelineJSTimeline, setTimelineJSTimeline] = useState<TimelineJSTimeline>(formattedEvents);
+  // logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
+  const [events, setEvents] = useState<TimelineData>(formattedEvents);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -129,7 +129,7 @@ export default function InteractiveTimelineContent({
 
   // Update events when color scheme changes
   useEffect(() => {
-    setTimelineJSTimeline(
+    setEvents(
       formatTimelineEventsForInteractive(
         initialData.timelines,
         selectedColorScheme
@@ -513,15 +513,14 @@ export default function InteractiveTimelineContent({
 
       <main className="flex-1 flex justify-center px-4 py-6">
         <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
-          {timelineJSTimeline.events.length > 0 && (
+          {events.events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="h-[500px] lg:hidden">
                 {" "}
                 {/* Mobile only */}
                 <MyTimelineComponent
-                  title={timelineJSTimeline.title}
-                  events={timelineJSTimeline.events}
-                  scale={timelineJSTimeline.scale}
+                  events={events.events}
+                  scale={events.scale}
                   font={selectedFont}
                 />
               </div>
@@ -529,9 +528,8 @@ export default function InteractiveTimelineContent({
                 {" "}
                 {/* Desktop with breakpoints */}
                 <MyTimelineComponent
-                  title={timelineJSTimeline.title}
-                  events={timelineJSTimeline.events}
-                  scale={timelineJSTimeline.scale}
+                  events={events.events}
+                  scale={events.scale}
                   font={selectedFont}
                 />
               </div>

@@ -104,10 +104,8 @@ export default function HomePage() {
           Instantly convert any Wikipedia article into a beautiful, interactive
           timeline. Perfect for students, researchers, and history enthusiasts.
         </p>
+
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8">
-          <div className="text-red-500 dark:text-red-400 text-sm mb-4">
-            Tip: Currently only English Wikipedia articles are supported
-          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <WikiSearch
               selectedPages={selectedPages}

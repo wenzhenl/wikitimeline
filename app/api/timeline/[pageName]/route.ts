@@ -2,17 +2,12 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary } from '@/app/types/timeline';
-import { MIN_NUM_EVENTS_FOR_TIMELINE, PAGE_DELIMITER } from "@/app/constants";
+import { TimelineAPIResponse, PageTimeline, TimelineEvent } from '@/app/types/timeline';
+import { PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
-import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
-import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
-import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
-import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
-import { CURRENT_PROMPT_VERSION } from "@/app/constants/gemini";
-
-// Initialize Redis
+// Initialize Gemini and Redis
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const redis = Redis.fromEnv();
 
 // Initialize Wikipedia with User-Agent
@@ -20,148 +15,101 @@ const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; wikitimeline2024@g
 wiki.setUserAgent(userAgent);
 logger.info('Wikipedia User-Agent set:', userAgent);
 
-// Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
-function compareDates(dateA: string, dateB: string): number {
-  const aIsNegative = dateA.startsWith("-");
-  const bIsNegative = dateB.startsWith("-");
-  
-  const aParts = (aIsNegative ? dateA.slice(1) : dateA)
-    .split("-")
-    .map(Number);
-  const bParts = (bIsNegative ? dateB.slice(1) : dateB)
-    .split("-")
-    .map(Number);
-  
-  const aYear = aParts[0] * (aIsNegative ? -1 : 1);
-  const bYear = bParts[0] * (bIsNegative ? -1 : 1);
+// Move prompt to a constant string
+const SYSTEM_PROMPT = `
+You are a timeline generator that extracts events from provided Wikipedia article content. 
+Your task is to carefully read through the provided article text and identify all events that have associated dates and are directly related to the subject.
 
-  if (aYear !== bYear) return aYear - bYear;
-  if (aParts[1] && bParts[1] && aParts[1] !== bParts[1]) return aParts[1] - bParts[1];
-  if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
-  return aParts.length - bParts.length;
-}
+Create a comprehensive chronological timeline by:
+1. Identifying all dates and associated events in the provided text
+2. Only including events that are directly related to the main subject
+3. Organizing events chronologically from earliest to latest
+4. If total output would exceed token limit, prioritize most significant events and drop less important ones
 
+Return a JSON object with a 'timeline' array. Each event should have:
+* 'headline' (concise, self-contained title that clearly describes the event)
+* 'text' (clear, concise description that:
+    - Summarizes the event in your own words
+    - Provides necessary context without relying on surrounding events
+    - Avoids direct quotes from Wikipedia
+    - Keeps to 1-2 sentences when possible)
+* 'date' (use the most precise date available, following these formats:
+    - YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
+    - YYYY-MM for year and month
+    - YYYY-MM-DD for full dates)
 
-function mergeTimelines(first: Timeline, second: Timeline): Timeline {
-  return {
-    title: first.title,  // Use first timeline's title
-    birthDate: first.birthDate || second.birthDate,
-    deathDate: first.deathDate || second.deathDate,
-    events: [...(first.events || []), ...(second.events || [])]
-  };
-}
+IMPORTANT:
+- Only extract events that have explicit dates mentioned in the article
+- For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
+- Do not include events or dates from your training data - only use what's in the provided article
+- If a date appears in the text but is ambiguous or seems incorrect, exclude it
+- If the article contains no dated events, return an empty array
+- For date ranges:
+  * Always create a single event using the start date
+  * Include the end date in the text description
+  * Use clear language like "from [start] to [end]" or "between [start] and [end]"
+- Always include the full date in the text description for context
+- If output would exceed token limit, prioritize:
+  1. Major life events (birth, death)
+  2. Career-defining moments
+  3. Most historically significant achievements
+  4. Drop less impactful or redundant events
 
-function calculateAge(birthDate: string, eventDate: string): number | null {
-  // Handle negative years (BCE)
-  const birthYear = parseInt(birthDate.startsWith('-') ? birthDate.slice(1) : birthDate.split('-')[0]) * (birthDate.startsWith('-') ? -1 : 1);
-  const eventYear = parseInt(eventDate.startsWith('-') ? eventDate.slice(1) : eventDate.split('-')[0]) * (eventDate.startsWith('-') ? -1 : 1);
-  
-  if (isNaN(birthYear) || isNaN(eventYear)) return null;
-  
-  return eventYear - birthYear;
-}
+Focus on extracting:
+- Life events (birth, death, marriages, etc.), these are must-have events, especially birth and death
+- Career milestones
+- Major accomplishments
+- Significant historical events
+- Publication or release dates
+- Any other dated events directly involving the subject
 
-function postProcessTimeline(timeline: Timeline): Timeline {
-  const isValidDate = (date: string) => !isNaN(new Date(date).getTime());
-  const isPerson = timeline.birthDate && isValidDate(timeline.birthDate);
-  
-  return {
-    ...timeline,
-    events: timeline.events
-      .sort((a, b) => compareDates(a.startDate, b.startDate))
-      .filter((event, index, self) => 
-        index === self.findIndex(e => 
-          e.startDate === event.startDate && 
-          e.headline === event.headline
-        )
-      )
-      .map(event => {
-        if (isPerson && timeline.birthDate) {
-          const age = calculateAge(timeline.birthDate, event.startDate);
-          if (age !== null && age >= 0) {
-            if (!timeline.deathDate || compareDates(event.startDate, timeline.deathDate) <= 0) {
-              return { ...event, age };
-            }
-          }
-        }
-        return event;
-      }),
-    lastUpdatedAt: Date.now(),
-    isDead: Boolean(timeline.deathDate && compareDates(timeline.deathDate, new Date().toISOString().split('T')[0]) <= 0),
-    version: CURRENT_PROMPT_VERSION
-  };
-}
+Do not include:
+- Events without clear dates
+- Events not directly related to the subject
+- Dates from referenced works or citations
+- Future dates or predictions
+- Duplicate events with identical information
 
-async function generateTimelineUsingGemini(
-  pageName: string, 
-  wikiSummary: string,
-  contentChunk: string,
-  genAI: GoogleGenerativeAI): Promise<Timeline> {
+Prioritize events that:
+1. Mark significant changes or turning points
+2. Demonstrate lasting impact or influence
+3. Show key character/career development
+4. Provide necessary historical context
+
+Aim for 15-20 most meaningful events that together tell a coherent story. Quality and significance of events matter more than quantity. Each event should either:
+- Mark a clear turning point
+- Show significant impact
+- Reveal important character/career development
+- Provide crucial historical context
+`;
+
+const CURRENT_PROMPT_VERSION = "v1";
+
+async function generateTimeline(pageName: string, content: string): Promise<TimelineEvent[] | null> {
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
-      temperature: 1,
-      responseMimeType: "application/json",
-      responseSchema: TIMELINE_SCHEMA,
-      topP: 0.95,
-      topK: 40,
-      presencePenalty: 0.1,
-      candidateCount: 1,
-      stopSequences: ["```"],
-    },
-    safetySettings: SAFETY_SETTINGS,
-    systemInstruction: SYSTEM_PROMPT
+      maxOutputTokens: 8192,
+      temperature: 0
+    }
   });
   
-  const prompt = `Create a timeline for ${JSON.stringify(pageName.trim())}.
-Summary for context: ${JSON.stringify(wikiSummary)}
-Main content to extract events from: ${JSON.stringify(contentChunk)}`;
-  
-  const result = await geminiModel.generateContent(prompt);
-  logger.debug('result', JSON.stringify(result, null, 2));
-  const response = result.response;
-  
-  // Check if response was truncated
-  if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-    throw new Error('MAX_TOKENS_REACHED');
-  }
-
-  // The response should be { timeline: Timeline }
-  const timelineData = JSON.parse(response.text());
-  return timelineData.timeline;  // Make sure we're returning the timeline object
-}
-
-async function generateTimeline(
-  pageName: string, 
-  wikiSummary: string,
-  wikiContent: string, 
-  genAI: GoogleGenerativeAI
-): Promise<Timeline | null> {
   try {
-    // First attempt with full content
-    const timeline = await generateTimelineUsingGemini(pageName, wikiSummary, wikiContent, genAI);
-    return postProcessTimeline(timeline);
-  } catch (error: unknown) {
+    const prompt = `${SYSTEM_PROMPT}\n\nCreate a timeline for ${pageName.trim()} (${content})`;
+    logger.debug("Prompt:", prompt);
+
+    const result = await geminiModel.generateContent(prompt);
+    logger.debug("Result from gemini:", result);
+
+    const response = result.response;
+    const text = response.text();
+    
+    const jsonStr = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const timelineData = JSON.parse(jsonStr);
+    return timelineData.timeline;
+  } catch (error) {
     logger.error('Error generating timeline:', error);
-
-    if (error instanceof Error && error.message === 'MAX_TOKENS_REACHED') {
-      console.log('Content too long, splitting into chunks...');
-      
-      const midPoint = Math.floor(wikiContent.length / 2);
-      const splitIndex = wikiContent.indexOf('. ', midPoint) + 1;
-      
-      const firstHalf = wikiContent.substring(0, splitIndex);
-      const secondHalf = wikiContent.substring(splitIndex);
-
-      const [firstTimeline, secondTimeline] = await Promise.all([
-        generateTimelineUsingGemini(pageName, wikiSummary, firstHalf, genAI),
-        generateTimelineUsingGemini(pageName, wikiSummary, secondHalf, genAI)
-      ]);
-
-      const mergedTimeline = mergeTimelines(firstTimeline, secondTimeline);
-      return postProcessTimeline(mergedTimeline);
-    }
-    throw error;
+    return null;
   }
 }
 
@@ -193,23 +141,10 @@ const getCachedWikiSummary = unstable_cache(
   }
 );
 
-// Initialize Gemini with appropriate key based on client type
-function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
-  const apiKey = clientType === 'cli' 
-    ? process.env.GEMINI_CLI_API_KEY 
-    : process.env.GEMINI_API_KEY;
-  
-  return new GoogleGenerativeAI(apiKey!);
-}
-
-
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
-  const clientType = request.headers.get('x-internal-client-type');
-  const genAI = getGeminiClient(clientType);
-  
   try {
     // First decode the URL parameters
     const pageNames = decodeURIComponent(params.pageName)
@@ -230,7 +165,7 @@ export async function GET(
 
     const failedPages: string[] = [];
     const noTimelinePages: string[] = [];
-    const timelines: Record<string, TimelineWithWikiSummary> = {};
+    const timelines: Record<string, PageTimeline> = {};
 
     await Promise.all(
       canonicalNames.map(async (pageName) => {
@@ -239,19 +174,21 @@ export async function GET(
         const cacheKey = `timeline:${trimmedName}`;
         
         // Try to get cached timeline
-        let timeline: Timeline | null = null;
+        let timeline: TimelineEvent[] | null = null;
+        let cachedVersion: string | null = null;
         
         try {
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
-            timeline = (cached as { timeline: Timeline }).timeline;
+            timeline = (cached as { timeline: TimelineEvent[], version: string }).timeline;
+            cachedVersion = (cached as { timeline: TimelineEvent[], version: string }).version;
             
             // Only use cache if version matches
-            if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-              logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+            if (cachedVersion !== CURRENT_PROMPT_VERSION) {
+              logger.info(`Cache version mismatch for ${trimmedName} (${cachedVersion} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
               timeline = null;
             } else {
-              logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version})`);
+              logger.info(`Cache hit for timeline: ${trimmedName} (version ${cachedVersion})`);
             }
           }
         } catch (error) {
@@ -262,25 +199,14 @@ export async function GET(
         if (!timeline) {
           try {
             // Use decoded name for Wikipedia API
-            logger.info("Fetching wiki page for:", trimmedName);
-            
+            logger.debug("Fetching wiki page for:", trimmedName);
             const page = await wiki.page(trimmedName);
-            const [content, summary] = await Promise.all([
-              page.content(),
-              page.summary()
-            ]);
-
-            try {
-              timeline = await generateTimeline(trimmedName, summary.extract, content, genAI);
-            } catch (error) {
-              logger.error('Error generating timeline:', error);
-              failedPages.push(trimmedName);
-              return;
-            }
+            const content = await page.content();
+            timeline = await generateTimeline(trimmedName, content);
             
             if (timeline) {
-              await redis.set(cacheKey, { timeline });
-              logger.info(`Cached new timeline for ${trimmedName} (version ${timeline.version})`);
+              await redis.set(cacheKey, { timeline, version: CURRENT_PROMPT_VERSION });
+              logger.info(`Cached new timeline for ${trimmedName} (version ${CURRENT_PROMPT_VERSION})`);
             } else {
               failedPages.push(trimmedName);
               return;
@@ -293,7 +219,7 @@ export async function GET(
         }
 
         // Check if timeline is empty
-        if (!timeline?.events?.length || timeline.events.length < MIN_NUM_EVENTS_FOR_TIMELINE) {
+        if (!timeline?.length) {
           noTimelinePages.push(trimmedName);
           return;
         }

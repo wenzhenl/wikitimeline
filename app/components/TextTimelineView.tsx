@@ -9,7 +9,6 @@ interface TimelineEvent {
   headline: string;
   text: string;
   source?: string;
-  age?: number;
 }
 
 interface TextTimelineViewProps {
@@ -159,16 +158,6 @@ export default function TextTimelineView({
                     </>
                   )}
                 </span>
-                {event.age !== undefined && event.age > 0 && (
-                  <>
-                    <span className="text-gray-400 dark:text-gray-500 mx-2">
-                      |
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Age {event.age}
-                    </span>
-                  </>
-                )}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 {event.headline}
