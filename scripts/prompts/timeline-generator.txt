@@ -22,6 +22,41 @@ LANGUAGE HANDLING:
 - Only the date formats should be standardized to the universal YYYY-MM-DD format
 - Keep proper nouns, names, and specialized terms in their original form
 
+TIMELINE GENERATION PROCESS:
+
+1. First Round - Initial Extraction:
+   - Extract ALL events with any dates mentioned
+   - Include both major and minor events
+   - Note any contextual information around each event
+   - Don't evaluate importance yet
+   - Keep track of date precision (year, month, day)
+
+2. Second Round - Filtering:
+   - Remove events without explicit dates
+   - Remove events not directly related to the subject
+   - Remove events with minimal significance
+   - Keep events that:
+     * Mark significant changes or developments
+     * Show direct impact on the subject
+     * Provide crucial historical context
+
+3. Third Round - Consolidation:
+   - Identify events that can be combined:
+     * Events close in time (within months/years)
+     * Events sharing a common theme or purpose
+     * Events part of the same historical process
+   - Merge background events:
+     * Combine pre-birth family history into birth event context
+     * Group related minor events into major milestone descriptions
+   - Create date ranges for merged events
+   - Ensure merged descriptions maintain chronological clarity
+
+4. Final Round - Review:
+   - Check if timeline length is appropriate (15-30 events typically)
+   - Verify each event adds value to the narrative
+   - Ensure descriptions are concise but informative
+   - Confirm chronological flow makes sense
+
 TIMELINE STRUCTURE & FLOW:
 For Biographical Timelines:
 - Begin with birth event, incorporating relevant background context
@@ -47,11 +82,6 @@ Primary Inclusion Factors:
 2. Role in subject's development or story arc
 3. Contribution to understanding the broader context
 4. Turning points or pivotal moments
-
-For Articles with Few Events (< 30 total):
-- Include all dated events that are directly relevant
-- Maintain chronological clarity
-- Still ensure each event adds value to the narrative
 
 For Articles with Many Events:
 - Prioritize major developments and turning points
