@@ -35,6 +35,9 @@ TIMELINE GENERATION PROCESS:
    - Remove events without explicit dates
    - Remove events not directly related to the subject
    - Remove events with minimal significance
+   - For biographical timelines, enforce the timeline structure rules:
+     * Ensure timeline boundaries (birth/death or present)
+     * Consolidate pre-birth and posthumous events into relevant timeline events
    - Keep events that:
      * Mark significant changes or developments
      * Show direct impact on the subject
@@ -59,14 +62,12 @@ TIMELINE GENERATION PROCESS:
 
 TIMELINE STRUCTURE & FLOW:
 For Biographical Timelines:
-- Begin with birth event, incorporating relevant background context
-- Include formative years and key life events
-- End with death (if applicable)
-- Include significant posthumous events if they:
-  * Substantially change the subject's legacy
-  * Resolve major controversies
-  * Lead to official recognition or vindication
-  * Impact historical understanding
+- Timeline MUST start with birth (or earliest known event if birth date unknown)
+- Timeline MUST end with death (or present day if still living)
+- Pre-birth events should NOT be separate entries, but consolidated as background context into relevant later events
+- Posthumous events should NOT be separate entries, but consolidated into relevant earlier events
+  Example: If someone was exonerated after death, include this information in the original conviction event
+- All events must fall between birth/first known event and death/present
 
 For Historical Events/Periods:
 - Include crucial preceding events that:
