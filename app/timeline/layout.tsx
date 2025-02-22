@@ -1,10 +1,16 @@
 import { Suspense } from "react";
-import LoadingUI from "@/app/components/LoadingUI";
 
 export default function TimelineLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <Suspense fallback={<LoadingUI />}>{children}</Suspense>;
+  return (
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
+      <Suspense>{children}</Suspense>
+    </div>
+  );
 }
