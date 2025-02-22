@@ -47,7 +47,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `Historical Timeline of ${title} - Chronological Events`,
       description: `Comprehensive historical timeline showing key events and dates throughout the history of ${title}.`,
-      images: [previewImageUrl],
+      image: previewImageUrl,
     },
   };
 }
