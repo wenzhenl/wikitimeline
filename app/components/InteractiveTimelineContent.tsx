@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import Link from "next/link";
 import { formatTimelineEventsForInteractive } from "@/app/utils/formatTimelineEvents";
@@ -34,12 +34,8 @@ export default function InteractiveTimelineContent({
 }: InteractiveTimelineContentProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const formattedEvents = formatTimelineEventsForInteractive(
-    initialData.timelines,
-    "default"
-  );
   const [timelineJSTimeline, setTimelineJSTimeline] =
-    useState<TimelineJSTimeline>(formattedEvents);
+    useState<TimelineJSTimeline | null>(null);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -53,6 +49,7 @@ export default function InteractiveTimelineContent({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [hasSeenSwipeTip, setHasSeenSwipeTip] = useState(false);
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -122,6 +119,65 @@ export default function InteractiveTimelineContent({
     }
   }, [initialData]);
 
+  // Initialize timeline and loading state with MutationObserver
+  useEffect(() => {
+    const formatEventsAsync = async () => {
+      const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
+        setTimeout(
+          () =>
+            resolve(
+              formatTimelineEventsForInteractive(
+                initialData.timelines,
+                "default"
+              )
+            ),
+          0
+        );
+      });
+      setTimelineJSTimeline(formatted);
+    };
+    formatEventsAsync();
+
+    const observer = new MutationObserver(() => {
+      if (
+        timelineContainerRef.current?.querySelector(
+          ".tl-timeline .tl-slider-container"
+        )
+      ) {
+        setLoading(false);
+        observer.disconnect();
+      }
+    });
+    if (timelineContainerRef.current) {
+      observer.observe(timelineContainerRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    const timeout = setTimeout(() => {
+      setLoading(false); // Fallback after 1s
+      observer.disconnect();
+    }, 1000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, [initialData]);
+
+  // Update timeline when color scheme changes
+  useEffect(() => {
+    if (timelineJSTimeline) {
+      setTimelineJSTimeline(
+        formatTimelineEventsForInteractive(
+          initialData.timelines,
+          selectedColorScheme
+        )
+      );
+    }
+  }, [selectedColorScheme, initialData]);
+
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
       .map((page) => {
@@ -174,59 +230,9 @@ export default function InteractiveTimelineContent({
         setIsOptionsOpen(false);
       }
     };
-
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isOptionsOpen]);
-
-  // Initial formatting and loading control
-  useEffect(() => {
-    const formatEventsAsync = async () => {
-      const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
-        setTimeout(
-          () =>
-            resolve(
-              formatTimelineEventsForInteractive(
-                initialData.timelines,
-                "default"
-              )
-            ),
-          0
-        );
-      });
-      setTimelineJSTimeline(formatted);
-    };
-    formatEventsAsync();
-
-    const checkTimelineReady = () => {
-      if (document.querySelector(".tl-timeline .tl-slider-container")) {
-        setLoading(false);
-      }
-    };
-    const interval = setInterval(checkTimelineReady, 50);
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      setLoading(false); // Fallback after 1s
-    }, 1000);
-    checkTimelineReady();
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [initialData]);
-
-  // Update timeline when color scheme changes
-  useEffect(() => {
-    if (timelineJSTimeline) {
-      // Only update if already initialized
-      setTimelineJSTimeline(
-        formatTimelineEventsForInteractive(
-          initialData.timelines,
-          selectedColorScheme
-        )
-      );
-    }
-  }, [selectedColorScheme, initialData]);
 
   useEffect(() => {
     const tipSeen = localStorage.getItem("timeline-swipe-tip-seen");
@@ -246,7 +252,7 @@ export default function InteractiveTimelineContent({
     }
   }, []);
 
-  if (loading) {
+  if (loading || !timelineJSTimeline) {
     return (
       <div
         className="min-h-screen flex flex-col"
@@ -297,42 +303,6 @@ export default function InteractiveTimelineContent({
             <LoadingUI />
           </div>
         </main>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div className="max-w-md p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
-          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
-            Error
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
-          <div className="flex gap-4">
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              Try Again
-            </button>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              Back to Home
-            </Link>
-          </div>
-        </div>
       </div>
     );
   }
@@ -608,7 +578,10 @@ export default function InteractiveTimelineContent({
       >
         <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
           {timelineJSTimeline.events.length > 0 && (
-            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+            <div
+              ref={timelineContainerRef} // Attach ref here
+              className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
+            >
               <div className="h-[500px] lg:hidden">
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
