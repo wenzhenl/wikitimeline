@@ -2,7 +2,6 @@
 
 import { HomeFooter } from "@/app/components/HomeFooter";
 import { HomeHero } from "@/app/components/HomeHero";
-import { HomeFeatures } from "@/app/components/HomeFeatures";
 import { HomeFeaturedTimelines } from "@/app/components/HomeFeaturedTimelines";
 import { ClientSearchWrapper } from "@/app/components/ClientSearchWrapper";
 import { HomeNavigation } from "@/app/components/HomeNavigation";
@@ -42,7 +41,6 @@ export default function HomePage() {
         >
           <HomeHero />
           <ClientSearchWrapper />
-          <HomeFeatures />
           <HomeFeaturedTimelines />
         </div>
       </main>
