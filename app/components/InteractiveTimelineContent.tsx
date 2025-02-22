@@ -122,15 +122,6 @@ export default function InteractiveTimelineContent({
     }
   }, [initialData]);
 
-  useEffect(() => {
-    setTimelineJSTimeline(
-      formatTimelineEventsForInteractive(
-        initialData.timelines,
-        selectedColorScheme
-      )
-    );
-  }, [initialData, selectedColorScheme]);
-
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
       .map((page) => {
@@ -188,18 +179,54 @@ export default function InteractiveTimelineContent({
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isOptionsOpen]);
 
+  // Initial formatting and loading control
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+    const formatEventsAsync = async () => {
+      const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
+        setTimeout(
+          () =>
+            resolve(
+              formatTimelineEventsForInteractive(
+                initialData.timelines,
+                "default"
+              )
+            ),
+          0
+        );
+      });
+      setTimelineJSTimeline(formatted);
+    };
+    formatEventsAsync();
 
+    const checkTimelineReady = () => {
+      if (document.querySelector(".tl-timeline .tl-slider-container")) {
+        setLoading(false);
+      }
+    };
+    const interval = setInterval(checkTimelineReady, 50);
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      setLoading(false); // Fallback after 1s
+    }, 1000);
+    checkTimelineReady();
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [initialData]);
+
+  // Update timeline when color scheme changes
   useEffect(() => {
-    if (document.querySelector(".tl-timeline .tl-slider-container")) {
-      setLoading(false);
+    if (timelineJSTimeline) {
+      // Only update if already initialized
+      setTimelineJSTimeline(
+        formatTimelineEventsForInteractive(
+          initialData.timelines,
+          selectedColorScheme
+        )
+      );
     }
-  }, []);
+  }, [selectedColorScheme, initialData]);
 
   useEffect(() => {
     const tipSeen = localStorage.getItem("timeline-swipe-tip-seen");
