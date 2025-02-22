@@ -202,8 +202,14 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
   return new GoogleGenerativeAI(apiKey!);
 }
 
+interface OldTimelineEvent {
+  headline: string;
+  text: string;
+  date: string;
+}
+
 interface OldTimelineFormat {
-  timeline: TimelineEvent[];
+  timeline: OldTimelineEvent[];
   version: string;
 }
 
@@ -217,8 +223,12 @@ async function isOldFormat(data: any): Promise<boolean> {
 
 async function convertOldToNewFormat(oldData: OldTimelineFormat): Promise<Timeline> {
   return {
-    title: '', // Old format didn't have title
-    events: oldData.timeline,
+    title: '',
+    events: oldData.timeline.map(event => ({
+      headline: event.headline,
+      description: event.text,
+      startDate: event.date
+    })),
     version: oldData.version,
     lastUpdatedAt: Date.now()
   };
