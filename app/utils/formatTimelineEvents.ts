@@ -35,6 +35,21 @@ function formatCosmologicalDate(year: number): string {
   return `<span style="font-weight: 700;">${display.toUpperCase()} ${suffix}</span>`;
 }
 
+function formatLocalDate(date: TimelineJSDate): string {
+  const { year, month, day } = date;
+  
+  if (!month) return year.toString();
+  
+  const dateObj = new Date(year, month - 1, day || 1);
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: day ? 'numeric' : undefined,
+    year: 'numeric'
+  });
+  
+  return formatter.format(dateObj);
+}
+
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, TimelineWithWikiSummary>, 
   colorSchemeId = 'default'
@@ -97,12 +112,13 @@ export function formatTimelineEventsForInteractive(
       const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
       const startDate = parseDate(event.startDate);
-      const endDate = event.endDate ? parseDate(event.endDate) : undefined;
 
       return {
         start_date: startDate,
-        ...(needsCosmologicalScale && {
+        ...(needsCosmologicalScale ? {
           display_date: formatCosmologicalDate(startDate.year)
+        } : event.age !== undefined && {
+          display_date: `${formatLocalDate(startDate)}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;Age ${event.age}`
         }),
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
