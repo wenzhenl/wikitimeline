@@ -271,16 +271,20 @@ export async function GET(
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
             if (await isOldFormat(cached)) {
-              logger.info('Old format detected: ', trimmedName);
               // Handle old format
+              logger.info('Old data schema detected: ', trimmedName);
               const oldData = cached as OldTimelineFormat;
-              if (oldData.version === CURRENT_PROMPT_VERSION || !FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+              const version = oldData.version || 'v0';
+              if (version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+                logger.info(`Cache version mismatch for ${trimmedName} (${version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+                timeline = null;
+              } else {
                 timeline = await convertOldToNewFormat(oldData);
-                logger.info(`Using converted old format cache for ${trimmedName} (version ${oldData.version})`);
+                logger.info(`Using converted old format cache for ${trimmedName} (version ${version})`);
               }
             } else {
               // Handle new format
-              logger.info('New format detected: ', trimmedName);
+              logger.info('New data schema detected: ', trimmedName);
               timeline = (cached as NewTimelineFormat).timeline;
               if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
                 logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
