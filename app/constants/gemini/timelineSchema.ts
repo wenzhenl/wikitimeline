@@ -8,7 +8,7 @@ export const TIMELINE_SCHEMA = {
         properties: {
           title: {
             type: SchemaType.STRING,
-            description: "Brief one sentence description of the timeline subject, such as name, birth/death date, nationality, and a few key facts",
+            description: "Concise description that states the subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.",
           },
           birthDate: {
             type: SchemaType.STRING,
@@ -16,7 +16,7 @@ export const TIMELINE_SCHEMA = {
           },
           deathDate: {
             type: SchemaType.STRING,
-            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known. Only include if the subject is a person."
+            description: "Optional death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known. Only include if the subject is a person."
           },
           events: {
             type: SchemaType.ARRAY,
