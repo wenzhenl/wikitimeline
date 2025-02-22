@@ -70,31 +70,3 @@ export default async function TimelinePage({
     throw error;
   }
 }
-
-export function generateMetadata({ params }: { params: { pageName: string } }) {
-  const title = decodeURIComponent(params.pageName).replace(/_/g, " ");
-
-  return {
-    title: `Historical Timeline of ${title} - Chronological Events & History`,
-    description: `Explore the complete historical timeline of ${title}. A comprehensive chronological overview of key events, dates, and milestones throughout history, sourced from Wikipedia. Interactive visualization of historical data.`,
-    keywords: `${title} history, ${title} timeline, historical events, chronology, ${title} chronological order, historical dates, ${title} key events, historical milestones`,
-    robots: {
-      index: true,
-      follow: true,
-    },
-    alternates: {
-      canonical: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`,
-    },
-    openGraph: {
-      title: `Historical Timeline of ${title} - Chronological Events & History`,
-      description: `Explore the complete historical timeline of ${title}. A comprehensive chronological overview of key events, dates, and milestones throughout history.`,
-      type: "article",
-      url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `Historical Timeline of ${title} - Chronological Events`,
-      description: `Comprehensive historical timeline showing key events and dates throughout the history of ${title}.`,
-    },
-  };
-}

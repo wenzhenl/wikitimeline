@@ -19,11 +19,19 @@ export async function generateMetadata({
   const previewImageUrl = `${SITE_CONFIG.DOMAIN}/preview.png`;
 
   return {
-    title: `Timeline of ${title}`,
-    description: `Timeline related to ${title}, generated from Wikipedia content.`,
+    title: `Historical Timeline of ${title} - Chronological Events & History`,
+    description: `Explore the complete historical timeline of ${title}. A comprehensive chronological overview of key events, dates, and milestones throughout history, sourced from Wikipedia. Interactive visualization of historical data.`,
+    keywords: `${title} history, ${title} timeline, historical events, chronology, ${title} chronological order, historical dates, ${title} key events, historical milestones`,
+    robots: {
+      index: true,
+      follow: true,
+    },
+    alternates: {
+      canonical: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`,
+    },
     openGraph: {
-      title: `Timeline of ${title}`,
-      description: `Timeline related to ${title}, generated from Wikipedia content.`,
+      title: `Historical Timeline of ${title} - Chronological Events & History`,
+      description: `Explore the complete historical timeline of ${title}. A comprehensive chronological overview of key events, dates, and milestones throughout history.`,
       images: [
         {
           url: previewImageUrl,
@@ -33,12 +41,12 @@ export async function generateMetadata({
         },
       ],
       type: "article",
-      url,
+      url: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `Timeline of ${title}`,
-      description: `Timeline related to ${title}, generated from Wikipedia content.`,
+      title: `Historical Timeline of ${title} - Chronological Events`,
+      description: `Comprehensive historical timeline showing key events and dates throughout the history of ${title}.`,
       images: [previewImageUrl],
     },
   };
