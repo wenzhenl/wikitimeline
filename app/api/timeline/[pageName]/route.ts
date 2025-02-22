@@ -205,7 +205,7 @@ interface OldTimelineEvent {
 
 interface OldTimelineFormat {
   timeline: OldTimelineEvent[];
-  version: string;
+  version?: string;  // Make version optional
 }
 
 interface NewTimelineFormat {
@@ -213,7 +213,7 @@ interface NewTimelineFormat {
 }
 
 async function isOldFormat(data: any): Promise<boolean> {
-  return Array.isArray(data.timeline) && typeof data.version === 'string';
+  return Array.isArray(data.timeline);  // Only check if timeline is array
 }
 
 async function convertOldToNewFormat(oldData: OldTimelineFormat): Promise<Timeline> {
@@ -224,7 +224,7 @@ async function convertOldToNewFormat(oldData: OldTimelineFormat): Promise<Timeli
       description: event.text,
       startDate: event.date
     })),
-    version: oldData.version,
+    version: oldData.version || 'v0',  // Default to 'v0' if version missing
     lastUpdatedAt: Date.now()
   };
 }
