@@ -5,6 +5,23 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
 
+function compareDates(dateA: string, dateB: string): number {
+  const aIsNegative = dateA.startsWith("-");
+  const bIsNegative = dateB.startsWith("-");
+
+  const aParts = (aIsNegative ? dateA.slice(1) : dateA).split("-").map(Number);
+  const bParts = (bIsNegative ? dateB.slice(1) : dateB).split("-").map(Number);
+
+  const aYear = aParts[0] * (aIsNegative ? -1 : 1);
+  const bYear = bParts[0] * (bIsNegative ? -1 : 1);
+
+  if (aYear !== bYear) return aYear - bYear;
+  if (aParts[1] && bParts[1] && aParts[1] !== bParts[1])
+    return aParts[1] - bParts[1];
+  if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
+  return 0;
+}
+
 async function getTimelineData(pageName: string) {
   const targetPages = decodeURIComponent(pageName).split(PAGE_DELIMITER);
 
@@ -27,17 +44,19 @@ async function getTimelineData(pageName: string) {
 
     const data = (await response.json()) as TimelineAPIResponse;
 
-    // Transform all data without filtering
+    // Transform and sort all data
     const transformedData = {
-      timeline: Object.entries(data.timelines).flatMap(([pageName, page]) =>
-        page.timeline.events.map((event) => ({
-          date: event.startDate,
-          headline: event.headline,
-          text: event.description,
-          source: pageName,
-          age: event.age,
-        }))
-      ),
+      timeline: Object.entries(data.timelines)
+        .flatMap(([pageName, page]) =>
+          page.timeline.events.map((event) => ({
+            date: event.startDate,
+            headline: event.headline,
+            text: event.description,
+            source: pageName,
+            age: event.age,
+          }))
+        )
+        .sort((a, b) => compareDates(a.date, b.date)),
       errors: data.errors,
     };
 
