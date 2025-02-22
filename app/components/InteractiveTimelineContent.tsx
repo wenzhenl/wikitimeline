@@ -20,10 +20,7 @@ interface SelectedPage {
   link: string;
 }
 
-// Add this type near the top with other interfaces
 type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
-
-// Add this with other type definitions
 type FontId = (typeof AVAILABLE_FONTS)[number]["value"];
 
 interface InteractiveTimelineContentProps {
@@ -41,8 +38,8 @@ export default function InteractiveTimelineContent({
     initialData.timelines,
     "default"
   );
-  logger.debug("FORMATTED EVENTS:", JSON.stringify(formattedEvents, null, 2));
-  const [timelineJSTimeline, setTimelineJSTimeline] = useState<TimelineJSTimeline>(formattedEvents);
+  const [timelineJSTimeline, setTimelineJSTimeline] =
+    useState<TimelineJSTimeline>(formattedEvents);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -59,7 +56,6 @@ export default function InteractiveTimelineContent({
 
   // Initialize selected pages from URL
   useEffect(() => {
-    // Split by comma and handle encoded commas
     const pageNames = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
       .map((name) => name.trim())
@@ -120,14 +116,12 @@ export default function InteractiveTimelineContent({
     }
   };
 
-  // Initialize skipped pages from initial data
   useEffect(() => {
     if (initialData.errors?.failedPages) {
       setSkippedPages(initialData.errors.failedPages);
     }
   }, [initialData]);
 
-  // Update events when color scheme changes
   useEffect(() => {
     setTimelineJSTimeline(
       formatTimelineEventsForInteractive(
@@ -137,7 +131,6 @@ export default function InteractiveTimelineContent({
     );
   }, [initialData, selectedColorScheme]);
 
-  // Update the refresh handler
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
       .map((page) => {
@@ -165,15 +158,12 @@ export default function InteractiveTimelineContent({
 
   const handleSkippedModalClose = () => {
     setShowSkippedModal(false);
-
-    // Filter out skipped pages and properly encode the URL
     const validPages = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
       .filter((page) => !skippedPages.includes(page))
       .map((page) => encodeURIComponent(page))
       .join(encodeURIComponent(PAGE_DELIMITER));
 
-    // Update URL if there are any valid pages left
     if (validPages) {
       router.replace(`/timeline/${validPages}`, { scroll: false });
     }
@@ -182,9 +172,7 @@ export default function InteractiveTimelineContent({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      const optionsButton = document.querySelector(
-        '[aria-label="More options"]'
-      );
+      const optionsButton = document.querySelector('[aria-label="Menu"]');
       const optionsMenu = document.querySelector(".options-menu");
 
       if (
@@ -201,15 +189,12 @@ export default function InteractiveTimelineContent({
   }, [isOptionsOpen]);
 
   useEffect(() => {
-    // Shorter timeout for better UX
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
-
     return () => clearTimeout(timer);
   }, []);
 
-  // Add a second effect to handle immediate load if timeline is ready
   useEffect(() => {
     if (document.querySelector(".tl-timeline .tl-slider-container")) {
       setLoading(false);
@@ -217,12 +202,10 @@ export default function InteractiveTimelineContent({
   }, []);
 
   useEffect(() => {
-    // Check if user has seen the swipe tip before
     const tipSeen = localStorage.getItem("timeline-swipe-tip-seen");
     if (tipSeen) {
       setHasSeenSwipeTip(true);
     } else {
-      // Listen for swipe/navigation actions
       const handleNavigation = () => {
         localStorage.setItem("timeline-swipe-tip-seen", "true");
         setHasSeenSwipeTip(true);
@@ -237,12 +220,72 @@ export default function InteractiveTimelineContent({
   }, []);
 
   if (loading) {
-    return <LoadingUI />;
+    return (
+      <div
+        className="min-h-screen flex flex-col"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+        }}
+      >
+        <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[10001]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+              className="flex justify-between items-center h-16"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                height: "4rem",
+              }}
+            >
+              <div className="flex-shrink-0">
+                <Link
+                  href="/"
+                  className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 py-4"
+                >
+                  WikiTimeline
+                </Link>
+              </div>
+            </div>
+          </div>
+        </nav>
+        <main
+          className="flex-1 flex justify-center px-4 py-6"
+          style={{
+            flex: "1 0 auto",
+            display: "flex",
+            justifyContent: "center",
+            paddingLeft: "1rem",
+            paddingRight: "1rem",
+            paddingTop: "1.5rem",
+            paddingBottom: "1.5rem",
+          }}
+        >
+          <div
+            className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]"
+            style={{ minHeight: "500px" }}
+          >
+            <LoadingUI />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <div className="max-w-md p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
             Error
@@ -268,10 +311,25 @@ export default function InteractiveTimelineContent({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+      }}
+    >
       <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[10001]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div
+            className="flex justify-between items-center h-16"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              height: "4rem",
+            }}
+          >
             <div className="flex-shrink-0">
               <Link
                 href="/"
@@ -450,7 +508,6 @@ export default function InteractiveTimelineContent({
                     </svg>
                     Reader View
                   </Link>
-
                   <ShareButtons
                     url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
                     title={`Timeline of ${decodeURIComponent(
@@ -469,7 +526,6 @@ export default function InteractiveTimelineContent({
                       onClick: handleCopyEmbedCode,
                     }}
                   />
-
                   <button
                     onClick={() => {
                       const pageNames = decodeURIComponent(
@@ -511,13 +567,22 @@ export default function InteractiveTimelineContent({
         </div>
       </nav>
 
-      <main className="flex-1 flex justify-center px-4 py-6">
+      <main
+        className="flex-1 flex justify-center px-4 py-6"
+        style={{
+          flex: "1 0 auto",
+          display: "flex",
+          justifyContent: "center",
+          paddingLeft: "1rem",
+          paddingRight: "1rem",
+          paddingTop: "1.5rem",
+          paddingBottom: "1.5rem",
+        }}
+      >
         <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
           {timelineJSTimeline.events.length > 0 && (
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
               <div className="h-[500px] lg:hidden">
-                {" "}
-                {/* Mobile only */}
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
                   events={timelineJSTimeline.events}
@@ -526,8 +591,6 @@ export default function InteractiveTimelineContent({
                 />
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
-                {" "}
-                {/* Desktop with breakpoints */}
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
                   events={timelineJSTimeline.events}
@@ -560,8 +623,6 @@ export default function InteractiveTimelineContent({
               aria-hidden="true"
               onClick={() => setIsSettingsOpen(false)}
             />
-
-            {/* Modal panel */}
             <div className="inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
@@ -587,8 +648,6 @@ export default function InteractiveTimelineContent({
                   </svg>
                 </button>
               </div>
-
-              {/* Font Selection */}
               <div className="mb-4">
                 <label
                   htmlFor="font-select"
@@ -609,8 +668,6 @@ export default function InteractiveTimelineContent({
                   ))}
                 </select>
               </div>
-
-              {/* Color Scheme Selection */}
               <div>
                 <label
                   htmlFor="color-scheme-select"
@@ -665,21 +722,16 @@ export default function InteractiveTimelineContent({
           aria-modal="true"
         >
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
             <div
               className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
               aria-hidden="true"
             ></div>
-
-            {/* Modal panel */}
             <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900 sm:mx-0 sm:h-10 sm:w-10">
-                    {/* Warning icon */}
                     <svg
                       className="h-6 w-6 text-yellow-600 dark:text-yellow-200"
-                      xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -736,10 +788,8 @@ export default function InteractiveTimelineContent({
           font-weight: 500 !important;
           opacity: 0.9 !important;
         }
-
         ${hasSeenSwipeTip
           ? `
-        /* Hide TimelineJS loading elements after tip is shown */
         .tl-loading-icon,
         .tl-message-full {
           display: none !important;
