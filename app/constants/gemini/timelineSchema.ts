@@ -8,15 +8,15 @@ export const TIMELINE_SCHEMA = {
         properties: {
           title: {
             type: SchemaType.STRING,
-            description: "Brief description of the timeline subject",
+            description: "Brief one sentence description of the timeline subject, such as name, birth/death date, nationality, and a few key facts",
           },
           birthDate: {
             type: SchemaType.STRING,
-            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+            description: "Birth date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known. Only include if the subject is a person."
           },
           deathDate: {
             type: SchemaType.STRING,
-            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known"
+            description: "Death date of the person (YYYY-MM-DD, YYYY, or YYYY-MM format), if applicable and known. Only include if the subject is a person."
           },
           events: {
             type: SchemaType.ARRAY,
@@ -25,19 +25,26 @@ export const TIMELINE_SCHEMA = {
               properties: {
                 headline: {
                   type: SchemaType.STRING,
-                  description: "Short headline of the event",
+                  description: "concise, self-contained title that clearly describes the event",
                 },
                 description: {
                   type: SchemaType.STRING,
-                  description: "Detailed description of the event",
+                  description: `clear, concise description that:
+                  - Summarizes the event in your own words
+                  - Provides necessary context without relying on surrounding events
+                  - Avoids direct quotes from Wikipedia
+                  - Keeps to 1-2 sentences when possible`,
                 },
                 startDate: {
                   type: SchemaType.STRING,
-                  description: "Start date of the event (YYYY-MM-DD, YYYY, or YYYY-MM format)",
+                  description: `use the most precise date available, following these formats:
+                  - YYYY for year only (e.g., '0220' or '-0220' for 220 BCE)
+                  - YYYY-MM for year and month
+                  - YYYY-MM-DD for full dates`,
                 },
                 endDate: {
                   type: SchemaType.STRING,
-                  description: "End date of the event if it's a range (YYYY-MM-DD, YYYY, or YYYY-MM format)"
+                  description: "End date of the event if it's a range, following the same format as startDate"
                 }
               },
               required: ["headline", "description", "startDate"]
