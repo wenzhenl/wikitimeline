@@ -37,17 +37,20 @@ function formatCosmologicalDate(year: number): string {
 
 function formatLocalDate(date: TimelineJSDate): string {
   const { year, month, day } = date;
+  const isNegativeYear = year < 0;
+  const absYear = Math.abs(year);
   
-  if (!month) return year.toString();
+  let result = `${absYear} ${isNegativeYear ? "BCE" : ""}`;
   
-  const dateObj = new Date(year, month - 1, day || 1);
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    month: 'long',
-    day: day ? 'numeric' : undefined,
-    year: 'numeric'
-  });
+  if (month) {
+    const dateObj = new Date(2000, month - 1, day || 1);
+    result += ` ${dateObj.toLocaleString("default", { month: "short" })}`;
+    if (day) {
+      result += ` ${day}`;
+    }
+  }
   
-  return formatter.format(dateObj);
+  return result;
 }
 
 export function formatTimelineEventsForInteractive(
