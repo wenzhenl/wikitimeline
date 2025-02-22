@@ -202,6 +202,27 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
   return new GoogleGenerativeAI(apiKey!);
 }
 
+interface OldTimelineFormat {
+  timeline: TimelineEvent[];
+  version: string;
+}
+
+interface NewTimelineFormat {
+  timeline: Timeline;
+}
+
+async function isOldFormat(data: any): Promise<boolean> {
+  return Array.isArray(data.timeline) && typeof data.version === 'string';
+}
+
+async function convertOldToNewFormat(oldData: OldTimelineFormat): Promise<Timeline> {
+  return {
+    title: '', // Old format didn't have title
+    events: oldData.timeline,
+    version: oldData.version,
+    lastUpdatedAt: Date.now()
+  };
+}
 
 export async function GET(
   request: Request,
@@ -244,14 +265,24 @@ export async function GET(
         try {
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
-            timeline = (cached as { timeline: Timeline }).timeline;
-            
-            // Only use cache if version matches
-            if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-              logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
-              timeline = null;
+            if (await isOldFormat(cached)) {
+              logger.info('Old format detected: ', trimmedName);
+              // Handle old format
+              const oldData = cached as OldTimelineFormat;
+              if (oldData.version === CURRENT_PROMPT_VERSION || !FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+                timeline = await convertOldToNewFormat(oldData);
+                logger.info(`Using converted old format cache for ${trimmedName} (version ${oldData.version})`);
+              }
             } else {
-              logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version})`);
+              // Handle new format
+              logger.info('New format detected: ', trimmedName);
+              timeline = (cached as NewTimelineFormat).timeline;
+              if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+                logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+                timeline = null;
+              } else {
+                logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version})`);
+              }
             }
           }
         } catch (error) {
