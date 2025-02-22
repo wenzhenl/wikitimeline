@@ -1,10 +1,15 @@
 export function HomeFeatures() {
+  // For mobile: default to 1 column
+  // For md (768px) and up: 3 columns
+  const gridTemplateColumns =
+    window.innerWidth >= 768 ? "repeat(3, minmax(0, 1fr))" : "minmax(0, 1fr)";
+
   return (
     <div
       className="grid md:grid-cols-3 gap-8 mt-16 mb-20"
       style={{
         display: "grid",
-        gridTemplateColumns: "minmax(0, 1fr)", // Single column for mobile
+        gridTemplateColumns, // This will be overridden by Tailwind's md:grid-cols-3
         gap: "2rem", // matches gap-8
         marginTop: "4rem", // matches mt-16
         marginBottom: "5rem", // matches mb-20

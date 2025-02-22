@@ -9,18 +9,44 @@ import { HomeNavigation } from "@/app/components/HomeNavigation";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div
+      className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        height: "100vh",
+      }}
+    >
       <HomeNavigation />
-      <main className="flex-grow">
-        <div className="text-center w-full max-w-4xl mx-auto py-16 px-4">
+
+      <main
+        className="flex-grow flex flex-col"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flexGrow: 1,
+          minHeight: 0,
+        }}
+      >
+        <div
+          className="text-center w-full max-w-4xl mx-auto px-4"
+          style={{
+            textAlign: "center",
+            width: "100%",
+            maxWidth: "56rem",
+            marginLeft: "auto",
+            marginRight: "auto",
+            paddingLeft: "1rem",
+            paddingRight: "1rem",
+          }}
+        >
           <HomeHero />
           <ClientSearchWrapper />
           <HomeFeatures />
+          <HomeFeaturedTimelines />
         </div>
-
-        <HomeFeaturedTimelines />
       </main>
-      <HomeFooter />
     </div>
   );
 }
