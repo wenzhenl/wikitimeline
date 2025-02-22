@@ -4,7 +4,7 @@ export function HomeFeatures() {
       className="grid md:grid-cols-3 gap-8 mt-16 mb-20"
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gridTemplateColumns: "minmax(0, 1fr)", // Single column for mobile
         gap: "2rem", // matches gap-8
         marginTop: "4rem", // matches mt-16
         marginBottom: "5rem", // matches mb-20
@@ -117,9 +117,11 @@ function MenuIcon() {
     >
       <path
         d="M4 6h16M4 12h16M4 18h16"
+        stroke="currentColor"
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
+        fill="none"
       />
     </svg>
   );
