@@ -213,12 +213,34 @@ export default function WikiSearch({
   }, []);
 
   return (
-    <div className={`relative ${className}`}>
-      <div className="flex flex-wrap gap-2 mb-2">
+    <div
+      className={`relative ${className}`}
+      style={{
+        position: "relative",
+        width: "100%",
+      }}
+    >
+      <div
+        className="flex flex-wrap gap-2 mb-2"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.5rem", // matches gap-2
+          marginBottom: "0.5rem", // matches mb-2
+          width: "100%",
+        }}
+      >
         {selectedPages.map((page, index) => (
           <span
             key={index}
             className="flex items-center gap-1 px-2 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.25rem", // matches gap-1
+              padding: "0.5rem 0.25rem", // matches px-2 py-1
+              borderRadius: "0.375rem", // matches rounded-md
+            }}
           >
             {page.title}
             <button
@@ -228,13 +250,22 @@ export default function WikiSearch({
                 removePage(index);
               }}
               className="ml-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+              style={{
+                marginLeft: "0.25rem", // matches ml-1
+              }}
             >
               ×
             </button>
           </span>
         ))}
       </div>
-      <div className="relative">
+      <div
+        className="relative"
+        style={{
+          position: "relative",
+          width: "100%",
+        }}
+      >
         <input
           ref={inputRef}
           type="text"
@@ -244,6 +275,11 @@ export default function WikiSearch({
           onKeyDown={handleKeyDown}
           placeholder={placeholder || "Search Wikipedia or paste URL..."}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+          style={{
+            width: "100%",
+            padding: "0.5rem 1rem", // matches px-4 py-2
+            borderRadius: "0.5rem", // matches rounded-lg
+          }}
         />
         {showDropdown && inputValue.trim() && (
           <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
