@@ -100,14 +100,9 @@ async function generateTimelineUsingGemini(
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
-      temperature: 1,
+      temperature: 0,
       responseMimeType: "application/json",
       responseSchema: TIMELINE_SCHEMA,
-      topP: 0.95,
-      topK: 40,
-      presencePenalty: 0.1,
-      candidateCount: 1,
-      stopSequences: ["```"],
     },
     safetySettings: SAFETY_SETTINGS,
     systemInstruction: SYSTEM_PROMPT
