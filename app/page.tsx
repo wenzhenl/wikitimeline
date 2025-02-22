@@ -15,7 +15,6 @@ export default function HomePage() {
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-        height: "100vh",
       }}
     >
       <HomeNavigation />
@@ -25,8 +24,8 @@ export default function HomePage() {
         style={{
           display: "flex",
           flexDirection: "column",
-          flexGrow: 1,
-          minHeight: 0,
+          flex: "1 0 auto",
+          paddingBottom: "2rem",
         }}
       >
         <div
@@ -47,6 +46,7 @@ export default function HomePage() {
           <HomeFeaturedTimelines />
         </div>
       </main>
+      <HomeFooter />
     </div>
   );
 }
