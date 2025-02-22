@@ -8,7 +8,9 @@ export const TIMELINE_SCHEMA = {
         properties: {
           title: {
             type: SchemaType.STRING,
-            description: "Concise description that states the subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.",
+            description: `Concise description that states the subject's name, years (if known), nationality/background, and primary significance.
+             For events/periods, state what it is and its historical importance.
+             For BCE dates in title, use BCE instead of negative years.`,
           },
           birthDate: {
             type: SchemaType.STRING,
