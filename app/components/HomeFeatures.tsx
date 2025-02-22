@@ -17,16 +17,16 @@ export function HomeFeatures() {
         bgColor="blue"
       />
       <FeatureCard
-        icon={<EyeIcon />}
-        title="Visual Comparison"
-        description="Compare multiple timelines side by side for deeper insights"
+        icon={<MenuIcon />}
+        title="Multiple Pages"
+        description="Compare multiple timelines side by side"
         bgColor="purple"
       />
       <FeatureCard
-        icon={<ShareIcon />}
-        title="Easy Sharing"
-        description="Share your timelines with a simple URL"
-        bgColor="pink"
+        icon={<EyeIcon />}
+        title="Interactive View"
+        description="Zoom, scroll, and explore events interactively"
+        bgColor="green"
       />
     </div>
   );
@@ -36,14 +36,14 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  bgColor: "blue" | "purple" | "pink";
+  bgColor: "blue" | "purple" | "green";
 }
 
 function FeatureCard({ icon, title, description, bgColor }: FeatureCardProps) {
   const gradientMap = {
-    blue: "from-blue-500 to-blue-600",
-    purple: "from-purple-500 to-purple-600",
-    pink: "from-pink-500 to-pink-600",
+    blue: "from-blue-200 to-blue-300",
+    purple: "from-purple-200 to-purple-300",
+    green: "from-green-200 to-green-300",
   };
 
   return (
@@ -57,14 +57,14 @@ function FeatureCard({ icon, title, description, bgColor }: FeatureCardProps) {
       }}
     >
       <div
-        className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-b ${gradientMap[bgColor]} text-white mb-4`}
+        className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-b ${gradientMap[bgColor]} text-gray-700 mb-4`}
         style={{
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           width: "3rem", // matches w-12
           height: "3rem", // matches h-12
-          borderRadius: "0.75rem", // matches rounded-xl
+          borderRadius: "9999px", // matches rounded-full
           marginBottom: "1rem", // matches mb-4
         }}
       >
@@ -98,15 +98,28 @@ function LightningIcon() {
       className="w-6 h-6"
       width="24"
       height="24"
-      fill="none"
-      stroke="currentColor"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg
+      className="w-6 h-6"
+      width="24"
+      height="24"
+      fill="currentColor"
       viewBox="0 0 24 24"
     >
       <path
+        d="M4 6h16M4 12h16M4 18h16"
+        strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13 10V3L4 14h7v7l9-11h-7z"
       />
     </svg>
   );
@@ -133,26 +146,6 @@ function EyeIcon() {
         strokeLinejoin="round"
         strokeWidth={2}
         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-      />
-    </svg>
-  );
-}
-
-function ShareIcon() {
-  return (
-    <svg
-      className="w-6 h-6"
-      width="24"
-      height="24"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
       />
     </svg>
   );
