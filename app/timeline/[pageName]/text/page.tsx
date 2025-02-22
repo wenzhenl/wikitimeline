@@ -112,8 +112,11 @@ export function generateMetadata({ params }: { params: { pageName: string } }) {
     description: `Read the complete historical timeline of ${allPages} in text format. A detailed chronological record of significant events, dates, and historical milestones, sourced from Wikipedia. Perfect for research and historical reference.`,
     keywords: `${allPages} history, ${allPages} chronology, historical events, historical timeline, key dates, historical research, historical record`,
     robots: {
-      index: true,
+      index: false,
       follow: true,
+    },
+    alternates: {
+      canonical: `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`,
     },
     openGraph: {
       title: `Historical Timeline of ${allPages} - Chronological History & Key Events`,
