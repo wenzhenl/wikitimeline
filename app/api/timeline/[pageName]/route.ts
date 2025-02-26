@@ -61,10 +61,69 @@ function calculateAge(birthDate: string, eventDate: string): number | null {
   return eventYear - birthYear;
 }
 
+function filterTimelineOutliers(timeline: Timeline, scaleFactor: number = 20): Timeline {
+  if (!timeline.events || timeline.events.length <= 5) {
+    return timeline; // Not enough events to filter
+  }
+
+  // Convert all dates to numerical years
+  const years = timeline.events.map(event => {
+    const date = event.startDate;
+    const year = parseInt(date.startsWith('-') ? date.slice(1) : date.split('-')[0]) * 
+                (date.startsWith('-') ? -1 : 1);
+    return { year, event };
+  });
+  
+  // Sort by year
+  years.sort((a, b) => a.year - b.year);
+  
+  // Calculate median year
+  const medianYear = years[Math.floor(years.length / 2)].year;
+  
+  // Calculate Median Absolute Deviation (MAD)
+  const deviations = years.map(y => Math.abs(y.year - medianYear));
+  deviations.sort((a, b) => a - b);
+  const medianDeviation = deviations[Math.floor(deviations.length / 2)];
+  
+  // Calculate threshold (adjust scaleFactor to control sensitivity)
+  const threshold = scaleFactor * medianDeviation;
+  
+  logger.info(`Timeline outlier detection: median year=${medianYear}, MAD=${medianDeviation}, threshold=${threshold}`);
+  
+  // Filter events
+  const filteredEvents = timeline.events.filter(event => {
+    const date = event.startDate;
+    const year = parseInt(date.startsWith('-') ? date.slice(1) : date.split('-')[0]) * 
+                (date.startsWith('-') ? -1 : 1);
+    
+    const isWithinThreshold = Math.abs(year - medianYear) <= threshold;
+    
+    if (!isWithinThreshold) {
+      logger.info(`Filtered outlier event: ${year} - ${event.headline}`);
+    }
+    
+    return isWithinThreshold;
+  });
+  
+  logger.info(`Filtered ${timeline.events.length - filteredEvents.length} outlier events out of ${timeline.events.length} total`);
+  
+  return {
+    ...timeline,
+    events: filteredEvents,
+    // Store original event count for reference
+    _meta: {
+      ...(timeline._meta || {}),
+      originalEventCount: timeline.events.length,
+      filteredEventCount: filteredEvents.length
+    }
+  };
+}
+
 function postProcessTimeline(timeline: Timeline): Timeline {
   const isValidDate = (date: string) => !isNaN(new Date(date).getTime());
   const isPerson = timeline.birthDate && isValidDate(timeline.birthDate);
   
+  // Sort and deduplicate events, but don't filter outliers here
   return {
     ...timeline,
     events: timeline.events
@@ -236,6 +295,11 @@ export async function GET(
   const clientType = request.headers.get('x-internal-client-type');
   const genAI = getGeminiClient(clientType);
   
+  // Check if we should filter outliers (default to true)
+  const url = new URL(request.url);
+  const filterOutliers = url.searchParams.get('filterOutliers') !== 'false';
+  const scaleFactor = parseInt(url.searchParams.get('scaleFactor') || '40');
+  
   try {
     // First decode the URL parameters
     const pageNames = decodeURIComponent(params.pageName)
@@ -356,6 +420,23 @@ export async function GET(
         };
       })
     );
+
+    // Apply filtering to the response if requested
+    if (filterOutliers) {
+      Object.keys(timelines).forEach(pageName => {
+        const originalTimeline = timelines[pageName].timeline;
+        // Create a deep copy to avoid modifying the original
+        const filteredTimeline = filterTimelineOutliers({
+          ...originalTimeline,
+          events: [...originalTimeline.events]
+        }, scaleFactor);
+        
+        // Replace with filtered timeline
+        timelines[pageName].timeline = filteredTimeline;
+      });
+      
+      logger.info('Applied outlier filtering to API response');
+    }
 
     const response: TimelineAPIResponse = { timelines };
     const problemPages = [...failedPages, ...noTimelinePages];
