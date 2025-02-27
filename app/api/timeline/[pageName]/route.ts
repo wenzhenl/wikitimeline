@@ -168,42 +168,15 @@ async function generateTimelineIncrementally(
     round++;
     logger.info(`Incremental generation round ${round} of ${maxRounds}`);
     
-    // Combined prompt with system instructions
-    const prompt = `
-      You are a timeline generator that extracts events from provided Wikipedia article content. 
-      Your task is to carefully read through the provided article text and identify ALL events that have associated dates and are directly related to the subject.
-      
+    // Create system instruction based on round number
+    const systemInstruction = getSystemInstruction(round === 1);
+    
+    // Simple user prompt focused only on the article and existing events
+    const userPrompt = `
       Create a timeline for ${JSON.stringify(pageName.trim())}.
       Main content to extract events from: ${JSON.stringify(wikiContent)}
       
       ${allEvents.length > 0 ? `I already have ${allEvents.length} events. Here they are: ${JSON.stringify(allEvents)}` : ''}
-      
-      IMPORTANT INSTRUCTIONS:
-      1. ${allEvents.length > 0 ? 'Continue extracting events that are NOT in the list above.' : 'Extract ALL events with explicit dates.'}
-      2. If you're approaching the output token limit, stop adding events and set "isComplete": false.
-      3. If you've extracted all events with dates from the article, set "isComplete": true.
-      4. Always return valid JSON matching the specified schema.
-      5. Include ALL events with explicit dates, not just the most significant ones.
-      
-      ACCURACY IS THE TOP PRIORITY:
-      - Only extract events that have explicit dates mentioned in the article
-      - For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
-      - Do not include events or dates from your training data - only use what's in the provided article
-      - If a date appears in the text but is ambiguous or seems incorrect, exclude it
-      - If the article contains no dated events, return an empty array and set isComplete to true
-      - For date ranges:
-        * Always create a single event using the start date
-        * Include the end date in the event description
-        * Use clear language like "from [start] to [end]" or "between [start] and [end]"
-      - Always include the full date in the event description for context
-      - Never make up events or dates - only include what's explicitly mentioned in the article
-      
-      Do not include:
-      - Events without clear dates
-      - Events not directly related to the subject
-      - Dates from referenced works or citations
-      - Future dates or predictions
-      - Duplicate events with identical information
     `;
     
     const geminiModel = genAI.getGenerativeModel({ 
@@ -213,12 +186,12 @@ async function generateTimelineIncrementally(
         responseMimeType: "application/json",
         responseSchema: INCREMENTAL_TIMELINE_SCHEMA,
       },
-      safetySettings: SAFETY_SETTINGS
-      // Removed system instruction parameter
+      safetySettings: SAFETY_SETTINGS,
+      systemInstruction: systemInstruction
     });
     
     try {
-      const result = await geminiModel.generateContent(prompt);
+      const result = await geminiModel.generateContent(userPrompt);
       const response = result.response;
       
       // Check if response was truncated
@@ -289,6 +262,71 @@ async function generateTimelineIncrementally(
   
   // Post-process the timeline
   return postProcessTimeline(timeline);
+}
+
+// Helper function to get the appropriate system instruction based on round
+function getSystemInstruction(isFirstRound: boolean): string {
+  return `
+You are a timeline generator that extracts events from provided Wikipedia article content. 
+Your task is to carefully read through the provided article text and identify ALL events that have associated dates and are directly related to the subject.
+
+Output JSONFormat:
+{
+  "timelineFragment": {
+    ${isFirstRound ? `"title": "Concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance. For BCE dates, use BCE instead of negative years.",
+    "birthDate": "Birth date (YYYY-MM-DD, YYYY, or YYYY-MM format) if subject is a person and date is known",
+    "deathDate": "Death date (YYYY-MM-DD, YYYY, or YYYY-MM format) if applicable",` : ''}
+    "events": [
+      {
+        "headline": "Concise, self-contained title describing the event",
+        "description": "Clear, concise 1-2 sentence summary that provides context without relying on other events. Avoid direct Wikipedia quotes.",
+        "startDate": "Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)",
+        "endDate": "Optional end date for ranges, using same format as startDate"
+      }
+    ],
+    "isComplete": true/false
+  }
+}
+
+IMPORTANT INSTRUCTIONS FOR INCREMENTAL GENERATION:
+1. ${isFirstRound ? 'Extract ALL events with explicit dates from the article.' : 'Continue extracting events that are NOT in the list provided in the prompt.'}
+2. If you're approaching the output token limit, stop adding events and set "isComplete": false.
+3. If you've extracted all possible events with dates from the article, set "isComplete": true.
+4. Always return valid JSON matching the specified schema, even if you need to truncate your response.
+5. Include ALL events with explicit dates, regardless of their perceived importance.
+
+ACCURACY IS THE TOP PRIORITY:
+- Only extract events that have explicit dates mentioned in the article
+- For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
+- Do not include events or dates from your training data - only use what's in the provided article
+- If a date appears in the text but is ambiguous or seems incorrect, exclude it
+- If the article contains no dated events, return an empty array and set isComplete to true
+- For date ranges:
+  * Always create a single event using the start date
+  * Include the end date in the event description
+  * Use clear language like "from [start] to [end]" or "between [start] and [end]"
+- Always include the full date in the event description for context
+- Never make up events or dates - only include what's explicitly mentioned in the article
+
+EXTRACT ALL EVENTS WITH DATES:
+- Do not filter events based on importance or significance
+- Include every event that has an explicit date, even if it seems minor
+- Life events (birth, death, marriages, etc.)
+- Career milestones
+- Accomplishments and achievements
+- Historical events
+- Publication or release dates
+- Any other dated events directly involving the subject
+
+Do not include:
+- Events without clear dates
+- Events not directly related to the subject
+- Dates from referenced works or citations
+- Future dates or predictions
+- Duplicate events with identical information
+
+${isFirstRound ? 'For the first round, make sure to include title, birthDate, and deathDate if available in the article.' : 'For this continuation round, focus only on extracting new events not already in the provided list.'}
+`;
 }
 
 // Cache the wiki summary
