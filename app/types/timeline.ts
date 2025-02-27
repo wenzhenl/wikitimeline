@@ -14,11 +14,6 @@ export interface Timeline {
   isDead?: boolean;
   lastUpdatedAt?: number; // Unix timestamp in milliseconds
   version?: string;
-  _meta?: {
-    originalEventCount?: number;
-    filteredEventCount?: number;
-    [key: string]: any;
-  };
 }
 
 export interface WikiSummary {
