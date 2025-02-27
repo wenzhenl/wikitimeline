@@ -233,10 +233,10 @@ function attemptToRepairTruncatedJSON(jsonString: string): any {
   }
 }
 
-// Add this constant for chunk size
-const MAX_CHUNK_SIZE = 8000; // Approximately 90% of max output token limit
+// Add this constant for chunk size - using a more appropriate token-to-character ratio
+const MAX_CHUNK_SIZE = 24000; // Approximately 8000 tokens (assuming ~3 chars per token on average)
 
-// Improved function to split content into chunks with better boundary detection
+// Improved function to split content into chunks with better token estimation
 function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUNK_SIZE): string[] {
   if (!content || content.length === 0) {
     return [''];
@@ -256,12 +256,12 @@ function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUN
     
     // Try to find a paragraph break near the end position
     const paragraphBreak = content.lastIndexOf('\n\n', endPos);
-    if (paragraphBreak > startPos && paragraphBreak > endPos - 500) {
+    if (paragraphBreak > startPos && paragraphBreak > endPos - 1500) {
       endPos = paragraphBreak + 2; // Include the newlines
     } else {
       // If no paragraph break, try to find a sentence end
       const sentenceBreak = content.lastIndexOf('. ', endPos);
-      if (sentenceBreak > startPos && sentenceBreak > endPos - 200) {
+      if (sentenceBreak > startPos && sentenceBreak > endPos - 600) {
         endPos = sentenceBreak + 2; // Include the period and space
       }
     }
@@ -271,7 +271,11 @@ function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUN
     startPos = endPos;
   }
   
-  logger.info(`Split content into ${chunks.length} chunks (avg size: ${Math.round(content.length / chunks.length)} chars)`);
+  // Log chunk information
+  const avgChunkSize = Math.round(content.length / chunks.length);
+  const estimatedTokens = Math.round(avgChunkSize / 3); // Rough estimate: ~3 chars per token
+  logger.info(`Split content into ${chunks.length} chunks (avg size: ${avgChunkSize} chars, ~${estimatedTokens} tokens per chunk)`);
+  
   return chunks;
 }
 
