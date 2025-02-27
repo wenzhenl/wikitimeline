@@ -6,7 +6,7 @@ import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent }
 import { MIN_NUM_EVENTS_FOR_TIMELINE, PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
-import { INCREMENTAL_TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
+import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
 import { CURRENT_PROMPT_VERSION } from "@/app/constants/gemini";
@@ -184,7 +184,7 @@ async function generateTimelineIncrementally(
       generationConfig: {
         temperature: 0,
         responseMimeType: "application/json",
-        responseSchema: INCREMENTAL_TIMELINE_SCHEMA,
+        responseSchema: TIMELINE_SCHEMA,
       },
       safetySettings: SAFETY_SETTINGS,
       systemInstruction: systemInstruction
@@ -201,12 +201,12 @@ async function generateTimelineIncrementally(
       
       const data = JSON.parse(response.text());
       
-      // Extract the timelineFragment
-      const fragment = data.timelineFragment;
+      // Extract the timeline data
+      const fragment = data.timeline;
       
       // Save metadata from the first round
       if (round === 1) {
-        title = fragment.title;
+        title = fragment.title || pageName;
         birthDate = fragment.birthDate;
         deathDate = fragment.deathDate;
       }
@@ -219,7 +219,7 @@ async function generateTimelineIncrementally(
       const uniqueNewEvents = newEvents.filter((event: TimelineEvent) => !existingHeadlines.has(event.headline));
       
       allEvents = [...allEvents, ...uniqueNewEvents];
-      isComplete = fragment.isComplete;
+      isComplete = fragment.isComplete || false;
       
       logger.info(`Round ${round}: Added ${uniqueNewEvents.length} events (${newEvents.length - uniqueNewEvents.length} duplicates filtered). Total: ${allEvents.length}. Complete: ${isComplete}`);
       
@@ -272,7 +272,7 @@ Your task is to carefully read through the provided article text and identify AL
 
 Output JSONFormat:
 {
-  "timelineFragment": {
+  "timeline": {
     ${isFirstRound ? `"title": "Concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance. For BCE dates, use BCE instead of negative years.",
     "birthDate": "Birth date (YYYY-MM-DD, YYYY, or YYYY-MM format) if subject is a person and date is known",
     "deathDate": "Death date (YYYY-MM-DD, YYYY, or YYYY-MM format) if applicable",` : ''}
