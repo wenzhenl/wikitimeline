@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent } from '@/app/types/timeline';
+import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, WikiSummary } from '@/app/types/timeline';
 import { MIN_NUM_EVENTS_FOR_TIMELINE, PAGE_DELIMITER } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
@@ -108,447 +108,283 @@ function filterTimelineOutliers(timeline: Timeline, scaleFactor: number = 20): T
   };
 }
 
+// Enhanced post-processing function to handle events from multiple chunks
 function postProcessTimeline(timeline: Timeline): Timeline {
-  const isValidDate = (date: string) => !isNaN(new Date(date).getTime());
-  const isPerson = timeline.birthDate && isValidDate(timeline.birthDate);
-  
-  // Sort and deduplicate events, but don't filter outliers here
-  return {
-    ...timeline,
-    events: timeline.events
-      .sort((a, b) => compareDates(a.startDate, b.startDate))
-      .filter((event, index, self) => 
-        index === self.findIndex(e => 
-          e.startDate === event.startDate && 
-          e.headline === event.headline
-        )
-      )
-      .map(event => {
-        if (isPerson && timeline.birthDate) {
-          const age = calculateAge(timeline.birthDate, event.startDate);
-          if (age !== null && age >= 0) {
-            if (!timeline.deathDate || compareDates(event.startDate, timeline.deathDate) <= 0) {
-              return { ...event, age };
-            }
+  if (!timeline || !timeline.events || timeline.events.length === 0) {
+    return {
+      ...timeline,
+      events: [],
+      version: CURRENT_PROMPT_VERSION
+    };
+  }
+
+  // Sort events by date
+  const sortedEvents = [...timeline.events].sort((a, b) => {
+    const aDate = a.startDate || '';
+    const bDate = b.startDate || '';
+    return aDate.localeCompare(bDate);
+  });
+
+  // Deduplicate events - more robust approach for events from multiple chunks
+  const uniqueEvents: TimelineEvent[] = [];
+  const seenHeadlines = new Set<string>();
+  const seenDateHeadlinePairs = new Set<string>();
+
+  for (const event of sortedEvents) {
+    // Skip events without a start date
+    if (!event.startDate) continue;
+
+    // Create a unique key combining date and headline
+    const dateHeadlineKey = `${event.startDate}|${event.headline}`;
+    
+    // Check for exact duplicates (same date and headline)
+    if (seenDateHeadlinePairs.has(dateHeadlineKey)) {
+      continue;
+    }
+    
+    // Check for similar headlines (fuzzy matching)
+    let isDuplicate = false;
+    if (seenHeadlines.has(event.headline)) {
+      // If we've seen this exact headline before, check if the dates are close
+      for (const existingEvent of uniqueEvents) {
+        if (existingEvent.headline === event.headline) {
+          // If dates are within 1 year, consider it a duplicate
+          const existingDate = new Date(existingEvent.startDate);
+          const currentDate = new Date(event.startDate);
+          const diffInDays = Math.abs((existingDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (diffInDays < 365) {
+            isDuplicate = true;
+            break;
           }
         }
-        return event;
-      }),
-    lastUpdatedAt: Date.now(),
-    isDead: Boolean(timeline.deathDate && compareDates(timeline.deathDate, new Date().toISOString().split('T')[0]) <= 0),
-    version: CURRENT_PROMPT_VERSION
-  };
-}
-
-// Add this function near the top of the file, after the imports
-function attemptToRepairTruncatedJSON(jsonString: string): any {
-  try {
-    // First try to parse as is
-    return JSON.parse(jsonString);
-  } catch (error) {
-    logger.warn(`JSON parsing failed: ${(error as Error).message}`);
-    logger.debug(`Attempting to repair truncated JSON of length ${jsonString.length}`);
-    
-    // Try to find the last complete event object
-    const timelineMatch = jsonString.match(/"timeline"\s*:\s*{/);
-    if (!timelineMatch) {
-      logger.error('Could not find timeline object in JSON');
-      throw new Error('Could not find timeline object in JSON');
-    }
-    
-    // Find the events array
-    const eventsMatch = jsonString.match(/"events"\s*:\s*\[/);
-    if (!eventsMatch) {
-      logger.warn('No events array found, returning minimal JSON');
-      const minimalJSON = '{"timeline":{"events":[],"isComplete":false}}';
-      return JSON.parse(minimalJSON);
-    }
-    
-    // Find the position of the events array
-    const eventsStartPos = eventsMatch.index! + eventsMatch[0].length;
-    
-    // Extract the content up to the events array start
-    const preEventsContent = jsonString.substring(0, eventsStartPos);
-    
-    // Find all complete event objects
-    const eventObjects = [];
-    let bracketCount = 0;
-    let squareBracketCount = 0;
-    let inQuotes = false;
-    let escapeNext = false;
-    let currentEventStart = eventsStartPos;
-    let insideEvent = false;
-    
-    for (let i = eventsStartPos; i < jsonString.length; i++) {
-      const char = jsonString[i];
-      
-      if (escapeNext) {
-        escapeNext = false;
-        continue;
       }
-      
-      if (char === '\\') {
-        escapeNext = true;
-        continue;
-      }
-      
-      if (char === '"' && !escapeNext) {
-        inQuotes = !inQuotes;
-        continue;
-      }
-      
-      if (!inQuotes) {
-        if (char === '{') {
-          bracketCount++;
-          if (bracketCount === 1 && squareBracketCount === 0) {
-            currentEventStart = i;
-            insideEvent = true;
-          }
-        } else if (char === '}') {
-          bracketCount--;
-          if (bracketCount === 0 && insideEvent) {
-            // We found a complete event object
-            const eventObj = jsonString.substring(currentEventStart, i + 1);
-            try {
-              // Verify it's valid JSON
-              JSON.parse(eventObj);
-              eventObjects.push(eventObj);
-              insideEvent = false;
-            } catch (e) {
-              // Skip invalid event objects
-              logger.debug(`Skipping invalid event object: ${eventObj.substring(0, 50)}...`);
-              insideEvent = false;
-            }
-          }
-        } else if (char === '[') {
-          squareBracketCount++;
-        } else if (char === ']') {
-          squareBracketCount--;
-          // If we found the end of the events array, we're done
-          if (squareBracketCount === -1 && !insideEvent) {
+    } else {
+      // Check for similar headlines with different wording
+      for (const existingEvent of uniqueEvents) {
+        // If dates are exactly the same, check for similar headlines
+        if (existingEvent.startDate === event.startDate) {
+          // Simple similarity check - if headlines share significant words
+          const existingWords = new Set(existingEvent.headline.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+          const currentWords = event.headline.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+          
+          // If more than 50% of significant words match, consider it a duplicate
+          const matchingWords = currentWords.filter(word => existingWords.has(word));
+          if (matchingWords.length > 0 && matchingWords.length / currentWords.length > 0.5) {
+            isDuplicate = true;
             break;
           }
         }
       }
     }
     
-    logger.info(`Found ${eventObjects.length} complete event objects during JSON repair`);
+    if (!isDuplicate) {
+      uniqueEvents.push(event);
+      seenHeadlines.add(event.headline);
+      seenDateHeadlinePairs.add(dateHeadlineKey);
+    }
+  }
+
+  // Add age information for person timelines
+  if (timeline.birthDate) {
+    const birthYear = parseInt(timeline.birthDate.substring(0, 4));
+    if (!isNaN(birthYear)) {
+      uniqueEvents.forEach(event => {
+        const eventYear = parseInt(event.startDate.substring(0, 4));
+        if (!isNaN(eventYear)) {
+          const age = eventYear - birthYear;
+          if (age >= 0) {
+            event.description = `${event.description} (Age: ${age})`;
+          }
+        }
+      });
+    }
+  }
+
+  // Return the processed timeline with version
+  return {
+    ...timeline,
+    events: uniqueEvents,
+    version: CURRENT_PROMPT_VERSION
+  };
+}
+
+// Enhanced JSON repair function to handle truncated responses from any chunk
+function attemptToRepairTruncatedJSON(jsonString: string): any {
+  try {
+    // First try to parse as-is
+    return JSON.parse(jsonString);
+  } catch (error) {
+    logger.warn('JSON parsing failed, attempting repair');
     
-    // Construct a valid JSON with the complete events
-    let repairedJSON;
+    // Try to find the last complete event
+    const timelineMatch = jsonString.match(/"timeline"\s*:\s*{/);
+    const eventsMatch = jsonString.match(/"events"\s*:\s*\[/);
     
-    // Check if we found the end of the events array
-    if (jsonString.indexOf('],"isComplete"') > eventsStartPos) {
-      // Try to extract the complete JSON structure
-      const endOfEventsArray = jsonString.indexOf('],"isComplete"');
-      const postEventsContent = jsonString.substring(endOfEventsArray);
-      
-      // Check if we have a complete closing structure
-      if (postEventsContent.includes('}}')) {
-        repairedJSON = `${preEventsContent}${eventObjects.join(',')}${postEventsContent}`;
-        logger.debug('Using complete JSON structure with post-events content');
-      } else {
-        repairedJSON = `${preEventsContent}${eventObjects.join(',')}],"isComplete":false}}`;
-        logger.debug('Using partial JSON structure with manually added closing');
-      }
-    } else {
-      repairedJSON = `${preEventsContent}${eventObjects.join(',')}],"isComplete":false}}`;
-      logger.debug('Using basic JSON structure with manually added closing');
+    if (!timelineMatch || !eventsMatch) {
+      logger.error('Could not find timeline or events array in truncated JSON');
+      throw new Error('JSON repair failed: missing timeline or events structure');
     }
     
+    // Extract what we can from the truncated JSON
+    let repairedJSON = '{"timeline":{"events":[]}}';
+    
     try {
-      const result = JSON.parse(repairedJSON);
-      logger.info(`Successfully repaired JSON with ${result.timeline.events.length} events`);
-      return result;
-    } catch (e) {
-      // If repair failed, try a simpler approach
-      logger.error(`Complex JSON repair failed: ${(e as Error).message}`);
+      // Try to extract title, birthDate, and deathDate if present
+      const titleMatch = jsonString.match(/"title"\s*:\s*"([^"]+)"/);
+      const birthDateMatch = jsonString.match(/"birthDate"\s*:\s*"([^"]+)"/);
+      const deathDateMatch = jsonString.match(/"deathDate"\s*:\s*"([^"]+)"/);
       
-      try {
-        // Just extract the events and create a minimal structure
-        const validEvents = eventObjects.filter(eventStr => {
-          try {
-            JSON.parse(eventStr);
-            return true;
-          } catch {
-            return false;
-          }
-        });
-        
-        const simpleJSON = `{"timeline":{"events":[${validEvents.join(',')}],"isComplete":false}}`;
-        const result = JSON.parse(simpleJSON);
-        logger.info(`Fallback repair successful with ${result.timeline.events.length} events`);
-        return result;
-      } catch (e2) {
-        // If all else fails, return minimal valid JSON
-        logger.error(`All JSON repair attempts failed: ${(e2 as Error).message}`);
-        return JSON.parse('{"timeline":{"events":[],"isComplete":false}}');
+      // Start building a valid JSON object
+      let timelineObj: any = { events: [] };
+      
+      if (titleMatch && titleMatch[1]) {
+        timelineObj.title = titleMatch[1];
       }
+      
+      if (birthDateMatch && birthDateMatch[1]) {
+        timelineObj.birthDate = birthDateMatch[1];
+      }
+      
+      if (deathDateMatch && deathDateMatch[1]) {
+        timelineObj.deathDate = deathDateMatch[1];
+      }
+      
+      // Extract complete events
+      const eventRegex = /{[^{]*?"headline"\s*:\s*"[^"]+?"[^{]*?"description"\s*:\s*"[^"]+?"[^{]*?"startDate"\s*:\s*"[^"]+?"[^{}]*?}/g;
+      const eventMatches = jsonString.match(eventRegex) || [];
+      
+      const events = [];
+      for (const eventStr of eventMatches) {
+        try {
+          // Try to parse each event
+          const event = JSON.parse(eventStr);
+          if (event.headline && event.startDate) {
+            events.push(event);
+          }
+        } catch (e) {
+          // Skip this event if it can't be parsed
+          continue;
+        }
+      }
+      
+      timelineObj.events = events;
+      timelineObj.isComplete = false; // Mark as incomplete since we had to repair
+      
+      repairedJSON = JSON.stringify({ timeline: timelineObj });
+      logger.info(`Repaired JSON with ${events.length} complete events`);
+      
+      return JSON.parse(repairedJSON);
+    } catch (repairError) {
+      logger.error('JSON repair attempt failed:', repairError);
+      throw new Error('Failed to repair truncated JSON');
     }
   }
 }
 
-// Add this function to split content into chunks
-function splitContentIntoChunks(content: string, maxChunks: number = 3): string[] {
+// Add this constant for chunk size
+const MAX_CHUNK_SIZE = 8000; // Approximately 90% of max output token limit
+
+// Improved function to split content into chunks with better boundary detection
+function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUNK_SIZE): string[] {
   if (!content || content.length === 0) {
     return [''];
   }
   
   // If content is small enough, return it as a single chunk
-  if (content.length < 10000 || maxChunks <= 1) {
+  if (content.length < maxChunkSize) {
     return [content];
   }
   
-  const chunkSize = Math.ceil(content.length / maxChunks);
   const chunks: string[] = [];
-  
-  // Try to split at paragraph boundaries
   let startPos = 0;
-  for (let i = 1; i < maxChunks; i++) {
-    const targetPos = i * chunkSize;
+  
+  while (startPos < content.length) {
+    // Calculate end position for this chunk
+    let endPos = Math.min(startPos + maxChunkSize, content.length);
     
-    // Look for paragraph breaks near the target position
-    let breakPos = content.indexOf('\n\n', targetPos - 500);
-    if (breakPos === -1 || breakPos > targetPos + 500) {
-      // If no paragraph break found, look for sentence end
-      breakPos = content.indexOf('. ', targetPos - 200);
-      if (breakPos === -1 || breakPos > targetPos + 200) {
-        // If no good break found, just split at the target position
-        breakPos = targetPos;
-      } else {
-        breakPos += 2; // Include the period and space
-      }
+    // Try to find a paragraph break near the end position
+    const paragraphBreak = content.lastIndexOf('\n\n', endPos);
+    if (paragraphBreak > startPos && paragraphBreak > endPos - 500) {
+      endPos = paragraphBreak + 2; // Include the newlines
     } else {
-      breakPos += 2; // Include the newlines
+      // If no paragraph break, try to find a sentence end
+      const sentenceBreak = content.lastIndexOf('. ', endPos);
+      if (sentenceBreak > startPos && sentenceBreak > endPos - 200) {
+        endPos = sentenceBreak + 2; // Include the period and space
+      }
     }
     
-    chunks.push(content.substring(startPos, breakPos));
-    startPos = breakPos;
+    // Add the chunk
+    chunks.push(content.substring(startPos, endPos));
+    startPos = endPos;
   }
   
-  // Add the last chunk
-  chunks.push(content.substring(startPos));
-  
+  logger.info(`Split content into ${chunks.length} chunks (avg size: ${Math.round(content.length / chunks.length)} chars)`);
   return chunks;
 }
 
+// Modified function to generate timeline using parallel chunk processing
 async function generateTimeline(
   pageName: string, 
-  wikiContent: string, 
+  wikiContent: string,
+  wikiSummary: string, 
   genAI: GoogleGenerativeAI
 ): Promise<Timeline | null> {
-  // Only use the incremental approach
-  return generateTimelineIncrementally(pageName, wikiContent, genAI);
-}
-
-async function generateTimelineIncrementally(
-  pageName: string,
-  wikiContent: string,
-  genAI: GoogleGenerativeAI,
-  maxRounds: number = 3
-): Promise<Timeline> {
+  // Split content into chunks
+  const contentChunks = splitContentIntoChunks(wikiContent);
+  logger.info(`Processing ${contentChunks.length} chunks for ${pageName}`);
+  
+  // Process all chunks in parallel
+  const chunkResults = await Promise.all(
+    contentChunks.map((chunk, index) => 
+      processChunk(pageName, chunk, wikiSummary, index, contentChunks.length, genAI)
+    )
+  );
+  
+  // Collect all events and metadata
   let allEvents: TimelineEvent[] = [];
-  let isComplete = false;
-  let round = 0;
   let title = pageName;
   let birthDate: string | undefined;
   let deathDate: string | undefined;
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
-  let contentChunks = [wikiContent];
-  let currentChunkIndex = 0;
-  let truncationOccurred = false;
-  let consecutiveTruncations = 0;
   
-  logger.info(`Starting incremental timeline generation for ${pageName}`);
-  
-  while (!isComplete && round < maxRounds) {
-    round++;
-    logger.info(`Incremental generation round ${round} of ${maxRounds}`);
-    
-    // Get the current content chunk
-    let contentChunk = contentChunks[currentChunkIndex];
-    
-    // If truncation occurred in the previous round, try different strategies
-    if (truncationOccurred) {
-      consecutiveTruncations++;
-      
-      if (consecutiveTruncations === 1) {
-        // On first truncation, try reducing the current chunk size
-        if (contentChunk.length > 5000) {
-          const newLength = Math.floor(contentChunk.length * 0.7); // Reduce by 30%
-          contentChunk = contentChunk.substring(0, newLength);
-          contentChunks[currentChunkIndex] = contentChunk;
-          logger.info(`Reduced content size to ${contentChunk.length} characters due to truncation`);
-        }
-      } else if (consecutiveTruncations === 2) {
-        // On second truncation, try splitting the content into multiple chunks
-        if (contentChunks.length === 1 && contentChunk.length > 10000) {
-          contentChunks = splitContentIntoChunks(wikiContent);
-          currentChunkIndex = 0;
-          contentChunk = contentChunks[currentChunkIndex];
-          logger.info(`Split content into ${contentChunks.length} chunks due to persistent truncation`);
-        }
-      } else {
-        // On third or more truncation, move to the next chunk if available
-        if (currentChunkIndex < contentChunks.length - 1) {
-          currentChunkIndex++;
-          contentChunk = contentChunks[currentChunkIndex];
-          logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length})`);
-          consecutiveTruncations = 0; // Reset counter for the new chunk
-        } else if (contentChunk.length > 3000) {
-          // If we're already at the last chunk, reduce size more aggressively
-          const newLength = Math.floor(contentChunk.length * 0.5); // Reduce by 50%
-          contentChunk = contentChunk.substring(0, newLength);
-          contentChunks[currentChunkIndex] = contentChunk;
-          logger.info(`Aggressively reduced content size to ${contentChunk.length} characters due to persistent truncation`);
-        } else {
-          logger.warn(`Content already reduced to ${contentChunk.length} characters, cannot reduce further`);
-        }
-      }
-      
-      truncationOccurred = false;
+  // Process results from all chunks
+  chunkResults.forEach((result, index) => {
+    if (!result) {
+      logger.warn(`Chunk ${index + 1}/${contentChunks.length} returned no results`);
+      return;
     }
     
-    // Create system instruction based on round number
-    const systemInstruction = getSystemInstruction(round === 1);
+    // Add events from this chunk
+    allEvents = [...allEvents, ...result.events];
     
-    // Simple user prompt focused only on the article and existing events
-    const userPrompt = `
-      Create a timeline for ${JSON.stringify(pageName.trim())}.
-      Main content to extract events from: ${JSON.stringify(contentChunk)}
-      ${contentChunks.length > 1 ? `(This is part ${currentChunkIndex + 1} of ${contentChunks.length})` : ''}
-      
-      ${allEvents.length > 0 ? `I already have ${allEvents.length} events. Here they are: ${JSON.stringify(allEvents)}` : ''}
-      
-      ${consecutiveTruncations > 0 ? 'IMPORTANT: Keep your response concise to avoid truncation. Extract only the most important events.' : ''}
-    `;
-    
-    const geminiModel = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      generationConfig: {
-        temperature: 0,
-        responseMimeType: "application/json",
-        responseSchema: TIMELINE_SCHEMA,
-      },
-      safetySettings: SAFETY_SETTINGS,
-      systemInstruction: systemInstruction
-    });
-    
-    try {
-      const result = await geminiModel.generateContent(userPrompt);
-      const response = result.response;
-      
-      // Log token usage for this round - safely access properties that might not exist
-      const usageMetadata = response.usageMetadata;
-      const inputTokens = usageMetadata?.promptTokenCount || 0;
-      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
-      totalInputTokens += inputTokens;
-      totalOutputTokens += outputTokens;
-      
-      logger.debug(`Round ${round} token usage: ${inputTokens} input tokens, ${outputTokens} output tokens`);
-      
-      // Check if response was truncated
-      const wasMaxTokensReached = response.candidates?.[0]?.finishReason === 'MAX_TOKENS';
-      if (wasMaxTokensReached) {
-        logger.warn(`MAX_TOKENS reached in round ${round}, attempting to repair truncated JSON`);
-        truncationOccurred = true;
-      }
-      
-      // Use the repair function to handle potentially truncated JSON
-      let data;
-      try {
-        data = attemptToRepairTruncatedJSON(response.text());
-        logger.info(`Successfully parsed JSON response${truncationOccurred ? ' after repair' : ''}`);
-      } catch (error) {
-        logger.error(`Failed to parse JSON response: ${error}`);
-        
-        // If we have events already, continue with what we have
-        if (allEvents.length > 0) {
-          logger.info(`Continuing with ${allEvents.length} events collected so far`);
-          isComplete = true; // Force completion
-          break;
-        } else if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
-          // If we have multiple chunks and this one failed, try the next chunk
-          currentChunkIndex++;
-          logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length}) after parse failure`);
-          continue;
-        } else {
-          throw error; // Propagate error if we have no events yet and no more chunks
-        }
-      }
-      
-      // Extract the timeline data
-      const fragment = data.timeline;
-      
-      // Save metadata from the first round
-      if (round === 1) {
-        title = fragment.title || pageName;
-        birthDate = fragment.birthDate;
-        deathDate = fragment.deathDate;
-      }
-      
-      // Add new events to our collection
-      const newEvents = fragment.events || [];
-      
-      // Deduplicate events before adding
-      const existingHeadlines = new Set(allEvents.map(e => e.headline));
-      const uniqueNewEvents = newEvents.filter((event: TimelineEvent) => !existingHeadlines.has(event.headline));
-      
-      allEvents = [...allEvents, ...uniqueNewEvents];
-      
-      // If we have multiple chunks, only mark as complete when we've processed all chunks
-      if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
-        isComplete = false;
-        currentChunkIndex++; // Move to next chunk
-        logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length})`);
-      } else {
-        isComplete = truncationOccurred ? false : (fragment.isComplete || false);
-      }
-      
-      logger.info(`Round ${round}: Added ${uniqueNewEvents.length} events (${newEvents.length - uniqueNewEvents.length} duplicates filtered). Total: ${allEvents.length}. Complete: ${isComplete}`);
-      
-      // If no new events were added and we're not complete, something might be wrong
-      if (uniqueNewEvents.length === 0 && !isComplete && round < maxRounds) {
-        if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
-          // If we have multiple chunks and this one didn't add events, try the next chunk
-          currentChunkIndex++;
-          logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length}) after no new events`);
-        } else {
-          logger.warn(`No new events added in round ${round}, but isComplete is false. Continuing anyway.`);
-        }
-      }
-      
-      // If we have a lot of events already, we might want to stop early
-      if (allEvents.length > 100) {
-        logger.info(`Already have ${allEvents.length} events, marking as complete to avoid excessive processing`);
-        isComplete = true;
-      }
-    } catch (error) {
-      logger.error(`Error in incremental generation round ${round}:`, error);
-      
-      // If we have some events already, we'll return what we have
-      if (allEvents.length > 0) {
-        logger.info(`Returning ${allEvents.length} events collected so far despite error`);
-        isComplete = true; // Force completion
-      } else if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
-        // If we have multiple chunks and this one failed, try the next chunk
-        currentChunkIndex++;
-        logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length}) after error`);
-        continue;
-      } else {
-        // If first round failed completely and we have no more chunks, propagate the error
-        throw error;
-      }
+    // Take metadata from first chunk that has it
+    if (result.title && title === pageName) {
+      title = result.title;
     }
-  }
+    
+    if (result.birthDate && !birthDate) {
+      birthDate = result.birthDate;
+    }
+    
+    if (result.deathDate && !deathDate) {
+      deathDate = result.deathDate;
+    }
+    
+    // Add token usage
+    totalInputTokens += result.inputTokens || 0;
+    totalOutputTokens += result.outputTokens || 0;
+  });
   
-  // Log total token usage for all rounds
+  // Log token usage
   logger.debug(`Total token usage for ${pageName}: ${totalInputTokens} input tokens, ${totalOutputTokens} output tokens, ${totalInputTokens + totalOutputTokens} total tokens`);
   
-  // If we've reached max rounds but aren't complete, log a warning
-  if (!isComplete && round >= maxRounds) {
-    logger.warn(`Reached maximum rounds (${maxRounds}) without completing timeline. Returning ${allEvents.length} events.`);
+  // If no events were found, return null
+  if (allEvents.length === 0) {
+    logger.warn(`No events found for ${pageName} across all chunks`);
+    return null;
   }
   
   // Construct the final timeline
@@ -559,12 +395,99 @@ async function generateTimelineIncrementally(
     events: allEvents,
   };
   
-  // Post-process the timeline
+  // Post-process the timeline (sorts, deduplicates, and adds ages)
   return postProcessTimeline(timeline);
 }
 
-// Helper function to get the appropriate system instruction based on round
-function getSystemInstruction(isFirstRound: boolean): string {
+// New function to process a single chunk
+async function processChunk(
+  pageName: string,
+  chunkContent: string,
+  wikiSummary: string,
+  chunkIndex: number,
+  totalChunks: number,
+  genAI: GoogleGenerativeAI
+): Promise<{
+  events: TimelineEvent[];
+  title?: string;
+  birthDate?: string;
+  deathDate?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+} | null> {
+  logger.info(`Processing chunk ${chunkIndex + 1}/${totalChunks} for ${pageName}`);
+  
+  // Create system instruction based on whether this is the first chunk
+  const systemInstruction = getSystemInstruction(chunkIndex === 0);
+  
+  // Combine summary with chunk content
+  const contentWithSummary = `SUMMARY: ${wikiSummary}\n\nCHUNK CONTENT (${chunkIndex + 1}/${totalChunks}): ${chunkContent}`;
+  
+  // Create user prompt
+  const userPrompt = `
+    Create a timeline for ${JSON.stringify(pageName.trim())}.
+    Extract events with dates from the following content:
+    ${JSON.stringify(contentWithSummary)}
+  `;
+  
+  const geminiModel = genAI.getGenerativeModel({ 
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      temperature: 0,
+      responseMimeType: "application/json",
+      responseSchema: TIMELINE_SCHEMA,
+    },
+    safetySettings: SAFETY_SETTINGS,
+    systemInstruction: systemInstruction
+  });
+  
+  try {
+    const result = await geminiModel.generateContent(userPrompt);
+    const response = result.response;
+    
+    // Log token usage
+    const usageMetadata = response.usageMetadata;
+    const inputTokens = usageMetadata?.promptTokenCount || 0;
+    const outputTokens = usageMetadata?.candidatesTokenCount || 0;
+    
+    logger.debug(`Chunk ${chunkIndex + 1} token usage: ${inputTokens} input tokens, ${outputTokens} output tokens`);
+    
+    // Check if response was truncated
+    const wasMaxTokensReached = response.candidates?.[0]?.finishReason === 'MAX_TOKENS';
+    if (wasMaxTokensReached) {
+      logger.warn(`MAX_TOKENS reached in chunk ${chunkIndex + 1}, attempting to repair truncated JSON`);
+    }
+    
+    // Use the repair function to handle potentially truncated JSON
+    let data;
+    try {
+      data = attemptToRepairTruncatedJSON(response.text());
+      logger.info(`Successfully parsed JSON response from chunk ${chunkIndex + 1}${wasMaxTokensReached ? ' after repair' : ''}`);
+    } catch (error) {
+      logger.error(`Failed to parse JSON response from chunk ${chunkIndex + 1}: ${error}`);
+      return null;
+    }
+    
+    // Extract the timeline data
+    const fragment = data.timeline;
+    
+    // Return events and metadata from this chunk
+    return {
+      events: fragment.events || [],
+      title: fragment.title,
+      birthDate: fragment.birthDate,
+      deathDate: fragment.deathDate,
+      inputTokens,
+      outputTokens
+    };
+  } catch (error) {
+    logger.error(`Error processing chunk ${chunkIndex + 1}/${totalChunks}:`, error);
+    return null;
+  }
+}
+
+// Helper function to get the appropriate system instruction based on chunk index
+function getSystemInstruction(isFirstChunk: boolean): string {
   return `
 You are a timeline generator that extracts events from provided Wikipedia article content. 
 Your task is to carefully read through the provided article text and identify ALL events that have associated dates and are directly related to the subject.
@@ -572,7 +495,7 @@ Your task is to carefully read through the provided article text and identify AL
 Output JSONFormat:
 {
   "timeline": {
-    ${isFirstRound ? `"title": "Concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance. For BCE dates, use BCE instead of negative years.",
+    ${isFirstChunk ? `"title": "Concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance. For BCE dates, use BCE instead of negative years.",
     "birthDate": "Birth date (YYYY-MM-DD, YYYY, or YYYY-MM format) if subject is a person and date is known",
     "deathDate": "Death date (YYYY-MM-DD, YYYY, or YYYY-MM format) if applicable",` : ''}
     "events": [
@@ -583,29 +506,27 @@ Output JSONFormat:
         "endDate": "Optional end date for ranges, using same format as startDate"
       }
     ],
-    "isComplete": true/false
+    "isComplete": true
   }
 }
 
-IMPORTANT INSTRUCTIONS FOR INCREMENTAL GENERATION:
-1. ${isFirstRound ? 'Extract ALL events with explicit dates from the article.' : 'Continue extracting events that are NOT in the list provided in the prompt.'}
-2. If you're approaching the output token limit, stop adding events and set "isComplete": false.
-3. If you've extracted all possible events with dates from the article, set "isComplete": true.
-4. Always return valid JSON matching the specified schema, even if you need to truncate your response.
-5. Include ALL events with explicit dates, regardless of their perceived importance.
+IMPORTANT INSTRUCTIONS:
+1. You are processing a CHUNK of the full article. The content includes a summary of the article followed by the chunk content.
+2. Extract ALL events with explicit dates from this chunk, regardless of their perceived importance.
+3. ${isFirstChunk ? 'For this first chunk, include the title, birthDate, and deathDate if available.' : 'Focus only on extracting events from this chunk.'}
+4. Pay attention to the summary at the beginning to maintain context about the subject.
 
 ACCURACY IS THE TOP PRIORITY:
 - Only extract events that have explicit dates mentioned in the article
 - For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
 - Do not include events or dates from your training data - only use what's in the provided article
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
-- If the article contains no dated events, return an empty array and set isComplete to true
+- If the chunk contains no dated events, return an empty array and set isComplete to true
 - For date ranges:
   * Always create a single event using the start date
   * Include the end date in the event description
   * Use clear language like "from [start] to [end]" or "between [start] and [end]"
 - Always include the full date in the event description for context
-- Never make up events or dates - only include what's explicitly mentioned in the article
 
 EXTRACT ALL EVENTS WITH DATES:
 - Do not filter events based on importance or significance
@@ -622,9 +543,6 @@ Do not include:
 - Events not directly related to the subject
 - Dates from referenced works or citations
 - Future dates or predictions
-- Duplicate events with identical information
-
-${isFirstRound ? 'For the first round, make sure to include title, birthDate, and deathDate if available in the article.' : 'For this continuation round, focus only on extracting new events not already in the provided list.'}
 `;
 }
 
@@ -697,6 +615,75 @@ async function convertOldToNewFormat(oldData: OldTimelineFormat): Promise<Timeli
   };
 }
 
+// Update the filterOutliersFromTimeline function to work with the new implementation
+function filterOutliersFromTimeline(timeline: Timeline, scaleFactor: number = 40): Timeline {
+  if (!timeline || !timeline.events || timeline.events.length < 5) {
+    return timeline; // Not enough data points to filter outliers
+  }
+
+  // Extract years from events
+  const years = timeline.events
+    .map(event => {
+      const startDate = event.startDate;
+      if (!startDate) return null;
+      
+      // Handle BCE dates (negative years)
+      if (startDate.startsWith('-')) {
+        return -parseInt(startDate.substring(1).split('-')[0]);
+      }
+      
+      return parseInt(startDate.split('-')[0]);
+    })
+    .filter((year): year is number => year !== null && !isNaN(year));
+
+  if (years.length < 5) {
+    return timeline; // Not enough valid years to filter outliers
+  }
+
+  // Calculate median
+  const sortedYears = [...years].sort((a, b) => a - b);
+  const medianYear = sortedYears[Math.floor(sortedYears.length / 2)];
+
+  // Calculate MAD (Median Absolute Deviation)
+  const deviations = sortedYears.map(year => Math.abs(year - medianYear));
+  const sortedDeviations = [...deviations].sort((a, b) => a - b);
+  const medianDeviation = sortedDeviations[Math.floor(sortedDeviations.length / 2)];
+
+  // Avoid division by zero
+  if (medianDeviation === 0) {
+    return timeline;
+  }
+
+  // Filter events based on MAD
+  const filteredEvents = timeline.events.filter(event => {
+    const startDate = event.startDate;
+    if (!startDate) return true; // Keep events without dates
+    
+    let year;
+    if (startDate.startsWith('-')) {
+      year = -parseInt(startDate.substring(1).split('-')[0]);
+    } else {
+      year = parseInt(startDate.split('-')[0]);
+    }
+    
+    if (isNaN(year)) return true; // Keep events with invalid years
+    
+    // Calculate z-score using MAD
+    const zScore = Math.abs(year - medianYear) / medianDeviation;
+    
+    // Keep events within the threshold (adjusted by scaleFactor)
+    return zScore <= scaleFactor;
+  });
+
+  logger.info(`Filtered ${timeline.events.length - filteredEvents.length} outliers from ${timeline.events.length} events (scaleFactor: ${scaleFactor})`);
+
+  return {
+    ...timeline,
+    events: filteredEvents
+  };
+}
+
+// Update the GET handler to use the new implementation
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
@@ -779,9 +766,14 @@ export async function GET(
             
             const page = await wiki.page(trimmedName);
             const content = await page.content();
+            
+            // Get wiki summary for context
+            const summaryData = await getCachedWikiSummary(trimmedName);
+            const summary = await wiki.summary(trimmedName);
+            const wikiSummary = summary.extract || `${trimmedName} is the subject of this Wikipedia article.`;
 
             try {
-              timeline = await generateTimeline(trimmedName, content, genAI);
+              timeline = await generateTimeline(trimmedName, content, wikiSummary, genAI);
             } catch (error) {
               logger.error('Error generating timeline:', error);
               failedPages.push(trimmedName);
@@ -802,67 +794,62 @@ export async function GET(
           }
         }
 
-        // Check if timeline is empty
-        if (!timeline?.events?.length || timeline.events.length < MIN_NUM_EVENTS_FOR_TIMELINE) {
+        // Check if we have enough events
+        if (!timeline || timeline.events.length < MIN_NUM_EVENTS_FOR_TIMELINE) {
+          logger.warn(`Not enough events for ${trimmedName}: ${timeline?.events.length || 0} events`);
           noTimelinePages.push(trimmedName);
           return;
         }
 
-        // Only fetch thumbnail if we have a timeline
-        let thumbnail: string | undefined;
-        try {
-          thumbnail = (await getCachedWikiSummary(trimmedName)).thumbnail;
-        } catch (error) {
-          logger.warn('Could not fetch cached thumbnail:', error);
-        }
+        // Get wiki summary data
+        const summaryData = await getCachedWikiSummary(trimmedName);
+        
+        // Create proper WikiSummary object
+        const wikiSummary: WikiSummary = {
+          pageUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(trimmedName)}`,
+          thumbnail: summaryData.thumbnail
+        };
 
-        // Store results
+        // Apply outlier filtering if requested (only for API response, not for cached data)
+        const responseTimeline = filterOutliers ? filterOutliersFromTimeline(timeline, scaleFactor) : timeline;
+        
         timelines[trimmedName] = {
-          timeline,
-          wikiSummary: {
-            pageUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(trimmedName)}`,
-            thumbnail
-          }
+          timeline: responseTimeline,
+          wikiSummary
         };
       })
     );
 
-    // Apply filtering to the response if requested
-    if (filterOutliers) {
-      Object.keys(timelines).forEach(pageName => {
-        const originalTimeline = timelines[pageName].timeline;
-        // Create a deep copy to avoid modifying the original
-        const filteredTimeline = filterTimelineOutliers({
-          ...originalTimeline,
-          events: [...originalTimeline.events]
-        }, scaleFactor);
-        
-        // Replace with filtered timeline
-        timelines[pageName].timeline = filteredTimeline;
-      });
-      
-      logger.info('Applied outlier filtering to API response');
-    }
-
-    const response: TimelineAPIResponse = { timelines };
-    const problemPages = [...failedPages, ...noTimelinePages];
-    if (problemPages.length > 0) {
-      response.errors = {
-        message: `Could not generate timeline for: ${problemPages.join(PAGE_DELIMITER)}`,
-        failedPages: problemPages,
+    // Prepare the response with correct type
+    const response: TimelineAPIResponse = {
+      timelines,
+      errors: failedPages.length > 0 || noTimelinePages.length > 0 ? {
+        message: `Could not generate timeline for some pages`,
+        failedPages: [...failedPages, ...noTimelinePages],
         details: {
           noWikipediaData: failedPages,
           noTimelineGenerated: noTimelinePages
         }
-      };
-    }
+      } : undefined
+    };
 
-    return Response.json(response);
+    return new Response(JSON.stringify(response), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+      }
+    });
   } catch (error) {
-    logger.error('Error processing request:', error);
-    return Response.json(
-      { timelines: {}, errors: { message: 'Failed to generate timeline', failedPages: [] } } as TimelineAPIResponse,
-      { status: 500 }
-    );
+    logger.error('Error in timeline API:', error);
+    return new Response(JSON.stringify({ 
+      timelines: {},
+      errors: {
+        message: 'Failed to generate timeline',
+        failedPages: []
+      }
+    } as TimelineAPIResponse), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 } 
