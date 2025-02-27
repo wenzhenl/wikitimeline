@@ -138,10 +138,16 @@ function postProcessTimeline(timeline: Timeline): Timeline {
   // Add age information for person timelines
   if (timeline.birthDate) {
     uniqueEvents.forEach(event => {
-      const age = calculateAge(timeline.birthDate!, event.startDate);
-      if (age !== null && age >= 0) {
-        // Add age as a separate field instead of modifying the description
-        event.age = age;
+      // Only calculate age if event date is after birth date
+      if (compareDates(event.startDate, timeline.birthDate!) >= 0) {
+        // If death date exists, only calculate age if event date is before or equal to death date
+        if (!timeline.deathDate || compareDates(event.startDate, timeline.deathDate) <= 0) {
+          const age = calculateAge(timeline.birthDate!, event.startDate);
+          if (age !== null && age >= 0) {
+            // Add age as a separate field
+            event.age = age;
+          }
+        }
       }
     });
   }
