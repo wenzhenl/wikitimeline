@@ -65,11 +65,11 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     };
   }
 
-  // Sort events by date
+  // Sort events by date using compareDates function to properly handle negative years
   const sortedEvents = [...timeline.events].sort((a, b) => {
     const aDate = a.startDate || '';
     const bDate = b.startDate || '';
-    return aDate.localeCompare(bDate);
+    return compareDates(aDate, bDate);
   });
 
   // Deduplicate events - more robust approach for events from multiple chunks
@@ -96,11 +96,14 @@ function postProcessTimeline(timeline: Timeline): Timeline {
       for (const existingEvent of uniqueEvents) {
         if (existingEvent.headline === event.headline) {
           // If dates are within 1 year, consider it a duplicate
-          const existingDate = new Date(existingEvent.startDate);
-          const currentDate = new Date(event.startDate);
-          const diffInDays = Math.abs((existingDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+          const existingDate = existingEvent.startDate;
+          const currentDate = event.startDate;
           
-          if (diffInDays < 365) {
+          // Use a simple year comparison for dates that might be BCE
+          const existingYear = parseInt(existingDate.startsWith('-') ? existingDate.slice(1) : existingDate.split('-')[0]) * (existingDate.startsWith('-') ? -1 : 1);
+          const currentYear = parseInt(currentDate.startsWith('-') ? currentDate.slice(1) : currentDate.split('-')[0]) * (currentDate.startsWith('-') ? -1 : 1);
+          
+          if (Math.abs(existingYear - currentYear) <= 1) {
             isDuplicate = true;
             break;
           }
@@ -134,18 +137,13 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 
   // Add age information for person timelines
   if (timeline.birthDate) {
-    const birthYear = parseInt(timeline.birthDate.substring(0, 4));
-    if (!isNaN(birthYear)) {
-      uniqueEvents.forEach(event => {
-        const eventYear = parseInt(event.startDate.substring(0, 4));
-        if (!isNaN(eventYear)) {
-          const age = eventYear - birthYear;
-          if (age >= 0) {
-            event.description = `${event.description} (Age: ${age})`;
-          }
-        }
-      });
-    }
+    uniqueEvents.forEach(event => {
+      const age = calculateAge(timeline.birthDate!, event.startDate);
+      if (age !== null && age >= 0) {
+        // Add age as a separate field instead of modifying the description
+        event.age = age;
+      }
+    });
   }
 
   // Return the processed timeline with version
