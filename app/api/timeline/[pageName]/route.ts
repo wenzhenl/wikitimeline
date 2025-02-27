@@ -161,6 +161,8 @@ async function generateTimelineIncrementally(
   let title = pageName;
   let birthDate: string | undefined;
   let deathDate: string | undefined;
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
   
   logger.info(`Starting incremental timeline generation for ${pageName}`);
   
@@ -193,6 +195,15 @@ async function generateTimelineIncrementally(
     try {
       const result = await geminiModel.generateContent(userPrompt);
       const response = result.response;
+      
+      // Log token usage for this round - safely access properties that might not exist
+      const usageMetadata = response.usageMetadata;
+      const inputTokens = usageMetadata?.promptTokenCount || 0;
+      const outputTokens = usageMetadata?.candidatesTokenCount || 0;
+      totalInputTokens += inputTokens;
+      totalOutputTokens += outputTokens;
+      
+      logger.debug(`Round ${round} token usage: ${inputTokens} input tokens, ${outputTokens} output tokens`);
       
       // Check if response was truncated
       if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
@@ -246,6 +257,9 @@ async function generateTimelineIncrementally(
       }
     }
   }
+  
+  // Log total token usage for all rounds
+  logger.debug(`Total token usage for ${pageName}: ${totalInputTokens} input tokens, ${totalOutputTokens} output tokens, ${totalInputTokens + totalOutputTokens} total tokens`);
   
   // If we've reached max rounds but aren't complete, log a warning
   if (!isComplete && round >= maxRounds) {
