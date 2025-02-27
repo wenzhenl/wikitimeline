@@ -50,64 +50,6 @@ function calculateAge(birthDate: string, eventDate: string): number | null {
   return eventYear - birthYear;
 }
 
-function filterTimelineOutliers(timeline: Timeline, scaleFactor: number = 20): Timeline {
-  if (!timeline.events || timeline.events.length <= 5) {
-    return timeline; // Not enough events to filter
-  }
-
-  // Convert all dates to numerical years
-  const years = timeline.events.map(event => {
-    const date = event.startDate;
-    const year = parseInt(date.startsWith('-') ? date.slice(1) : date.split('-')[0]) * 
-                (date.startsWith('-') ? -1 : 1);
-    return { year, event };
-  });
-  
-  // Sort by year
-  years.sort((a, b) => a.year - b.year);
-  
-  // Calculate median year
-  const medianYear = years[Math.floor(years.length / 2)].year;
-  
-  // Calculate Median Absolute Deviation (MAD)
-  const deviations = years.map(y => Math.abs(y.year - medianYear));
-  deviations.sort((a, b) => a - b);
-  const medianDeviation = deviations[Math.floor(deviations.length / 2)];
-  
-  // Calculate threshold (adjust scaleFactor to control sensitivity)
-  const threshold = scaleFactor * medianDeviation;
-  
-  logger.info(`Timeline outlier detection: median year=${medianYear}, MAD=${medianDeviation}, threshold=${threshold}`);
-  
-  // Filter events
-  const filteredEvents = timeline.events.filter(event => {
-    const date = event.startDate;
-    const year = parseInt(date.startsWith('-') ? date.slice(1) : date.split('-')[0]) * 
-                (date.startsWith('-') ? -1 : 1);
-    
-    const isWithinThreshold = Math.abs(year - medianYear) <= threshold;
-    
-    if (!isWithinThreshold) {
-      logger.info(`Filtered outlier event: ${year} - ${event.headline}`);
-    }
-    
-    return isWithinThreshold;
-  });
-  
-  logger.info(`Filtered ${timeline.events.length - filteredEvents.length} outlier events out of ${timeline.events.length} total`);
-  
-  return {
-    ...timeline,
-    events: filteredEvents,
-    // Store original event count for reference
-    _meta: {
-      ...(timeline._meta || {}),
-      originalEventCount: timeline.events.length,
-      filteredEventCount: filteredEvents.length
-    }
-  };
-}
-
 // Enhanced post-processing function to handle events from multiple chunks
 function postProcessTimeline(timeline: Timeline): Timeline {
   if (!timeline || !timeline.events || timeline.events.length === 0) {
@@ -765,15 +707,13 @@ export async function GET(
             logger.info("Fetching wiki page for:", trimmedName);
             
             const page = await wiki.page(trimmedName);
-            const content = await page.content();
-            
-            // Get wiki summary for context
-            const summaryData = await getCachedWikiSummary(trimmedName);
-            const summary = await wiki.summary(trimmedName);
-            const wikiSummary = summary.extract || `${trimmedName} is the subject of this Wikipedia article.`;
+            const [content, summary] = await Promise.all([
+              page.content(),
+              page.summary()
+            ]);
 
             try {
-              timeline = await generateTimeline(trimmedName, content, wikiSummary, genAI);
+              timeline = await generateTimeline(trimmedName, content, summary.extract, genAI);
             } catch (error) {
               logger.error('Error generating timeline:', error);
               failedPages.push(trimmedName);
@@ -810,11 +750,9 @@ export async function GET(
           thumbnail: summaryData.thumbnail
         };
 
-        // Apply outlier filtering if requested (only for API response, not for cached data)
-        const responseTimeline = filterOutliers ? filterOutliersFromTimeline(timeline, scaleFactor) : timeline;
         
         timelines[trimmedName] = {
-          timeline: responseTimeline,
+          timeline,
           wikiSummary
         };
       })
