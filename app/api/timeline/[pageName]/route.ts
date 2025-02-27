@@ -233,7 +233,7 @@ function attemptToRepairTruncatedJSON(jsonString: string): any {
   }
 }
 
-const MAX_CHUNK_SIZE = 45000;
+const MAX_CHUNK_SIZE = 10000;
 
 // Improved function to split content into chunks with better token estimation
 function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUNK_SIZE): string[] {
@@ -248,6 +248,9 @@ function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUN
   
   const chunks: string[] = [];
   let startPos = 0;
+  
+  // Calculate approximate token count for logging
+  const estimateTokens = (text: string): number => Math.round(text.length / 3); // ~3 chars per token
   
   while (startPos < content.length) {
     // Calculate end position for this chunk
@@ -266,7 +269,13 @@ function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUN
     }
     
     // Add the chunk
-    chunks.push(content.substring(startPos, endPos));
+    const chunk = content.substring(startPos, endPos);
+    chunks.push(chunk);
+    
+    // Log individual chunk size for debugging
+    const chunkTokens = estimateTokens(chunk);
+    logger.debug(`Created chunk ${chunks.length}: ${chunk.length} chars, ~${chunkTokens} tokens`);
+    
     startPos = endPos;
   }
   
@@ -274,6 +283,51 @@ function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUN
   const avgChunkSize = Math.round(content.length / chunks.length);
   const estimatedTokens = Math.round(avgChunkSize / 3); // Rough estimate: ~3 chars per token
   logger.info(`Split content into ${chunks.length} chunks (avg size: ${avgChunkSize} chars, ~${estimatedTokens} tokens per chunk)`);
+  
+  // Check if chunks are too small and need to be merged
+  if (chunks.length > 1) {
+    const smallChunkThreshold = maxChunkSize / 3; // Consider chunks smaller than 1/3 of max size as "small"
+    
+    // Find small chunks that could be merged
+    const mergedChunks: string[] = [];
+    let currentMergedChunk = chunks[0];
+    let currentMergedSize = chunks[0].length;
+    
+    for (let i = 1; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      
+      // If this chunk is small or the merged result would still be under max size
+      if (chunk.length < smallChunkThreshold || (currentMergedSize + chunk.length) < maxChunkSize) {
+        // Merge with previous chunk
+        currentMergedChunk += chunk;
+        currentMergedSize += chunk.length;
+        logger.debug(`Merged chunk ${i+1} into previous chunk (new size: ${currentMergedSize} chars, ~${estimateTokens(currentMergedChunk)} tokens)`);
+      } else {
+        // Save the current merged chunk and start a new one
+        mergedChunks.push(currentMergedChunk);
+        currentMergedChunk = chunk;
+        currentMergedSize = chunk.length;
+      }
+    }
+    
+    // Add the last merged chunk
+    mergedChunks.push(currentMergedChunk);
+    
+    // If we actually merged any chunks, update the chunks array and log
+    if (mergedChunks.length < chunks.length) {
+      chunks.length = 0; // Clear the array
+      chunks.push(...mergedChunks); // Add the merged chunks
+      
+      const newAvgSize = Math.round(content.length / chunks.length);
+      const newEstTokens = Math.round(newAvgSize / 3);
+      logger.info(`After merging small chunks: ${chunks.length} chunks (avg size: ${newAvgSize} chars, ~${newEstTokens} tokens per chunk)`);
+      
+      // Log individual chunk sizes after merging
+      chunks.forEach((chunk, idx) => {
+        logger.debug(`Final chunk ${idx+1}: ${chunk.length} chars, ~${estimateTokens(chunk)} tokens`);
+      });
+    }
+  }
   
   return chunks;
 }
@@ -304,14 +358,28 @@ async function generateTimeline(
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
   
+  // Track events per chunk for logging
+  const eventsPerChunk: number[] = [];
+  const tokensPerChunk: {input: number, output: number}[] = [];
+  
   // Process results from all chunks
   chunkResults.forEach((result, index) => {
     if (!result) {
       logger.warn(`Chunk ${index + 1}/${contentChunks.length} returned no results`);
+      eventsPerChunk[index] = 0;
+      tokensPerChunk[index] = {input: 0, output: 0};
       return;
     }
 
-    logger.info(`Chunk ${index + 1}/${contentChunks.length} returned ${result.events.length} events`);
+    const chunkEventCount = result.events.length;
+    logger.info(`Chunk ${index + 1}/${contentChunks.length} returned ${chunkEventCount} events`);
+    
+    // Track events and tokens for this chunk
+    eventsPerChunk[index] = chunkEventCount;
+    tokensPerChunk[index] = {
+      input: result.inputTokens || 0,
+      output: result.outputTokens || 0
+    };
     
     // Add events from this chunk
     allEvents = [...allEvents, ...result.events];
@@ -334,8 +402,14 @@ async function generateTimeline(
     totalOutputTokens += result.outputTokens || 0;
   });
   
-  // Log token usage
+  // Log detailed token usage
+  logger.debug(`Token usage by chunk: ${tokensPerChunk.map((tokens, i) => 
+    `Chunk ${i+1}: ${tokens.input} input, ${tokens.output} output`).join(', ')}`);
   logger.debug(`Total token usage for ${pageName}: ${totalInputTokens} input tokens, ${totalOutputTokens} output tokens, ${totalInputTokens + totalOutputTokens} total tokens`);
+  
+  // Log event counts
+  logger.info(`Events by chunk: ${eventsPerChunk.map((count, i) => `Chunk ${i+1}: ${count}`).join(', ')}`);
+  logger.info(`Total raw events extracted for ${pageName}: ${allEvents.length} (before deduplication)`);
   
   // If no events were found, return null
   if (allEvents.length === 0) {
@@ -343,8 +417,6 @@ async function generateTimeline(
     return null;
   }
   
-  logger.info(`Extracted ${allEvents.length} events for ${pageName}`);
-
   // Construct the final timeline
   const timeline = {
     title,
@@ -354,7 +426,10 @@ async function generateTimeline(
   };
   
   // Post-process the timeline (sorts, deduplicates, and adds ages)
-  return postProcessTimeline(timeline);
+  const processedTimeline = postProcessTimeline(timeline);
+  logger.info(`Final timeline for ${pageName} has ${processedTimeline.events.length} events after deduplication (removed ${allEvents.length - processedTimeline.events.length} duplicates)`);
+  
+  return processedTimeline;
 }
 
 // New function to process a single chunk
