@@ -19,6 +19,11 @@ const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; wikitimeline2024@g
 wiki.setUserAgent(userAgent);
 logger.info('Wikipedia User-Agent set:', userAgent);
 
+// Add the NewTimelineFormat interface
+interface NewTimelineFormat {
+  timeline: Timeline;
+}
+
 // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
 function compareDates(dateA: string, dateB: string): number {
   const aIsNegative = dateA.startsWith("-");
@@ -488,11 +493,11 @@ Do not include:
 `;
 }
 
-// Cache the wiki summary
 // Add route segment config
 export const runtime = 'edge';
 export const revalidate = 3600; // Cache for 1 hour
 
+// Cache the wiki summary
 const getCachedWikiSummary = unstable_cache(
   async (pageName: string) => {
     try {
@@ -525,119 +530,14 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
   return new GoogleGenerativeAI(apiKey!);
 }
 
-interface OldTimelineEvent {
-  headline: string;
-  text: string;
-  date: string;
-}
-
-interface OldTimelineFormat {
-  timeline: OldTimelineEvent[];
-  version?: string;  // Make version optional
-}
-
-interface NewTimelineFormat {
-  timeline: Timeline;
-}
-
-async function isOldFormat(data: any): Promise<boolean> {
-  return Array.isArray(data.timeline);  // Only check if timeline is array
-}
-
-async function convertOldToNewFormat(oldData: OldTimelineFormat): Promise<Timeline> {
-  return {
-    title: '',
-    events: oldData.timeline.map(event => ({
-      headline: event.headline,
-      description: event.text,
-      startDate: event.date
-    })),
-    version: oldData.version || 'v0',  // Default to 'v0' if version missing
-    lastUpdatedAt: Date.now()
-  };
-}
-
-// Update the filterOutliersFromTimeline function to work with the new implementation
-function filterOutliersFromTimeline(timeline: Timeline, scaleFactor: number = 40): Timeline {
-  if (!timeline || !timeline.events || timeline.events.length < 5) {
-    return timeline; // Not enough data points to filter outliers
-  }
-
-  // Extract years from events
-  const years = timeline.events
-    .map(event => {
-      const startDate = event.startDate;
-      if (!startDate) return null;
-      
-      // Handle BCE dates (negative years)
-      if (startDate.startsWith('-')) {
-        return -parseInt(startDate.substring(1).split('-')[0]);
-      }
-      
-      return parseInt(startDate.split('-')[0]);
-    })
-    .filter((year): year is number => year !== null && !isNaN(year));
-
-  if (years.length < 5) {
-    return timeline; // Not enough valid years to filter outliers
-  }
-
-  // Calculate median
-  const sortedYears = [...years].sort((a, b) => a - b);
-  const medianYear = sortedYears[Math.floor(sortedYears.length / 2)];
-
-  // Calculate MAD (Median Absolute Deviation)
-  const deviations = sortedYears.map(year => Math.abs(year - medianYear));
-  const sortedDeviations = [...deviations].sort((a, b) => a - b);
-  const medianDeviation = sortedDeviations[Math.floor(sortedDeviations.length / 2)];
-
-  // Avoid division by zero
-  if (medianDeviation === 0) {
-    return timeline;
-  }
-
-  // Filter events based on MAD
-  const filteredEvents = timeline.events.filter(event => {
-    const startDate = event.startDate;
-    if (!startDate) return true; // Keep events without dates
-    
-    let year;
-    if (startDate.startsWith('-')) {
-      year = -parseInt(startDate.substring(1).split('-')[0]);
-    } else {
-      year = parseInt(startDate.split('-')[0]);
-    }
-    
-    if (isNaN(year)) return true; // Keep events with invalid years
-    
-    // Calculate z-score using MAD
-    const zScore = Math.abs(year - medianYear) / medianDeviation;
-    
-    // Keep events within the threshold (adjusted by scaleFactor)
-    return zScore <= scaleFactor;
-  });
-
-  logger.info(`Filtered ${timeline.events.length - filteredEvents.length} outliers from ${timeline.events.length} events (scaleFactor: ${scaleFactor})`);
-
-  return {
-    ...timeline,
-    events: filteredEvents
-  };
-}
-
-// Update the GET handler to use the new implementation
+// Update the GET handler to simplify cache retrieval
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   const clientType = request.headers.get('x-internal-client-type');
   const genAI = getGeminiClient(clientType);
-  
-  // Check if we should filter outliers (default to true)
-  const url = new URL(request.url);
-  const filterOutliers = url.searchParams.get('filterOutliers') !== 'false';
-  const scaleFactor = parseInt(url.searchParams.get('scaleFactor') || '40');
-  
+    
   try {
     // First decode the URL parameters
     const pageNames = decodeURIComponent(params.pageName)
@@ -672,28 +572,15 @@ export async function GET(
         try {
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
-            if (await isOldFormat(cached)) {
-              // Handle old format
-              logger.info('Old data schema detected: ', trimmedName);
-              const oldData = cached as OldTimelineFormat;
-              const version = oldData.version || 'v0';
-              if (version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-                logger.info(`Cache version mismatch for ${trimmedName} (${version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
-                timeline = null;
-              } else {
-                timeline = await convertOldToNewFormat(oldData);
-                logger.info(`Using converted old format cache for ${trimmedName} (version ${version})`);
-              }
-            } else {
-              // Handle new format
-              logger.info('New data schema detected: ', trimmedName);
-              timeline = (cached as NewTimelineFormat).timeline;
-              if (timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-                logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
-                timeline = null;
-              } else {
-                logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version})`);
-              }
+            const cachedData = cached as NewTimelineFormat;
+            timeline = cachedData.timeline;
+            
+            // Check version match
+            if (timeline && timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+              logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+              timeline = null;
+            } else if (timeline) {
+              logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version || 'unknown'})`);
             }
           }
         } catch (error) {
@@ -714,21 +601,23 @@ export async function GET(
 
             try {
               timeline = await generateTimeline(trimmedName, content, summary.extract, genAI);
+              
+              if (timeline) {
+                // Cache the new timeline
+                await redis.set(cacheKey, { timeline });
+                logger.info(`Cached new timeline for ${trimmedName} (version ${timeline.version || CURRENT_PROMPT_VERSION})`);
+              } else {
+                logger.warn(`Failed to generate timeline for ${trimmedName}`);
+                failedPages.push(trimmedName);
+                return;
+              }
             } catch (error) {
-              logger.error('Error generating timeline:', error);
-              failedPages.push(trimmedName);
-              return;
-            }
-            
-            if (timeline) {
-              await redis.set(cacheKey, { timeline });
-              logger.info(`Cached new timeline for ${trimmedName} (version ${timeline.version})`);
-            } else {
+              logger.error(`Error generating timeline for ${trimmedName}:`, error);
               failedPages.push(trimmedName);
               return;
             }
           } catch (error) {
-            logger.error('Error fetching Wikipedia content:', error);
+            logger.error(`Error fetching Wikipedia content for ${trimmedName}:`, error);
             failedPages.push(trimmedName);
             return;
           }
@@ -750,7 +639,7 @@ export async function GET(
           thumbnail: summaryData.thumbnail
         };
 
-        
+        // Add to timelines
         timelines[trimmedName] = {
           timeline,
           wikiSummary
