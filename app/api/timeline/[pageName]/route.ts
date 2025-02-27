@@ -452,8 +452,7 @@ Output JSONFormat:
         "startDate": "Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)",
         "endDate": "Optional end date for ranges, using same format as startDate"
       }
-    ],
-    "isComplete": true
+    ]
   }
 }
 

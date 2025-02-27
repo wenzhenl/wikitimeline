@@ -21,10 +21,9 @@ export const TIMELINE_SCHEMA = {
             },
             required: ["headline", "description", "startDate"]
           }
-        },
-        isComplete: { type: SchemaType.BOOLEAN }
+        }
       },
-      required: ["events", "isComplete"]
+      required: ["events"]
     }
   },
   required: ["timeline"]
