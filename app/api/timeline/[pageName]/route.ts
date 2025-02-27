@@ -140,6 +140,198 @@ function postProcessTimeline(timeline: Timeline): Timeline {
   };
 }
 
+// Add this function near the top of the file, after the imports
+function attemptToRepairTruncatedJSON(jsonString: string): any {
+  try {
+    // First try to parse as is
+    return JSON.parse(jsonString);
+  } catch (error) {
+    logger.warn(`JSON parsing failed: ${(error as Error).message}`);
+    logger.debug(`Attempting to repair truncated JSON of length ${jsonString.length}`);
+    
+    // Try to find the last complete event object
+    const timelineMatch = jsonString.match(/"timeline"\s*:\s*{/);
+    if (!timelineMatch) {
+      logger.error('Could not find timeline object in JSON');
+      throw new Error('Could not find timeline object in JSON');
+    }
+    
+    // Find the events array
+    const eventsMatch = jsonString.match(/"events"\s*:\s*\[/);
+    if (!eventsMatch) {
+      logger.warn('No events array found, returning minimal JSON');
+      const minimalJSON = '{"timeline":{"events":[],"isComplete":false}}';
+      return JSON.parse(minimalJSON);
+    }
+    
+    // Find the position of the events array
+    const eventsStartPos = eventsMatch.index! + eventsMatch[0].length;
+    
+    // Extract the content up to the events array start
+    const preEventsContent = jsonString.substring(0, eventsStartPos);
+    
+    // Find all complete event objects
+    const eventObjects = [];
+    let bracketCount = 0;
+    let squareBracketCount = 0;
+    let inQuotes = false;
+    let escapeNext = false;
+    let currentEventStart = eventsStartPos;
+    let insideEvent = false;
+    
+    for (let i = eventsStartPos; i < jsonString.length; i++) {
+      const char = jsonString[i];
+      
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escapeNext = true;
+        continue;
+      }
+      
+      if (char === '"' && !escapeNext) {
+        inQuotes = !inQuotes;
+        continue;
+      }
+      
+      if (!inQuotes) {
+        if (char === '{') {
+          bracketCount++;
+          if (bracketCount === 1 && squareBracketCount === 0) {
+            currentEventStart = i;
+            insideEvent = true;
+          }
+        } else if (char === '}') {
+          bracketCount--;
+          if (bracketCount === 0 && insideEvent) {
+            // We found a complete event object
+            const eventObj = jsonString.substring(currentEventStart, i + 1);
+            try {
+              // Verify it's valid JSON
+              JSON.parse(eventObj);
+              eventObjects.push(eventObj);
+              insideEvent = false;
+            } catch (e) {
+              // Skip invalid event objects
+              logger.debug(`Skipping invalid event object: ${eventObj.substring(0, 50)}...`);
+              insideEvent = false;
+            }
+          }
+        } else if (char === '[') {
+          squareBracketCount++;
+        } else if (char === ']') {
+          squareBracketCount--;
+          // If we found the end of the events array, we're done
+          if (squareBracketCount === -1 && !insideEvent) {
+            break;
+          }
+        }
+      }
+    }
+    
+    logger.info(`Found ${eventObjects.length} complete event objects during JSON repair`);
+    
+    // Construct a valid JSON with the complete events
+    let repairedJSON;
+    
+    // Check if we found the end of the events array
+    if (jsonString.indexOf('],"isComplete"') > eventsStartPos) {
+      // Try to extract the complete JSON structure
+      const endOfEventsArray = jsonString.indexOf('],"isComplete"');
+      const postEventsContent = jsonString.substring(endOfEventsArray);
+      
+      // Check if we have a complete closing structure
+      if (postEventsContent.includes('}}')) {
+        repairedJSON = `${preEventsContent}${eventObjects.join(',')}${postEventsContent}`;
+        logger.debug('Using complete JSON structure with post-events content');
+      } else {
+        repairedJSON = `${preEventsContent}${eventObjects.join(',')}],"isComplete":false}}`;
+        logger.debug('Using partial JSON structure with manually added closing');
+      }
+    } else {
+      repairedJSON = `${preEventsContent}${eventObjects.join(',')}],"isComplete":false}}`;
+      logger.debug('Using basic JSON structure with manually added closing');
+    }
+    
+    try {
+      const result = JSON.parse(repairedJSON);
+      logger.info(`Successfully repaired JSON with ${result.timeline.events.length} events`);
+      return result;
+    } catch (e) {
+      // If repair failed, try a simpler approach
+      logger.error(`Complex JSON repair failed: ${(e as Error).message}`);
+      
+      try {
+        // Just extract the events and create a minimal structure
+        const validEvents = eventObjects.filter(eventStr => {
+          try {
+            JSON.parse(eventStr);
+            return true;
+          } catch {
+            return false;
+          }
+        });
+        
+        const simpleJSON = `{"timeline":{"events":[${validEvents.join(',')}],"isComplete":false}}`;
+        const result = JSON.parse(simpleJSON);
+        logger.info(`Fallback repair successful with ${result.timeline.events.length} events`);
+        return result;
+      } catch (e2) {
+        // If all else fails, return minimal valid JSON
+        logger.error(`All JSON repair attempts failed: ${(e2 as Error).message}`);
+        return JSON.parse('{"timeline":{"events":[],"isComplete":false}}');
+      }
+    }
+  }
+}
+
+// Add this function to split content into chunks
+function splitContentIntoChunks(content: string, maxChunks: number = 3): string[] {
+  if (!content || content.length === 0) {
+    return [''];
+  }
+  
+  // If content is small enough, return it as a single chunk
+  if (content.length < 10000 || maxChunks <= 1) {
+    return [content];
+  }
+  
+  const chunkSize = Math.ceil(content.length / maxChunks);
+  const chunks: string[] = [];
+  
+  // Try to split at paragraph boundaries
+  let startPos = 0;
+  for (let i = 1; i < maxChunks; i++) {
+    const targetPos = i * chunkSize;
+    
+    // Look for paragraph breaks near the target position
+    let breakPos = content.indexOf('\n\n', targetPos - 500);
+    if (breakPos === -1 || breakPos > targetPos + 500) {
+      // If no paragraph break found, look for sentence end
+      breakPos = content.indexOf('. ', targetPos - 200);
+      if (breakPos === -1 || breakPos > targetPos + 200) {
+        // If no good break found, just split at the target position
+        breakPos = targetPos;
+      } else {
+        breakPos += 2; // Include the period and space
+      }
+    } else {
+      breakPos += 2; // Include the newlines
+    }
+    
+    chunks.push(content.substring(startPos, breakPos));
+    startPos = breakPos;
+  }
+  
+  // Add the last chunk
+  chunks.push(content.substring(startPos));
+  
+  return chunks;
+}
+
 async function generateTimeline(
   pageName: string, 
   wikiContent: string, 
@@ -163,6 +355,10 @@ async function generateTimelineIncrementally(
   let deathDate: string | undefined;
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
+  let contentChunks = [wikiContent];
+  let currentChunkIndex = 0;
+  let truncationOccurred = false;
+  let consecutiveTruncations = 0;
   
   logger.info(`Starting incremental timeline generation for ${pageName}`);
   
@@ -170,15 +366,62 @@ async function generateTimelineIncrementally(
     round++;
     logger.info(`Incremental generation round ${round} of ${maxRounds}`);
     
+    // Get the current content chunk
+    let contentChunk = contentChunks[currentChunkIndex];
+    
+    // If truncation occurred in the previous round, try different strategies
+    if (truncationOccurred) {
+      consecutiveTruncations++;
+      
+      if (consecutiveTruncations === 1) {
+        // On first truncation, try reducing the current chunk size
+        if (contentChunk.length > 5000) {
+          const newLength = Math.floor(contentChunk.length * 0.7); // Reduce by 30%
+          contentChunk = contentChunk.substring(0, newLength);
+          contentChunks[currentChunkIndex] = contentChunk;
+          logger.info(`Reduced content size to ${contentChunk.length} characters due to truncation`);
+        }
+      } else if (consecutiveTruncations === 2) {
+        // On second truncation, try splitting the content into multiple chunks
+        if (contentChunks.length === 1 && contentChunk.length > 10000) {
+          contentChunks = splitContentIntoChunks(wikiContent);
+          currentChunkIndex = 0;
+          contentChunk = contentChunks[currentChunkIndex];
+          logger.info(`Split content into ${contentChunks.length} chunks due to persistent truncation`);
+        }
+      } else {
+        // On third or more truncation, move to the next chunk if available
+        if (currentChunkIndex < contentChunks.length - 1) {
+          currentChunkIndex++;
+          contentChunk = contentChunks[currentChunkIndex];
+          logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length})`);
+          consecutiveTruncations = 0; // Reset counter for the new chunk
+        } else if (contentChunk.length > 3000) {
+          // If we're already at the last chunk, reduce size more aggressively
+          const newLength = Math.floor(contentChunk.length * 0.5); // Reduce by 50%
+          contentChunk = contentChunk.substring(0, newLength);
+          contentChunks[currentChunkIndex] = contentChunk;
+          logger.info(`Aggressively reduced content size to ${contentChunk.length} characters due to persistent truncation`);
+        } else {
+          logger.warn(`Content already reduced to ${contentChunk.length} characters, cannot reduce further`);
+        }
+      }
+      
+      truncationOccurred = false;
+    }
+    
     // Create system instruction based on round number
     const systemInstruction = getSystemInstruction(round === 1);
     
     // Simple user prompt focused only on the article and existing events
     const userPrompt = `
       Create a timeline for ${JSON.stringify(pageName.trim())}.
-      Main content to extract events from: ${JSON.stringify(wikiContent)}
+      Main content to extract events from: ${JSON.stringify(contentChunk)}
+      ${contentChunks.length > 1 ? `(This is part ${currentChunkIndex + 1} of ${contentChunks.length})` : ''}
       
       ${allEvents.length > 0 ? `I already have ${allEvents.length} events. Here they are: ${JSON.stringify(allEvents)}` : ''}
+      
+      ${consecutiveTruncations > 0 ? 'IMPORTANT: Keep your response concise to avoid truncation. Extract only the most important events.' : ''}
     `;
     
     const geminiModel = genAI.getGenerativeModel({ 
@@ -206,11 +449,34 @@ async function generateTimelineIncrementally(
       logger.debug(`Round ${round} token usage: ${inputTokens} input tokens, ${outputTokens} output tokens`);
       
       // Check if response was truncated
-      if (response.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
-        logger.warn(`MAX_TOKENS reached in round ${round}, but we'll still try to parse the response`);
+      const wasMaxTokensReached = response.candidates?.[0]?.finishReason === 'MAX_TOKENS';
+      if (wasMaxTokensReached) {
+        logger.warn(`MAX_TOKENS reached in round ${round}, attempting to repair truncated JSON`);
+        truncationOccurred = true;
       }
       
-      const data = JSON.parse(response.text());
+      // Use the repair function to handle potentially truncated JSON
+      let data;
+      try {
+        data = attemptToRepairTruncatedJSON(response.text());
+        logger.info(`Successfully parsed JSON response${truncationOccurred ? ' after repair' : ''}`);
+      } catch (error) {
+        logger.error(`Failed to parse JSON response: ${error}`);
+        
+        // If we have events already, continue with what we have
+        if (allEvents.length > 0) {
+          logger.info(`Continuing with ${allEvents.length} events collected so far`);
+          isComplete = true; // Force completion
+          break;
+        } else if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
+          // If we have multiple chunks and this one failed, try the next chunk
+          currentChunkIndex++;
+          logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length}) after parse failure`);
+          continue;
+        } else {
+          throw error; // Propagate error if we have no events yet and no more chunks
+        }
+      }
       
       // Extract the timeline data
       const fragment = data.timeline;
@@ -230,13 +496,27 @@ async function generateTimelineIncrementally(
       const uniqueNewEvents = newEvents.filter((event: TimelineEvent) => !existingHeadlines.has(event.headline));
       
       allEvents = [...allEvents, ...uniqueNewEvents];
-      isComplete = fragment.isComplete || false;
+      
+      // If we have multiple chunks, only mark as complete when we've processed all chunks
+      if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
+        isComplete = false;
+        currentChunkIndex++; // Move to next chunk
+        logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length})`);
+      } else {
+        isComplete = truncationOccurred ? false : (fragment.isComplete || false);
+      }
       
       logger.info(`Round ${round}: Added ${uniqueNewEvents.length} events (${newEvents.length - uniqueNewEvents.length} duplicates filtered). Total: ${allEvents.length}. Complete: ${isComplete}`);
       
       // If no new events were added and we're not complete, something might be wrong
       if (uniqueNewEvents.length === 0 && !isComplete && round < maxRounds) {
-        logger.warn(`No new events added in round ${round}, but isComplete is false. Continuing anyway.`);
+        if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
+          // If we have multiple chunks and this one didn't add events, try the next chunk
+          currentChunkIndex++;
+          logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length}) after no new events`);
+        } else {
+          logger.warn(`No new events added in round ${round}, but isComplete is false. Continuing anyway.`);
+        }
       }
       
       // If we have a lot of events already, we might want to stop early
@@ -251,8 +531,13 @@ async function generateTimelineIncrementally(
       if (allEvents.length > 0) {
         logger.info(`Returning ${allEvents.length} events collected so far despite error`);
         isComplete = true; // Force completion
+      } else if (contentChunks.length > 1 && currentChunkIndex < contentChunks.length - 1) {
+        // If we have multiple chunks and this one failed, try the next chunk
+        currentChunkIndex++;
+        logger.info(`Moving to next content chunk (${currentChunkIndex + 1}/${contentChunks.length}) after error`);
+        continue;
       } else {
-        // If first round failed completely, propagate the error
+        // If first round failed completely and we have no more chunks, propagate the error
         throw error;
       }
     }
