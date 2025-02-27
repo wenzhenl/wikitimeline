@@ -233,8 +233,7 @@ function attemptToRepairTruncatedJSON(jsonString: string): any {
   }
 }
 
-// Add this constant for chunk size - using a more appropriate token-to-character ratio
-const MAX_CHUNK_SIZE = 24000; // Approximately 8000 tokens (assuming ~3 chars per token on average)
+const MAX_CHUNK_SIZE = 45000;
 
 // Improved function to split content into chunks with better token estimation
 function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUNK_SIZE): string[] {
@@ -311,6 +310,8 @@ async function generateTimeline(
       logger.warn(`Chunk ${index + 1}/${contentChunks.length} returned no results`);
       return;
     }
+
+    logger.info(`Chunk ${index + 1}/${contentChunks.length} returned ${result.events.length} events`);
     
     // Add events from this chunk
     allEvents = [...allEvents, ...result.events];
@@ -342,6 +343,8 @@ async function generateTimeline(
     return null;
   }
   
+  logger.info(`Extracted ${allEvents.length} events for ${pageName}`);
+
   // Construct the final timeline
   const timeline = {
     title,
