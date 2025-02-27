@@ -40,16 +40,6 @@ function compareDates(dateA: string, dateB: string): number {
   return aParts.length - bParts.length;
 }
 
-
-function mergeTimelines(first: Timeline, second: Timeline): Timeline {
-  return {
-    title: first.title,  // Use first timeline's title
-    birthDate: first.birthDate || second.birthDate,
-    deathDate: first.deathDate || second.deathDate,
-    events: [...(first.events || []), ...(second.events || [])]
-  };
-}
-
 function calculateAge(birthDate: string, eventDate: string): number | null {
   // Handle negative years (BCE)
   const birthYear = parseInt(birthDate.startsWith('-') ? birthDate.slice(1) : birthDate.split('-')[0]) * (birthDate.startsWith('-') ? -1 : 1);
@@ -207,14 +197,6 @@ async function generateTimelineIncrementally(
         * Use clear language like "from [start] to [end]" or "between [start] and [end]"
       - Always include the full date in the event description for context
       - Never make up events or dates - only include what's explicitly mentioned in the article
-      
-      Focus on extracting:
-      - Life events (birth, death, marriages, etc.)
-      - Career milestones
-      - Major accomplishments
-      - Significant historical events
-      - Publication or release dates
-      - Any other dated events directly involving the subject
       
       Do not include:
       - Events without clear dates
