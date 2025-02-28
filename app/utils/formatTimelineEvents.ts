@@ -45,7 +45,7 @@ function formatLocalDate(date: TimelineJSDate): string {
     }
   }
   
-  return result;
+  return result.trim();
 }
 
 // Helper function to compare dates (handles BCE/negative years properly)
@@ -149,9 +149,9 @@ export function formatTimelineEventsForInteractive(
         // Use local date format for human-scale dates
         displayDate = formatLocalDate(formattedEvent.start_date);
         
-        // Add age if available
+        // Add age if available - removed extra spaces around |
         if (event.age !== undefined) {
-          displayDate = `${displayDate}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;Age ${event.age}`;
+          displayDate = `${displayDate.trim()}|Age ${event.age}`;
         }
       }
 
@@ -167,8 +167,8 @@ export function formatTimelineEventsForInteractive(
         background: {
           color: colors.color,
         },
-        // Add a unique ID for each event to be used in filtering
-        unique_id: `event-${index}`,
+        // Changed to use just the index number without "event-" prefix
+        unique_id: `${index}`,
       };
     }),
     ...(needsCosmologicalScale && { scale: 'cosmological' as const }),

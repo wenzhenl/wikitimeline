@@ -72,7 +72,8 @@ export default function TimelineControls({
   const formatEventDate = (event: TimelineJSEvent): string => {
     // Use display_date if available (strips HTML tags)
     if (event.display_date) {
-      return event.display_date.replace(/<[^>]*>?/gm, "");
+      // Strip HTML tags and ensure no trailing spaces
+      return event.display_date.replace(/<[^>]*>?/gm, "").trim();
     }
 
     // Fallback to start_date properties if display_date is not available
@@ -109,7 +110,7 @@ export default function TimelineControls({
       }
     }
 
-    return dateStr;
+    return dateStr.trim();
   };
 
   // Sort events chronologically
