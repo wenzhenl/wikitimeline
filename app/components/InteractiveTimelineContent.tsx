@@ -17,6 +17,7 @@ import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
 import logger from "@/app/utils/logger";
+import NavigationHeader from "@/app/components/NavigationHeader";
 
 interface SelectedPage {
   title: string;
@@ -254,28 +255,7 @@ export default function InteractiveTimelineContent({
           minHeight: "100vh",
         }}
       >
-        <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[10001]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div
-              className="flex justify-between items-center h-16"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                height: "4rem",
-              }}
-            >
-              <div className="flex-shrink-0">
-                <Link
-                  href="/"
-                  className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 py-4"
-                >
-                  WikiTimeline
-                </Link>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <NavigationHeader zIndex="z-[10001]" />
         <main
           className="flex-1 flex justify-center px-4 py-6"
           style={{
@@ -308,96 +288,112 @@ export default function InteractiveTimelineContent({
         minHeight: "100vh",
       }}
     >
-      <nav className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[10001]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className="flex justify-between items-center h-16"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              height: "4rem",
-            }}
-          >
-            <div className="flex-shrink-0">
-              <Link
-                href="/"
-                className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 py-4"
+      <NavigationHeader zIndex="z-[10001]">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex justify-between items-center w-full">
+          <div className="flex justify-center">
+            <TimelineCustomizer
+              selectedFont={selectedFont}
+              setSelectedFont={setSelectedFont}
+              selectedColorScheme={selectedColorScheme}
+              setSelectedColorScheme={setSelectedColorScheme}
+              isSettingsOpen={isSettingsOpen}
+              setIsSettingsOpen={setIsSettingsOpen}
+            />
+          </div>
+
+          <div className="flex justify-center">
+            <Link
+              href={`/timeline/${params.pageName}/text`}
+              className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                WikiTimeline
-              </Link>
-            </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex justify-between items-center w-full max-w-2xl ml-12 px-4">
-              <div className="flex justify-center">
-                <TimelineCustomizer
-                  selectedFont={selectedFont}
-                  setSelectedFont={setSelectedFont}
-                  selectedColorScheme={selectedColorScheme}
-                  setSelectedColorScheme={setSelectedColorScheme}
-                  isSettingsOpen={isSettingsOpen}
-                  setIsSettingsOpen={setIsSettingsOpen}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                 />
-              </div>
+              </svg>
+              Reader View
+            </Link>
+          </div>
 
-              <div className="flex justify-center">
-                <Link
-                  href={`/timeline/${params.pageName}/text`}
-                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                  Reader View
-                </Link>
-              </div>
+          <div className="flex justify-center">
+            <ShareButtons
+              url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+              title={`Timeline of ${decodeURIComponent(params.pageName).replace(
+                /_/g,
+                " "
+              )}`}
+              description={`🚀 Explore the history of ${decodeURIComponent(
+                params.pageName
+              )
+                .replace(/_/g, " ")
+                .replace(
+                  /,/g,
+                  ", "
+                )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
+              customAction={{
+                label: "Copy Embed Code",
+                onClick: handleCopyEmbedCode,
+              }}
+            />
+          </div>
 
-              <div className="flex justify-center">
-                <ShareButtons
-                  url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
-                  title={`Timeline of ${decodeURIComponent(
-                    params.pageName
-                  ).replace(/_/g, " ")}`}
-                  description={`🚀 Explore the history of ${decodeURIComponent(
-                    params.pageName
-                  )
-                    .replace(/_/g, " ")
-                    .replace(
-                      /,/g,
-                      ", "
-                    )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
-                  customAction={{
-                    label: "Copy Embed Code",
-                    onClick: handleCopyEmbedCode,
-                  }}
-                />
-              </div>
+          <div className="flex justify-center">
+            <ReportIssueButton pageName={params.pageName} />
+          </div>
+        </div>
 
-              <div className="flex justify-center">
-                <ReportIssueButton pageName={params.pageName} />
-              </div>
-            </div>
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+            className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+            aria-label="Menu"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
 
-            {/* Mobile Navigation */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                aria-label="Menu"
+          {isOptionsOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50 options-menu">
+              <TimelineCustomizer
+                selectedFont={selectedFont}
+                setSelectedFont={setSelectedFont}
+                selectedColorScheme={selectedColorScheme}
+                setSelectedColorScheme={setSelectedColorScheme}
+                isSettingsOpen={isSettingsOpen}
+                setIsSettingsOpen={setIsSettingsOpen}
+                isMobileButton={true}
+                onMobileClick={() => {
+                  setIsSettingsOpen(true);
+                  setIsOptionsOpen(false);
+                }}
+              />
+              <Link
+                href={`/timeline/${params.pageName}/text`}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-4 h-4 mr-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -406,74 +402,38 @@ export default function InteractiveTimelineContent({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                   />
                 </svg>
-              </button>
-
-              {isOptionsOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50 options-menu">
-                  <TimelineCustomizer
-                    selectedFont={selectedFont}
-                    setSelectedFont={setSelectedFont}
-                    selectedColorScheme={selectedColorScheme}
-                    setSelectedColorScheme={setSelectedColorScheme}
-                    isSettingsOpen={isSettingsOpen}
-                    setIsSettingsOpen={setIsSettingsOpen}
-                    isMobileButton={true}
-                    onMobileClick={() => {
-                      setIsSettingsOpen(true);
-                      setIsOptionsOpen(false);
-                    }}
-                  />
-                  <Link
-                    href={`/timeline/${params.pageName}/text`}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      />
-                    </svg>
-                    Reader View
-                  </Link>
-                  <ShareButtons
-                    url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
-                    title={`Timeline of ${decodeURIComponent(
-                      params.pageName
-                    ).replace(/_/g, " ")}`}
-                    description={`🚀 Explore the history of ${decodeURIComponent(
-                      params.pageName
-                    )
-                      .replace(/_/g, " ")
-                      .replace(
-                        /,/g,
-                        ", "
-                      )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
-                    customAction={{
-                      label: "Copy Embed Code",
-                      onClick: handleCopyEmbedCode,
-                    }}
-                  />
-                  <ReportIssueButton
-                    pageName={params.pageName}
-                    isMobile={true}
-                    onMobileClick={() => setIsOptionsOpen(false)}
-                  />
-                </div>
-              )}
+                Reader View
+              </Link>
+              <ShareButtons
+                url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+                title={`Timeline of ${decodeURIComponent(
+                  params.pageName
+                ).replace(/_/g, " ")}`}
+                description={`🚀 Explore the history of ${decodeURIComponent(
+                  params.pageName
+                )
+                  .replace(/_/g, " ")
+                  .replace(
+                    /,/g,
+                    ", "
+                  )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
+                customAction={{
+                  label: "Copy Embed Code",
+                  onClick: handleCopyEmbedCode,
+                }}
+              />
+              <ReportIssueButton
+                pageName={params.pageName}
+                isMobile={true}
+                onMobileClick={() => setIsOptionsOpen(false)}
+              />
             </div>
-          </div>
+          )}
         </div>
-      </nav>
+      </NavigationHeader>
 
       <main
         className="flex-1 flex justify-center px-4 py-6"

@@ -8,6 +8,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER } from "@/app/constants";
 import ReportIssueButton from "@/app/components/ReportIssueButton";
+import NavigationHeader from "@/app/components/NavigationHeader";
 import logger from "@/app/utils/logger";
 
 interface TextTimelinePageContentProps {
@@ -112,16 +113,7 @@ export default function TextTimelinePageContent({
   if (!isHydrated) {
     return (
       <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
-        <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </nav>
-
+        <NavigationHeader />
         <main className="flex-1 w-full">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="space-y-8 animate-pulse">
@@ -149,60 +141,119 @@ export default function TextTimelinePageContent({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex-shrink-0">
-              <Link
-                href="/"
-                className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 py-4"
+      <NavigationHeader>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center w-full">
+          <div className="flex-1"></div>
+          <div className="flex gap-4 items-center">
+            {pageNames.length > 1 && (
+              <button
+                onClick={() =>
+                  setViewMode(viewMode === "combined" ? "tabs" : "combined")
+                }
+                className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
               >
-                WikiTimeline
-              </Link>
-            </div>
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {viewMode === "combined" ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7h12M8 12h12M8 17h12M4 7h0M4 12h0M4 17h0"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v12M3 13l3 3m0 0l3-3m-3 3V8m12-1l-3-3m0 0l-3 3m3-3v8"
+                    />
+                  )}
+                </svg>
+                {viewMode === "combined"
+                  ? "Separate Timelines"
+                  : "Merge Timelines"}
+              </button>
+            )}
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center w-full max-w-2xl ml-12 px-4">
-              <div className="flex-1"></div>
-              <div className="flex gap-4 items-center">
-                {pageNames.length > 1 && (
-                  <button
-                    onClick={() =>
-                      setViewMode(viewMode === "combined" ? "tabs" : "combined")
-                    }
-                    className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      {viewMode === "combined" ? (
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7h12M8 12h12M8 17h12M4 7h0M4 12h0M4 17h0"
-                        />
-                      ) : (
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6v12M3 13l3 3m0 0l3-3m-3 3V8m12-1l-3-3m0 0l-3 3m3-3v8"
-                        />
-                      )}
-                    </svg>
-                    {viewMode === "combined"
-                      ? "Separate Timelines"
-                      : "Merge Timelines"}
-                  </button>
-                )}
+            <Link
+              href={`/timeline/${params.pageName}`}
+              className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              Interactive View
+            </Link>
 
-                <Link
-                  href={`/timeline/${params.pageName}`}
-                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+            <ShareButtons
+              url={pageUrl}
+              title={`Timeline of ${pageNames
+                .map((name) => decodeURIComponent(name).replace(/_/g, " "))
+                .join(", ")}`}
+              description={`📚 Read through the history of ${pageNames
+                .map((name) => decodeURIComponent(name).replace(/_/g, " "))
+                .join(", ")} in chronological order!`}
+              customAction={{
+                label: "Save as Image",
+                onClick: handleCaptureImage,
+              }}
+            />
+
+            <ReportIssueButton pageName={params.pageName} />
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden relative">
+          <button
+            ref={buttonRef}
+            onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+            className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+            aria-label="Menu"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+
+          {isOptionsOpen && (
+            <div
+              ref={menuRef}
+              className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50"
+            >
+              {pageNames.length > 1 && (
+                <button
+                  onClick={() => {
+                    setViewMode(viewMode === "combined" ? "tabs" : "combined");
+                    setIsOptionsOpen(false);
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <svg
                     className="w-4 h-4 mr-2"
@@ -210,44 +261,35 @@ export default function TextTimelinePageContent({
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
+                    {viewMode === "combined" ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7h12M8 12h12M8 17h12M4 7h0M4 12h0M4 17h0"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v12M3 13l3 3m0 0l3-3m-3 3V8m12-1l-3-3m0 0l-3 3m3-3v8"
+                      />
+                    )}
                   </svg>
-                  Interactive View
-                </Link>
+                  {viewMode === "combined"
+                    ? "Separate Timelines"
+                    : "Merge Timelines"}
+                </button>
+              )}
 
-                <ShareButtons
-                  url={pageUrl}
-                  title={`Timeline of ${pageNames
-                    .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-                    .join(", ")}`}
-                  description={`📚 Read through the history of ${pageNames
-                    .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-                    .join(", ")} in chronological order!`}
-                  customAction={{
-                    label: "Save as Image",
-                    onClick: handleCaptureImage,
-                  }}
-                />
-
-                <ReportIssueButton pageName={params.pageName} />
-              </div>
-            </div>
-
-            {/* Mobile Navigation */}
-            <div className="md:hidden relative">
-              <button
-                ref={buttonRef}
-                onClick={() => setIsOptionsOpen(!isOptionsOpen)}
-                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                aria-label="Menu"
+              <Link
+                href={`/timeline/${params.pageName}`}
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => setIsOptionsOpen(false)}
               >
                 <svg
-                  className="w-6 h-6"
+                  className="w-4 h-4 mr-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -256,104 +298,35 @@ export default function TextTimelinePageContent({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-              </button>
+                Interactive View
+              </Link>
 
-              {isOptionsOpen && (
-                <div
-                  ref={menuRef}
-                  className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-50"
-                >
-                  {pageNames.length > 1 && (
-                    <button
-                      onClick={() => {
-                        setViewMode(
-                          viewMode === "combined" ? "tabs" : "combined"
-                        );
-                        setIsOptionsOpen(false);
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        {viewMode === "combined" ? (
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7h12M8 12h12M8 17h12M4 7h0M4 12h0M4 17h0"
-                          />
-                        ) : (
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v12M3 13l3 3m0 0l3-3m-3 3V8m12-1l-3-3m0 0l-3 3m3-3v8"
-                          />
-                        )}
-                      </svg>
-                      {viewMode === "combined"
-                        ? "Separate Timelines"
-                        : "Merge Timelines"}
-                    </button>
-                  )}
+              <ShareButtons
+                url={pageUrl}
+                title={`Timeline of ${pageNames
+                  .map((name) => decodeURIComponent(name).replace(/_/g, " "))
+                  .join(", ")}`}
+                description={`📚 Read through the history of ${pageNames
+                  .map((name) => decodeURIComponent(name).replace(/_/g, " "))
+                  .join(", ")} in chronological order!`}
+                customAction={{
+                  label: "Save as Image",
+                  onClick: handleCaptureImage,
+                }}
+              />
 
-                  <Link
-                    href={`/timeline/${params.pageName}`}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => setIsOptionsOpen(false)}
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    Interactive View
-                  </Link>
-
-                  <ShareButtons
-                    url={pageUrl}
-                    title={`Timeline of ${pageNames
-                      .map((name) =>
-                        decodeURIComponent(name).replace(/_/g, " ")
-                      )
-                      .join(", ")}`}
-                    description={`📚 Read through the history of ${pageNames
-                      .map((name) =>
-                        decodeURIComponent(name).replace(/_/g, " ")
-                      )
-                      .join(", ")} in chronological order!`}
-                    customAction={{
-                      label: "Save as Image",
-                      onClick: handleCaptureImage,
-                    }}
-                  />
-
-                  <ReportIssueButton
-                    pageName={params.pageName}
-                    isMobile={true}
-                    onMobileClick={() => setIsOptionsOpen(false)}
-                  />
-                </div>
-              )}
+              <ReportIssueButton
+                pageName={params.pageName}
+                isMobile={true}
+                onMobileClick={() => setIsOptionsOpen(false)}
+              />
             </div>
-          </div>
+          )}
         </div>
-      </nav>
+      </NavigationHeader>
 
       <main className="flex-1 w-full">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
