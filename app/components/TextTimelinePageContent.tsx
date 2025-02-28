@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER } from "@/app/constants";
+import ReportIssueButton from "@/app/components/ReportIssueButton";
 import logger from "@/app/utils/logger";
 
 interface TextTimelinePageContentProps {
@@ -233,38 +234,7 @@ export default function TextTimelinePageContent({
                   }}
                 />
 
-                <button
-                  onClick={() => {
-                    const pageNames = decodeURIComponent(
-                      params.pageName
-                    ).replace(/_/g, " ");
-                    const subject = encodeURIComponent(
-                      `Timeline Issue: ${pageNames}`
-                    );
-                    const body = encodeURIComponent(
-                      `I found an issue with the timeline for: ${pageNames}\n\n` +
-                        `Timeline URL: ${pageUrl}\n\n` +
-                        `Issue description:\n`
-                    );
-                    window.location.href = `mailto:${SITE_CONFIG.CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-                  }}
-                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  Report Issue
-                </button>
+                <ReportIssueButton pageName={params.pageName} />
               </div>
             </div>
 
@@ -373,39 +343,11 @@ export default function TextTimelinePageContent({
                     }}
                   />
 
-                  <button
-                    onClick={() => {
-                      const pageNames = decodeURIComponent(
-                        params.pageName
-                      ).replace(/_/g, " ");
-                      const subject = encodeURIComponent(
-                        `Timeline Issue: ${pageNames}`
-                      );
-                      const body = encodeURIComponent(
-                        `I found an issue with the timeline for: ${pageNames}\n\n` +
-                          `Timeline URL: ${pageUrl}\n\n` +
-                          `Issue description:\n`
-                      );
-                      window.location.href = `mailto:${SITE_CONFIG.CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-                      setIsOptionsOpen(false);
-                    }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                    Report Issue
-                  </button>
+                  <ReportIssueButton
+                    pageName={params.pageName}
+                    isMobile={true}
+                    onMobileClick={() => setIsOptionsOpen(false)}
+                  />
                 </div>
               )}
             </div>
