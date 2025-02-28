@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
+import { SITE_CONFIG } from "@/app/config/site";
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -76,11 +76,9 @@ export default function AboutPage() {
               <button
                 onClick={() => {
                   const email = [
-                    "wikitimeline2024",
+                    SITE_CONFIG.CONTACT_EMAIL.split("@")[0],
                     "@",
-                    "gmail",
-                    ".",
-                    "com",
+                    SITE_CONFIG.CONTACT_EMAIL.split("@")[1],
                   ].join("");
                   navigator.clipboard.writeText(email);
                   alert("Email address copied to clipboard!");

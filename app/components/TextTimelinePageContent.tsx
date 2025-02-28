@@ -246,7 +246,7 @@ export default function TextTimelinePageContent({
                         `Timeline URL: ${pageUrl}\n\n` +
                         `Issue description:\n`
                     );
-                    window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
+                    window.location.href = `mailto:${SITE_CONFIG.CONTACT_EMAIL}?subject=${subject}&body=${body}`;
                   }}
                   className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
                 >
@@ -386,7 +386,7 @@ export default function TextTimelinePageContent({
                           `Timeline URL: ${pageUrl}\n\n` +
                           `Issue description:\n`
                       );
-                      window.location.href = `mailto:wikitimeline2024@gmail.com?subject=${subject}&body=${body}`;
+                      window.location.href = `mailto:${SITE_CONFIG.CONTACT_EMAIL}?subject=${subject}&body=${body}`;
                       setIsOptionsOpen(false);
                     }}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"

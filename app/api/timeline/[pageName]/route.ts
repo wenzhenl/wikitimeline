@@ -15,7 +15,7 @@ import { CURRENT_PROMPT_VERSION } from "@/app/constants/gemini";
 const redis = Redis.fromEnv();
 
 // Initialize Wikipedia with User-Agent
-const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; wikitimeline2024@gmail.com)`;
+const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; ${SITE_CONFIG.CONTACT_EMAIL})`;
 wiki.setUserAgent(userAgent);
 logger.info('Wikipedia User-Agent set:', userAgent);
 
