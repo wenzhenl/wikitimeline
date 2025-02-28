@@ -44,12 +44,12 @@ export interface TimelineJSDate {
   year: number;
   month?: number;
   day?: number;
-  display_date?: string;
 }
 
 export interface TimelineJSEvent {
   start_date?: TimelineJSDate;
   end_date?: TimelineJSDate;
+  display_date?: string;
   text: {
     headline: string;
     text: string;

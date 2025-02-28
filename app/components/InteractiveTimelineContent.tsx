@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import Link from "next/link";
 import { formatTimelineEventsForInteractive } from "@/app/utils/formatTimelineEvents";
@@ -12,7 +12,11 @@ import TimelineCustomizer from "@/app/components/TimelineCustomizer";
 import ReportIssueButton from "@/app/components/ReportIssueButton";
 import SkippedPagesModal from "@/app/components/SkippedPagesModal";
 import { useRouter } from "next/navigation";
-import { TimelineAPIResponse, TimelineJSTimeline } from "@/app/types/timeline";
+import {
+  TimelineAPIResponse,
+  TimelineJSTimeline,
+  TimelineJSEvent,
+} from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
@@ -54,6 +58,15 @@ export default function InteractiveTimelineContent({
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [hasSeenSwipeTip, setHasSeenSwipeTip] = useState(false);
   const timelineContainerRef = useRef<HTMLDivElement>(null);
+  const [isControlsExpanded, setIsControlsExpanded] = useState(false);
+  const [dateRangeFilter, setDateRangeFilter] = useState<{
+    startEventId: string | null;
+    endEventId: string | null;
+  }>({
+    startEventId: null,
+    endEventId: null,
+  });
+  const [filteredEvents, setFilteredEvents] = useState<TimelineJSEvent[]>([]);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -121,13 +134,18 @@ export default function InteractiveTimelineContent({
             resolve(
               formatTimelineEventsForInteractive(
                 initialData.timelines,
-                "default"
+                selectedColorScheme
               )
             ),
           0
         );
       });
       setTimelineJSTimeline(formatted);
+
+      // Initialize filtered events with all events
+      if (formatted && formatted.events) {
+        setFilteredEvents(formatted.events);
+      }
     };
     formatEventsAsync();
 
@@ -157,7 +175,7 @@ export default function InteractiveTimelineContent({
       observer.disconnect();
       clearTimeout(timeout);
     };
-  }, [initialData]);
+  }, [initialData, selectedColorScheme]);
 
   // Update timeline when color scheme changes
   useEffect(() => {
@@ -170,6 +188,112 @@ export default function InteractiveTimelineContent({
       );
     }
   }, [selectedColorScheme, initialData]);
+
+  // Add a new useEffect to handle filtering events when date range changes
+  useEffect(() => {
+    if (!timelineJSTimeline || !timelineJSTimeline.events) return;
+
+    if (!dateRangeFilter.startEventId && !dateRangeFilter.endEventId) {
+      // No filters applied, show all events
+      setFilteredEvents(timelineJSTimeline.events);
+      return;
+    }
+
+    const allEvents = [...timelineJSTimeline.events];
+    const sortedEvents = allEvents.sort((a, b) => {
+      const aYear = a.start_date?.year || 0;
+      const bYear = b.start_date?.year || 0;
+
+      if (aYear !== bYear) return aYear - bYear;
+
+      const aMonth = a.start_date?.month || 0;
+      const bMonth = b.start_date?.month || 0;
+      if (aMonth !== bMonth) return aMonth - bMonth;
+
+      const aDay = a.start_date?.day || 0;
+      const bDay = b.start_date?.day || 0;
+      return aDay - bDay;
+    });
+
+    let startIndex = 0;
+    let endIndex = sortedEvents.length - 1;
+
+    if (dateRangeFilter.startEventId) {
+      const foundStartIndex = sortedEvents.findIndex(
+        (event) => event.unique_id === dateRangeFilter.startEventId
+      );
+      if (foundStartIndex !== -1) {
+        startIndex = foundStartIndex;
+      }
+    }
+
+    if (dateRangeFilter.endEventId) {
+      const foundEndIndex = sortedEvents.findIndex(
+        (event) => event.unique_id === dateRangeFilter.endEventId
+      );
+      if (foundEndIndex !== -1) {
+        endIndex = foundEndIndex;
+      }
+    }
+
+    // Extract the events within the range
+    const filtered = sortedEvents.slice(startIndex, endIndex + 1);
+
+    // If filtering has changed the events, we may need to update the timeline with a new scale
+    // (e.g., if we filtered out all cosmological dates)
+    if (filtered.length !== timelineJSTimeline.events.length) {
+      // Create a modified version of the timeline with just the filtered events
+      // This allows the formatTimelineEventsForInteractive function to recalculate scale based on filtered events
+      const modifiedTimeline = {
+        ...timelineJSTimeline,
+        events: filtered,
+      };
+
+      // Instead of just setting filtered events, we need to check if we need to reapply formatting
+      // to ensure proper scale (cosmological vs human)
+      const needsCosmologicalScale = filtered.some((event) => {
+        const { year } = event.start_date || { year: 0 };
+        const absYear = Math.abs(year);
+        return year < 0 ? absYear > 271821 : absYear > 275760;
+      });
+
+      // If scale needs to change, reformat the timeline
+      if (
+        (timelineJSTimeline.scale === "cosmological" &&
+          !needsCosmologicalScale) ||
+        (!timelineJSTimeline.scale && needsCosmologicalScale)
+      ) {
+        // Create a temporary version of the original data with only filtered events
+        const tempTimelines = { ...initialData.timelines };
+        const reformatted = formatTimelineEventsForInteractive(
+          tempTimelines,
+          selectedColorScheme
+        );
+
+        // Update only the filtered events, preserving other timeline properties
+        setFilteredEvents(filtered);
+        if (reformatted.scale !== timelineJSTimeline.scale) {
+          // If scale changed, update the entire timeline object
+          setTimelineJSTimeline({
+            ...timelineJSTimeline,
+            scale: reformatted.scale,
+            events: filtered,
+          });
+        }
+      } else {
+        // No scale change needed, just update filtered events
+        setFilteredEvents(filtered);
+      }
+    } else {
+      // No filtering occurred, use all events
+      setFilteredEvents(filtered);
+    }
+  }, [
+    timelineJSTimeline,
+    dateRangeFilter,
+    initialData.timelines,
+    selectedColorScheme,
+  ]);
 
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
@@ -244,6 +368,14 @@ export default function InteractiveTimelineContent({
       };
     }
   }, []);
+
+  // Handle date range change
+  const handleDateRangeChange = (
+    startEventId: string | null,
+    endEventId: string | null
+  ) => {
+    setDateRangeFilter({ startEventId, endEventId });
+  };
 
   if (loading || !timelineJSTimeline) {
     return (
@@ -456,7 +588,7 @@ export default function InteractiveTimelineContent({
               <div className="h-[500px] lg:hidden">
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
-                  events={timelineJSTimeline.events}
+                  events={filteredEvents}
                   scale={timelineJSTimeline.scale}
                   font={selectedFont}
                 />
@@ -464,7 +596,7 @@ export default function InteractiveTimelineContent({
               <div className="hidden lg:block relative w-full aspect-[16/9]">
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
-                  events={timelineJSTimeline.events}
+                  events={filteredEvents}
                   scale={timelineJSTimeline.scale}
                   font={selectedFont}
                 />
@@ -473,8 +605,10 @@ export default function InteractiveTimelineContent({
                 selectedPages={selectedPages}
                 onPagesChange={setSelectedPages}
                 onRefresh={handleTimelineRefresh}
-                isExpanded={isExpanded}
-                onExpandedChange={setIsExpanded}
+                isExpanded={isControlsExpanded}
+                onExpandedChange={setIsControlsExpanded}
+                events={timelineJSTimeline.events}
+                onDateRangeChange={handleDateRangeChange}
               />
             </div>
           )}

@@ -12,14 +12,9 @@ function formatGroupName(name: string): string {
     .join(' ');
 }
 
-function formatCosmologicalDate(year: number): string {
+// Renamed from formatCosmologicalDate to formatDisplayDate
+function formatDisplayDate(year: number): string {
   const absYear = Math.abs(year);
-  
-  // Handle dates within human range differently
-  if (absYear <= 275760) {
-    const formattedYear = absYear >= 10000 ? absYear.toLocaleString() : absYear.toString();
-    return year < 0 ? `${formattedYear} BCE` : formattedYear;
-  }
   
   // Format cosmological dates
   let display = '';
@@ -53,6 +48,28 @@ function formatLocalDate(date: TimelineJSDate): string {
   return result;
 }
 
+// Helper function to compare dates (handles BCE/negative years properly)
+function compareDates(a: TimelineJSDate, b: TimelineJSDate): number {
+  // Compare years first (handle negative years correctly)
+  if (a.year !== b.year) return a.year - b.year;
+  
+  // If years are equal, compare months
+  const aMonth = a.month || 0;
+  const bMonth = b.month || 0;
+  if (aMonth !== bMonth) return aMonth - bMonth;
+  
+  // If months are equal, compare days
+  const aDay = a.day || 0;
+  const bDay = b.day || 0;
+  return aDay - bDay;
+}
+
+// Helper function to check if a date requires cosmological scale
+function requiresCosmologicalScale(date: TimelineJSDate): boolean {
+  const absYear = Math.abs(date.year);
+  return date.year < 0 ? absYear > 271821 : absYear > 275760;
+}
+
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, TimelineWithWikiSummary>, 
   colorSchemeId = 'default'
@@ -64,27 +81,32 @@ export function formatTimelineEventsForInteractive(
   const firstGroupColors = colorScheme.colors[0];
 
   // Merge and format all events from all timelines
-  const allEvents = Object.entries(timelines).flatMap(([pageName, pageData]) => {
+  let formattedEvents = Object.entries(timelines).flatMap(([pageName, pageData], pageIndex) => {
     // Only add group if there are multiple pages
     const hasMultiplePages = Object.keys(timelines).length > 1;
     
-    return pageData.timeline.events.map(event => ({
-      ...event,
-      ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
-      ...(pageData.wikiSummary?.thumbnail && {  // Only add media if thumbnail exists
-        media: {
-          thumbnail: pageData.wikiSummary.thumbnail
-        }
-      })
-    }));
+    return pageData.timeline.events.map((event, eventIndex) => {
+      const startDate = parseDate(event.startDate);
+      
+      return {
+        original_event: event,
+        start_date: startDate,
+        ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
+        ...(pageData.wikiSummary?.thumbnail && {  // Only add media if thumbnail exists
+          media: {
+            thumbnail: pageData.wikiSummary.thumbnail
+          }
+        })
+      };
+    });
   });
 
-  // Check if any dates are outside human scale range (-271821 to 275760)
-  const needsCosmologicalScale = Object.values(timelines).some(pageData =>
-    pageData.timeline.events.some(event => {
-      const year = parseInt(event.startDate.startsWith("-") ? event.startDate.slice(1) : event.startDate);
-      return event.startDate.startsWith("-") ? year > 271821 : year > 275760;
-    })
+  // Sort all events chronologically by start date
+  formattedEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
+
+  // Check if any dates in the ACTUAL timeline events are outside human scale range
+  const needsCosmologicalScale = formattedEvents.some(event => 
+    requiresCosmologicalScale(event.start_date)
   );
 
   const isMultiplePages = Object.keys(timelines).length > 1;
@@ -104,9 +126,10 @@ export function formatTimelineEventsForInteractive(
         color: firstGroupColors.color
       }
     },
-    events: allEvents.map((event) => {
+    events: formattedEvents.map((formattedEvent, index) => {
       // Assign a consistent index to each group
-      const groupKey = event.group || 'default';
+      const event = formattedEvent.original_event;
+      const groupKey = formattedEvent.group || 'default';
       if (!groupIndices.has(groupKey)) {
         groupIndices.set(groupKey, groupIndices.size);
       }
@@ -114,28 +137,41 @@ export function formatTimelineEventsForInteractive(
       const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
       const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
-      const startDate = parseDate(event.startDate);
+      // Determine if this specific event needs cosmological formatting
+      const eventNeedsCosmological = requiresCosmologicalScale(formattedEvent.start_date);
+
+      // Format the display date appropriately
+      let displayDate;
+      if (needsCosmologicalScale && eventNeedsCosmological) {
+        // Use cosmological format for events outside human range
+        displayDate = formatDisplayDate(formattedEvent.start_date.year);
+      } else {
+        // Use local date format for human-scale dates
+        displayDate = formatLocalDate(formattedEvent.start_date);
+        
+        // Add age if available
+        if (event.age !== undefined) {
+          displayDate = `${displayDate}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;Age ${event.age}`;
+        }
+      }
 
       return {
-        start_date: startDate,
-        ...(needsCosmologicalScale ? {
-          display_date: formatCosmologicalDate(startDate.year)
-        } : event.age !== undefined && {
-          display_date: `${formatLocalDate(startDate)}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;Age ${event.age}`
-        }),
+        start_date: formattedEvent.start_date,
+        display_date: displayDate, // Always include display_date
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
           text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
-        group: event.group,
-        ...(event.media && { media: event.media }),
+        group: formattedEvent.group,
+        ...(formattedEvent.media && { media: formattedEvent.media }),
         background: {
           color: colors.color,
         },
+        // Add a unique ID for each event to be used in filtering
+        unique_id: `event-${index}`,
       };
     }),
     ...(needsCosmologicalScale && { scale: 'cosmological' as const }),
-    
   };
 }
 
