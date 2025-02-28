@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 
