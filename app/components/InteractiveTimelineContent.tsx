@@ -246,92 +246,50 @@ export default function InteractiveTimelineContent({
       }
     }
 
-    // Extract the events within the range
-    const filtered = sortedEvents.slice(startIndex, endIndex + 1);
+    // Log the indices for debugging
+    logger.debug("Filter indices:", {
+      startIndex,
+      endIndex,
+      totalEvents: sortedEvents.length,
+    });
+
+    // Use the improved formatting function with indices to determine scale and get filtered events
+    const reformatted = formatTimelineEventsForInteractive(
+      initialData.timelines,
+      selectedColorScheme,
+      startIndex,
+      endIndex
+    );
+
+    // Extract the filtered events
+    const filtered = reformatted.events;
+
     logger.debug(
       "Filtered events count:",
       filtered.length,
       "of",
-      timelineJSTimeline.events.length
+      timelineJSTimeline.events.length,
+      "with scale:",
+      reformatted.scale || "human"
     );
 
-    // If filtering has changed the events, we may need to update the timeline with a new scale
-    // (e.g., if we filtered out all cosmological dates)
-    if (filtered.length !== timelineJSTimeline.events.length) {
-      // Create a modified version of the timeline with just the filtered events
-      // This allows the formatTimelineEventsForInteractive function to recalculate scale based on filtered events
-      const modifiedTimeline = {
+    // Check if the scale has changed
+    if (reformatted.scale !== timelineJSTimeline.scale) {
+      logger.debug("Scale change detected, updating timeline", {
+        oldScale: timelineJSTimeline.scale || "human",
+        newScale: reformatted.scale || "human",
+      });
+
+      // Only update the entire timeline object if scale changed
+      setTimelineJSTimeline({
         ...timelineJSTimeline,
-        events: filtered,
-      };
-
-      // Instead of just setting filtered events, we need to check if we need to reapply formatting
-      // to ensure proper scale (cosmological vs human)
-      const needsCosmologicalScale = filtered.some((event) => {
-        const { year } = event.start_date || { year: 0 };
-        const absYear = Math.abs(year);
-        return year < 0 ? absYear > 271821 : absYear > 275760;
+        scale: reformatted.scale,
+        events: timelineJSTimeline.events, // Keep all events, just update the scale
       });
-
-      logger.debug("Scale analysis:", {
-        currentScale: timelineJSTimeline.scale || "human",
-        needsCosmologicalScale,
-        filteredEventsRequireCosmological: needsCosmologicalScale,
-        oldestYearInFiltered: Math.min(
-          ...filtered.map((e) => e.start_date?.year || 0)
-        ),
-        newestYearInFiltered: Math.max(
-          ...filtered.map((e) => e.start_date?.year || 0)
-        ),
-      });
-
-      // If scale needs to change, reformat the timeline
-      if (
-        (timelineJSTimeline.scale === "cosmological" &&
-          !needsCosmologicalScale) ||
-        (!timelineJSTimeline.scale && needsCosmologicalScale)
-      ) {
-        // Create a temporary version of the original data with only filtered events
-        const tempTimelines = { ...initialData.timelines };
-        const reformatted = formatTimelineEventsForInteractive(
-          tempTimelines,
-          selectedColorScheme
-        );
-
-        logger.debug("Scale change required!", {
-          oldScale: timelineJSTimeline.scale || "human",
-          newScale: reformatted.scale || "human",
-          reason: timelineJSTimeline.scale
-            ? "Switched to human scale"
-            : "Switched to cosmological scale",
-        });
-
-        // Update only the filtered events, preserving other timeline properties
-        setFilteredEvents(filtered);
-        if (reformatted.scale !== timelineJSTimeline.scale) {
-          // If scale changed, update the entire timeline object
-          setTimelineJSTimeline({
-            ...timelineJSTimeline,
-            scale: reformatted.scale,
-            events: filtered,
-          });
-        }
-      } else {
-        // No scale change needed, just update filtered events
-        logger.debug(
-          "No scale change needed, keeping",
-          timelineJSTimeline.scale || "human"
-        );
-        setFilteredEvents(filtered);
-      }
-    } else {
-      // No filtering occurred, use all events
-      logger.debug(
-        "Using all events, keeping scale",
-        timelineJSTimeline.scale || "human"
-      );
-      setFilteredEvents(filtered);
     }
+
+    // Always update filtered events
+    setFilteredEvents(filtered);
   }, [
     timelineJSTimeline,
     dateRangeFilter,

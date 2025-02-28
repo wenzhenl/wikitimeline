@@ -82,9 +82,19 @@ function requiresCosmologicalScale(date: TimelineJSDate): boolean {
   return needsCosmological;
 }
 
+/**
+ * Formats timeline events for interactive display
+ * @param timelines The source timeline data
+ * @param colorSchemeId The color scheme to use
+ * @param startIndex Optional starting index for filtering events (inclusive)
+ * @param endIndex Optional ending index for filtering events (inclusive)
+ * @returns Formatted timeline with events, properly scaled and styled
+ */
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, TimelineWithWikiSummary>, 
-  colorSchemeId = 'default'
+  colorSchemeId = 'default',
+  startIndex?: number,
+  endIndex?: number
 ): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
@@ -115,8 +125,14 @@ export function formatTimelineEventsForInteractive(
 
   // Sort all events chronologically by start date
   formattedEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
+  
+  // Apply filtering if indices are provided
+  if (startIndex !== undefined && endIndex !== undefined) {
+    logger.debug(`Filtering events from index ${startIndex} to ${endIndex}`);
+    formattedEvents = formattedEvents.slice(startIndex, endIndex + 1);
+  }
 
-  // Check if any dates in the ACTUAL timeline events are outside human scale range
+  // Check if any dates in the FILTERED timeline events are outside human scale range
   const needsCosmologicalScale = formattedEvents.some(event => 
     requiresCosmologicalScale(event.start_date)
   );
@@ -126,6 +142,7 @@ export function formatTimelineEventsForInteractive(
     needsCosmologicalScale,
     oldestYear: Math.min(...formattedEvents.map(e => e.start_date.year)),
     newestYear: Math.max(...formattedEvents.map(e => e.start_date.year)),
+    filtered: startIndex !== undefined && endIndex !== undefined,
     colorSchemeId
   });
 
