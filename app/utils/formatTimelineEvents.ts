@@ -13,7 +13,7 @@ function formatGroupName(name: string): string {
 }
 
 // Renamed from formatCosmologicalDate to formatDisplayDate
-function formatDisplayDate(year: number): string {
+function formatCosmologicalDate(year: number): string {
   const absYear = Math.abs(year);
   
   // Format cosmological dates
@@ -144,7 +144,7 @@ export function formatTimelineEventsForInteractive(
       let displayDate;
       if (needsCosmologicalScale && eventNeedsCosmological) {
         // Use cosmological format for events outside human range
-        displayDate = formatDisplayDate(formattedEvent.start_date.year);
+        displayDate = formatCosmologicalDate(formattedEvent.start_date.year);
       } else {
         // Use local date format for human-scale dates
         displayDate = formatLocalDate(formattedEvent.start_date);
