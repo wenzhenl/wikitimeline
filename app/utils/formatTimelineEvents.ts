@@ -1,6 +1,7 @@
 import { TimelineJSDate, TimelineWithWikiSummary } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { TimelineJSTimeline } from "@/app/types/timeline";
+import logger from "@/app/utils/logger";
 
 function formatGroupName(name: string): string {
   return name
@@ -67,7 +68,18 @@ function compareDates(a: TimelineJSDate, b: TimelineJSDate): number {
 // Helper function to check if a date requires cosmological scale
 function requiresCosmologicalScale(date: TimelineJSDate): boolean {
   const absYear = Math.abs(date.year);
-  return date.year < 0 ? absYear > 271821 : absYear > 275760;
+  const needsCosmological = date.year < 0 ? absYear > 271821 : absYear > 275760;
+  
+  if (needsCosmological) {
+    logger.debug('Found date requiring cosmological scale:', { 
+      year: date.year, 
+      absYear, 
+      isNegative: date.year < 0,
+      threshold: date.year < 0 ? 271821 : 275760
+    });
+  }
+  
+  return needsCosmological;
 }
 
 export function formatTimelineEventsForInteractive(
@@ -108,6 +120,14 @@ export function formatTimelineEventsForInteractive(
   const needsCosmologicalScale = formattedEvents.some(event => 
     requiresCosmologicalScale(event.start_date)
   );
+  
+  logger.debug('Timeline formatting', {
+    totalEvents: formattedEvents.length,
+    needsCosmologicalScale,
+    oldestYear: Math.min(...formattedEvents.map(e => e.start_date.year)),
+    newestYear: Math.max(...formattedEvents.map(e => e.start_date.year)),
+    colorSchemeId
+  });
 
   const isMultiplePages = Object.keys(timelines).length > 1;
   const pageNames = Object.keys(timelines).map(name => formatGroupName(name));

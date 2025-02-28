@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import "@knight-lab/timelinejs/dist/css/timeline.css";
 import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineJSEvent } from "@/app/types/timeline";
+import logger from "@/app/utils/logger";
 
 interface MyTimelineComponentProps {
   title?: TimelineJSEvent;
@@ -46,6 +47,13 @@ const MyTimelineComponent = ({
           { title: title, events: events, scale: scale },
           options
         );
+
+        logger.debug("Timeline component rendered", {
+          scale: scale || "human",
+          eventsCount: events.length,
+          font,
+        });
+
         setTimelineInstance(timeline);
       });
     }

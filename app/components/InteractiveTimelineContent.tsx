@@ -194,9 +194,19 @@ export default function InteractiveTimelineContent({
   useEffect(() => {
     if (!timelineJSTimeline || !timelineJSTimeline.events) return;
 
+    logger.debug("Filter change detected", {
+      startEventId: dateRangeFilter.startEventId,
+      endEventId: dateRangeFilter.endEventId,
+      currentScale: timelineJSTimeline.scale || "human",
+    });
+
     if (!dateRangeFilter.startEventId && !dateRangeFilter.endEventId) {
       // No filters applied, show all events
       setFilteredEvents(timelineJSTimeline.events);
+      logger.debug(
+        "No filter applied, using all events with scale:",
+        timelineJSTimeline.scale || "human"
+      );
       return;
     }
 
@@ -242,6 +252,12 @@ export default function InteractiveTimelineContent({
 
     // Extract the events within the range
     const filtered = sortedEvents.slice(startIndex, endIndex + 1);
+    logger.debug(
+      "Filtered events count:",
+      filtered.length,
+      "of",
+      timelineJSTimeline.events.length
+    );
 
     // If filtering has changed the events, we may need to update the timeline with a new scale
     // (e.g., if we filtered out all cosmological dates)
@@ -261,6 +277,18 @@ export default function InteractiveTimelineContent({
         return year < 0 ? absYear > 271821 : absYear > 275760;
       });
 
+      logger.debug("Scale analysis:", {
+        currentScale: timelineJSTimeline.scale || "human",
+        needsCosmologicalScale,
+        filteredEventsRequireCosmological: needsCosmologicalScale,
+        oldestYearInFiltered: Math.min(
+          ...filtered.map((e) => e.start_date?.year || 0)
+        ),
+        newestYearInFiltered: Math.max(
+          ...filtered.map((e) => e.start_date?.year || 0)
+        ),
+      });
+
       // If scale needs to change, reformat the timeline
       if (
         (timelineJSTimeline.scale === "cosmological" &&
@@ -274,6 +302,14 @@ export default function InteractiveTimelineContent({
           selectedColorScheme
         );
 
+        logger.debug("Scale change required!", {
+          oldScale: timelineJSTimeline.scale || "human",
+          newScale: reformatted.scale || "human",
+          reason: timelineJSTimeline.scale
+            ? "Switched to human scale"
+            : "Switched to cosmological scale",
+        });
+
         // Update only the filtered events, preserving other timeline properties
         setFilteredEvents(filtered);
         if (reformatted.scale !== timelineJSTimeline.scale) {
@@ -286,10 +322,18 @@ export default function InteractiveTimelineContent({
         }
       } else {
         // No scale change needed, just update filtered events
+        logger.debug(
+          "No scale change needed, keeping",
+          timelineJSTimeline.scale || "human"
+        );
         setFilteredEvents(filtered);
       }
     } else {
       // No filtering occurred, use all events
+      logger.debug(
+        "Using all events, keeping scale",
+        timelineJSTimeline.scale || "human"
+      );
       setFilteredEvents(filtered);
     }
   }, [
