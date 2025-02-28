@@ -73,7 +73,11 @@ export default function TimelineControls({
     // Use display_date if available (strips HTML tags)
     if (event.display_date) {
       // Strip HTML tags and ensure no trailing spaces
-      return event.display_date.replace(/<[^>]*>?/gm, "").trim();
+      // Also normalize the pipe symbol by removing spaces around it
+      return event.display_date
+        .replace(/<[^>]*>?/gm, "")
+        .trim()
+        .replace(/ \| /g, "|");
     }
 
     // Fallback to start_date properties if display_date is not available
@@ -229,26 +233,31 @@ export default function TimelineControls({
                       className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
                     >
                       <option value="">-- All Events --</option>
-                      {sortedEvents.map((event) => (
-                        <option
-                          key={`end-${event.unique_id}`}
-                          value={event.unique_id}
-                          disabled={
-                            startEventId
-                              ? sortedEvents.findIndex(
-                                  (e) => e.unique_id === event.unique_id
-                                ) <
-                                sortedEvents.findIndex(
-                                  (e) => e.unique_id === startEventId
-                                )
-                              : false
-                          }
-                        >
-                          {`[${formatEventDate(
-                            event
-                          )}] ${event.text.headline.replace(/<[^>]*>?/gm, "")}`}
-                        </option>
-                      ))}
+                      {sortedEvents
+                        // Filter out options that come before the selected start date
+                        .filter(
+                          (event) =>
+                            !startEventId ||
+                            sortedEvents.findIndex(
+                              (e) => e.unique_id === event.unique_id
+                            ) >=
+                              sortedEvents.findIndex(
+                                (e) => e.unique_id === startEventId
+                              )
+                        )
+                        .map((event) => (
+                          <option
+                            key={`end-${event.unique_id}`}
+                            value={event.unique_id}
+                          >
+                            {`[${formatEventDate(
+                              event
+                            )}] ${event.text.headline.replace(
+                              /<[^>]*>?/gm,
+                              ""
+                            )}`}
+                          </option>
+                        ))}
                     </select>
                   </div>
 

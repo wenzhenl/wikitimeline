@@ -149,9 +149,9 @@ export function formatTimelineEventsForInteractive(
         // Use local date format for human-scale dates
         displayDate = formatLocalDate(formattedEvent.start_date);
         
-        // Add age if available - removed extra spaces around |
+        // Add age if available - keep spaces around the pipe for display
         if (event.age !== undefined) {
-          displayDate = `${displayDate.trim()}|Age ${event.age}`;
+          displayDate = `${displayDate.trim()} | Age ${event.age}`;
         }
       }
 

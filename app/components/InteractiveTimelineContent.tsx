@@ -67,6 +67,7 @@ export default function InteractiveTimelineContent({
     endEventId: null,
   });
   const [filteredEvents, setFilteredEvents] = useState<TimelineJSEvent[]>([]);
+  const [timelineReloadKey, setTimelineReloadKey] = useState<number>(0);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -198,6 +199,9 @@ export default function InteractiveTimelineContent({
       setFilteredEvents(timelineJSTimeline.events);
       return;
     }
+
+    // Increment the reload key to force a fresh render of the timeline
+    setTimelineReloadKey((prev) => prev + 1);
 
     const allEvents = [...timelineJSTimeline.events];
     const sortedEvents = allEvents.sort((a, b) => {
@@ -587,6 +591,7 @@ export default function InteractiveTimelineContent({
             >
               <div className="h-[500px] lg:hidden">
                 <MyTimelineComponent
+                  key={`mobile-timeline-${timelineReloadKey}`}
                   title={timelineJSTimeline.title}
                   events={filteredEvents}
                   scale={timelineJSTimeline.scale}
@@ -595,6 +600,7 @@ export default function InteractiveTimelineContent({
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
                 <MyTimelineComponent
+                  key={`desktop-timeline-${timelineReloadKey}`}
                   title={timelineJSTimeline.title}
                   events={filteredEvents}
                   scale={timelineJSTimeline.scale}
