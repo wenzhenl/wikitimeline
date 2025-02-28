@@ -4,7 +4,7 @@ import { HomeFooter } from "@/app/components/HomeFooter";
 import { HomeHero } from "@/app/components/HomeHero";
 import { HomeFeaturedTimelines } from "@/app/components/HomeFeaturedTimelines";
 import { ClientSearchWrapper } from "@/app/components/ClientSearchWrapper";
-import { HomeNavigation } from "@/app/components/HomeNavigation";
+import NavigationHeader from "@/app/components/NavigationHeader";
 
 export default function HomePage() {
   return (
@@ -16,7 +16,7 @@ export default function HomePage() {
         minHeight: "100vh",
       }}
     >
-      <HomeNavigation />
+      <NavigationHeader showAboutLink={true} />
 
       <main
         className="flex-grow flex flex-col"
