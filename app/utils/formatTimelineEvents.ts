@@ -212,6 +212,7 @@ export function formatTimelineEventsForInteractive(
         },
         // Changed to use just the index number without "event-" prefix
         unique_id: `${index}`,
+        score: event.score,
       };
     }),
     ...(needsCosmologicalScale && { scale: 'cosmological' as const }),

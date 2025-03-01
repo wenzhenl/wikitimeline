@@ -272,11 +272,13 @@ export default function InteractiveTimelineContent({
       const scoreSortedEvents = [...filteredByDateRange].sort((a, b) => {
         // Get the score from each timeline event
         // Access the score property using a type assertion
-        const scoreA = (a as any).original_event?.score || 0;
-        const scoreB = (b as any).original_event?.score || 0;
+        const scoreA = (a as any).score;
+        const scoreB = (b as any).score;
 
         // Sort by score (descending)
         const scoreDiff = scoreB - scoreA;
+
+        logger.debug("Score difference", { scoreA, scoreB, scoreDiff });
 
         // If scores are equal, maintain chronological order
         if (scoreDiff === 0) {
