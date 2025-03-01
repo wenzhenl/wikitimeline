@@ -9,7 +9,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
-import { CURRENT_PROMPT_VERSION } from "@/app/constants/gemini";
+import { CURRENT_PROMPT_VERSION, MAX_CHUNK_SIZE } from "@/app/constants/gemini";
 import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
 
 // Initialize Redis
@@ -160,81 +160,6 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     version: CURRENT_PROMPT_VERSION
   };
 }
-
-// Enhanced JSON repair function to handle truncated responses from any chunk
-function attemptToRepairTruncatedJSON(jsonString: string): any {
-  try {
-    // First try to parse as-is
-    return JSON.parse(jsonString);
-  } catch (error) {
-    logger.warn('JSON parsing failed, attempting repair');
-    
-    // Try to find the last complete event
-    const timelineMatch = jsonString.match(/"timeline"\s*:\s*{/);
-    const eventsMatch = jsonString.match(/"events"\s*:\s*\[/);
-    
-    if (!timelineMatch || !eventsMatch) {
-      logger.error('Could not find timeline or events array in truncated JSON');
-      throw new Error('JSON repair failed: missing timeline or events structure');
-    }
-    
-    // Extract what we can from the truncated JSON
-    let repairedJSON = '{"timeline":{"events":[]}}';
-    
-    try {
-      // Try to extract title, birthDate, and deathDate if present
-      const titleMatch = jsonString.match(/"title"\s*:\s*"([^"]+)"/);
-      const birthDateMatch = jsonString.match(/"birthDate"\s*:\s*"([^"]+)"/);
-      const deathDateMatch = jsonString.match(/"deathDate"\s*:\s*"([^"]+)"/);
-      
-      // Start building a valid JSON object
-      let timelineObj: any = { events: [] };
-      
-      if (titleMatch && titleMatch[1]) {
-        timelineObj.title = titleMatch[1];
-      }
-      
-      if (birthDateMatch && birthDateMatch[1]) {
-        timelineObj.birthDate = birthDateMatch[1];
-      }
-      
-      if (deathDateMatch && deathDateMatch[1]) {
-        timelineObj.deathDate = deathDateMatch[1];
-      }
-      
-      // Extract complete events
-      const eventRegex = /{[^{]*?"headline"\s*:\s*"[^"]+?"[^{]*?"description"\s*:\s*"[^"]+?"[^{]*?"startDate"\s*:\s*"[^"]+?"[^{}]*?}/g;
-      const eventMatches = jsonString.match(eventRegex) || [];
-      
-      const events = [];
-      for (const eventStr of eventMatches) {
-        try {
-          // Try to parse each event
-          const event = JSON.parse(eventStr);
-          if (event.headline && event.startDate) {
-            events.push(event);
-          }
-        } catch (e) {
-          // Skip this event if it can't be parsed
-          continue;
-        }
-      }
-      
-      timelineObj.events = events;
-      timelineObj.isComplete = false; // Mark as incomplete since we had to repair
-      
-      repairedJSON = JSON.stringify({ timeline: timelineObj });
-      logger.info(`Repaired JSON with ${events.length} complete events`);
-      
-      return JSON.parse(repairedJSON);
-    } catch (repairError) {
-      logger.error('JSON repair attempt failed:', repairError);
-      throw new Error('Failed to repair truncated JSON');
-    }
-  }
-}
-
-const MAX_CHUNK_SIZE = 10000;
 
 // Improved function to split content into chunks with better token estimation
 function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUNK_SIZE): string[] {
@@ -492,17 +417,8 @@ async function processChunk(
       logger.warn(`MAX_TOKENS reached in chunk ${chunkIndex + 1}, attempting to repair truncated JSON`);
     }
     
-    // Use the repair function to handle potentially truncated JSON
-    let data;
-    try {
-      data = attemptToRepairTruncatedJSON(response.text());
-      logger.info(`Successfully parsed JSON response from chunk ${chunkIndex + 1}${wasMaxTokensReached ? ' after repair' : ''}`);
-    } catch (error) {
-      logger.error(`Failed to parse JSON response from chunk ${chunkIndex + 1}: ${error}`);
-      return null;
-    }
-    
     // Extract the timeline data
+    const data = JSON.parse(response.text());
     const fragment = data.timeline;
     
     // Return events and metadata from this chunk
