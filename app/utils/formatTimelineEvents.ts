@@ -82,6 +82,20 @@ function requiresCosmologicalScale(date: TimelineJSDate): boolean {
   return needsCosmological;
 }
 
+// Helper function to parse date string into TimelineJSDate
+function parseDate(dateStr: string): TimelineJSDate {
+  const isNegativeYear = dateStr.startsWith("-");
+  const normalizedDate = isNegativeYear ? dateStr.slice(1) : dateStr;
+  const dateParts = normalizedDate.split("-");
+
+  const initialYear = parseInt(dateParts[0]) || 0;
+  const year = isNegativeYear ? -initialYear : initialYear;
+  const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
+  const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
+
+  return { year, month, day };
+} 
+
 /**
  * Formats timeline events for interactive display
  * @param timelines The source timeline data
@@ -93,10 +107,7 @@ function requiresCosmologicalScale(date: TimelineJSDate): boolean {
  */
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, TimelineWithWikiSummary>, 
-  colorSchemeId = 'default',
-  startIndex?: number,
-  endIndex?: number,
-  topEventsCount?: number
+  colorSchemeId = 'default'
 ): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
@@ -127,40 +138,6 @@ export function formatTimelineEventsForInteractive(
 
   // Sort all events chronologically by start date
   formattedEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
-  
-  // Apply date range filtering if indices are provided
-  if (startIndex !== undefined && endIndex !== undefined) {
-    logger.debug(`Filtering events from index ${startIndex} to ${endIndex}`);
-    formattedEvents = formattedEvents.slice(startIndex, endIndex + 1);
-  }
-  
-  // Apply score-based filtering if topEventsCount is provided
-  if (topEventsCount && topEventsCount > 0 && topEventsCount < formattedEvents.length) {
-    logger.debug(`Filtering to show top ${topEventsCount} events by importance score`);
-    
-    // Create a sorted copy based on score (descending) while maintaining chronological order for equal scores
-    const scoreSortedEvents = [...formattedEvents].sort((a, b) => {
-      // Sort by score (descending) first
-      const scoreDiff = b.original_event.score - a.original_event.score;
-      
-      // If scores are equal, maintain chronological order
-      if (scoreDiff === 0) {
-        return compareDates(a.start_date, b.start_date);
-      }
-      
-      return scoreDiff;
-    });
-    
-    // Take only the top N events
-    const topEvents = scoreSortedEvents.slice(0, topEventsCount);
-    
-    // Sort back to chronological order
-    topEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
-    
-    formattedEvents = topEvents;
-    
-    logger.debug(`Applied importance filter: ${formattedEvents.length} events remaining`);
-  }
 
   // Check if any dates in the FILTERED timeline events are outside human scale range
   const needsCosmologicalScale = formattedEvents.some(event => 
@@ -172,7 +149,6 @@ export function formatTimelineEventsForInteractive(
     needsCosmologicalScale,
     oldestYear: formattedEvents.length > 0 ? Math.min(...formattedEvents.map(e => e.start_date.year)) : 'N/A',
     newestYear: formattedEvents.length > 0 ? Math.max(...formattedEvents.map(e => e.start_date.year)) : 'N/A',
-    filtered: startIndex !== undefined && endIndex !== undefined || topEventsCount !== undefined,
     colorSchemeId
   });
 
@@ -241,17 +217,3 @@ export function formatTimelineEventsForInteractive(
     ...(needsCosmologicalScale && { scale: 'cosmological' as const }),
   };
 }
-
-// Helper function to parse date string into TimelineJSDate
-function parseDate(dateStr: string): TimelineJSDate {
-  const isNegativeYear = dateStr.startsWith("-");
-  const normalizedDate = isNegativeYear ? dateStr.slice(1) : dateStr;
-  const dateParts = normalizedDate.split("-");
-
-  const initialYear = parseInt(dateParts[0]) || 0;
-  const year = isNegativeYear ? -initialYear : initialYear;
-  const month = dateParts[1] ? parseInt(dateParts[1]) : undefined;
-  const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
-
-  return { year, month, day };
-} 
