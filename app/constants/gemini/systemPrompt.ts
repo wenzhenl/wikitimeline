@@ -13,7 +13,7 @@ Output JSONFormat:
     "events": [
       {
         "headline": "Concise, self-contained title describing the event",
-        "description": "Clear, concise 1-2 sentence summary that provides context without relying on other events. Avoid direct Wikipedia quotes.",
+        "description": "Clear, concise summary that provides context without relying on other events. Avoid direct Wikipedia quotes.",
         "startDate": "Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)",
         "endDate": "Optional end date for ranges, using same format as startDate"
       }
@@ -32,11 +32,10 @@ ACCURACY IS THE TOP PRIORITY:
 - For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
 - Do not include events or dates from your training data - only use what's in the provided article
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
-- If the chunk contains no dated events, return an empty array and set isComplete to true
+- If the chunk contains no dated events, return an empty array
 - For date ranges:
-  * Always create a single event using the start date
-  * Include the end date in the event description
-  * Use clear language like "from [start] to [end]" or "between [start] and [end]"
+  * Always create a single event and set the startDate to the start of the range and the endDate to the end of the range
+  * Use clear language like "from [start] to [end]" or "between [start] and [end]" in the description
 - Always include the full date in the event description for context
 
 EXTRACT ALL EVENTS WITH DATES:
