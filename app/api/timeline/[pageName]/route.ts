@@ -331,7 +331,7 @@ async function generateTimeline(
   // Log detailed token usage
   logger.debug(`Token usage by chunk: ${tokensPerChunk.map((tokens, i) => 
     `Chunk ${i+1}: ${tokens.input} input, ${tokens.output} output`).join(', ')}`);
-  logger.debug(`Total token usage for ${pageName}: ${totalInputTokens} input tokens, ${totalOutputTokens} output tokens, ${totalInputTokens + totalOutputTokens} total tokens`);
+  logger.info(`Total token usage for ${pageName}: ${totalInputTokens} input tokens, ${totalOutputTokens} output tokens, ${totalInputTokens + totalOutputTokens} total tokens`);
   
   // Log event counts
   logger.info(`Events by chunk: ${eventsPerChunk.map((count, i) => `Chunk ${i+1}: ${count}`).join(', ')}`);
