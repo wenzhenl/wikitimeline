@@ -88,13 +88,15 @@ function requiresCosmologicalScale(date: TimelineJSDate): boolean {
  * @param colorSchemeId The color scheme to use
  * @param startIndex Optional starting index for filtering events (inclusive)
  * @param endIndex Optional ending index for filtering events (inclusive)
+ * @param topEventsCount Optional number of top events to show based on importance score
  * @returns Formatted timeline with events, properly scaled and styled
  */
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, TimelineWithWikiSummary>, 
   colorSchemeId = 'default',
   startIndex?: number,
-  endIndex?: number
+  endIndex?: number,
+  topEventsCount?: number
 ): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
   const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
@@ -126,10 +128,38 @@ export function formatTimelineEventsForInteractive(
   // Sort all events chronologically by start date
   formattedEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
   
-  // Apply filtering if indices are provided
+  // Apply date range filtering if indices are provided
   if (startIndex !== undefined && endIndex !== undefined) {
     logger.debug(`Filtering events from index ${startIndex} to ${endIndex}`);
     formattedEvents = formattedEvents.slice(startIndex, endIndex + 1);
+  }
+  
+  // Apply score-based filtering if topEventsCount is provided
+  if (topEventsCount && topEventsCount > 0 && topEventsCount < formattedEvents.length) {
+    logger.debug(`Filtering to show top ${topEventsCount} events by importance score`);
+    
+    // Create a sorted copy based on score (descending) while maintaining chronological order for equal scores
+    const scoreSortedEvents = [...formattedEvents].sort((a, b) => {
+      // Sort by score (descending) first
+      const scoreDiff = b.original_event.score - a.original_event.score;
+      
+      // If scores are equal, maintain chronological order
+      if (scoreDiff === 0) {
+        return compareDates(a.start_date, b.start_date);
+      }
+      
+      return scoreDiff;
+    });
+    
+    // Take only the top N events
+    const topEvents = scoreSortedEvents.slice(0, topEventsCount);
+    
+    // Sort back to chronological order
+    topEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
+    
+    formattedEvents = topEvents;
+    
+    logger.debug(`Applied importance filter: ${formattedEvents.length} events remaining`);
   }
 
   // Check if any dates in the FILTERED timeline events are outside human scale range
@@ -140,9 +170,9 @@ export function formatTimelineEventsForInteractive(
   logger.debug('Timeline formatting', {
     totalEvents: formattedEvents.length,
     needsCosmologicalScale,
-    oldestYear: Math.min(...formattedEvents.map(e => e.start_date.year)),
-    newestYear: Math.max(...formattedEvents.map(e => e.start_date.year)),
-    filtered: startIndex !== undefined && endIndex !== undefined,
+    oldestYear: formattedEvents.length > 0 ? Math.min(...formattedEvents.map(e => e.start_date.year)) : 'N/A',
+    newestYear: formattedEvents.length > 0 ? Math.max(...formattedEvents.map(e => e.start_date.year)) : 'N/A',
+    filtered: startIndex !== undefined && endIndex !== undefined || topEventsCount !== undefined,
     colorSchemeId
   });
 
@@ -191,13 +221,17 @@ export function formatTimelineEventsForInteractive(
           displayDate = `${displayDate.trim()} | Age ${event.age}`;
         }
       }
+      
+      // Include the importance score in the display
+      const scoreDisplay = `<span style="font-size: 0.85em; opacity: 0.8;">[Importance: ${event.score}/100]</span>`;
+      const combinedText = `${scoreDisplay}<br />${event.description}`;
 
       return {
         start_date: formattedEvent.start_date,
         display_date: displayDate, // Always include display_date
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
+          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${combinedText}</span>`,
         },
         group: formattedEvent.group,
         ...(formattedEvent.media && { media: formattedEvent.media }),

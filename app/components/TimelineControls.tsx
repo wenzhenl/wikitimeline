@@ -24,6 +24,8 @@ interface TimelineControlsProps {
     startEventId: string | null;
     endEventId: string | null;
   }; // Current date range filter values
+  onTopEventsCountChange?: (count: number | null) => void; // Callback for top events filter
+  currentTopEventsCount?: number | null; // Current top events count
 }
 
 export default function TimelineControls({
@@ -37,6 +39,8 @@ export default function TimelineControls({
   activeModal,
   setActiveModal,
   currentDateRange = { startEventId: null, endEventId: null },
+  onTopEventsCountChange,
+  currentTopEventsCount = null,
 }: TimelineControlsProps) {
   // Temporary filter state - only applied when user clicks "Apply Filters"
   const [tempStartEventId, setTempStartEventId] = useState<string | null>(
@@ -44,6 +48,9 @@ export default function TimelineControls({
   );
   const [tempEndEventId, setTempEndEventId] = useState<string | null>(
     currentDateRange.endEventId
+  );
+  const [tempTopEventsCount, setTempTopEventsCount] = useState<number | null>(
+    currentTopEventsCount
   );
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const speedDialRef = useRef<HTMLDivElement>(null);
@@ -53,8 +60,9 @@ export default function TimelineControls({
     if (activeModal === "filter" && isExpanded) {
       setTempStartEventId(currentDateRange.startEventId);
       setTempEndEventId(currentDateRange.endEventId);
+      setTempTopEventsCount(currentTopEventsCount);
     }
-  }, [activeModal, isExpanded, currentDateRange]);
+  }, [activeModal, isExpanded, currentDateRange, currentTopEventsCount]);
 
   // Close speed dial when clicking outside
   useEffect(() => {
@@ -110,10 +118,22 @@ export default function TimelineControls({
     setTempEndEventId(newEndId);
   };
 
+  // Update temporary top events count
+  const handleTempTopEventsCountChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = e.target.value;
+    const newCount = value ? parseInt(value, 10) : null;
+    setTempTopEventsCount(newCount);
+  };
+
   // Apply filters when the Apply Filters button is clicked
   const applyFilters = () => {
     if (onDateRangeChange) {
       onDateRangeChange(tempStartEventId, tempEndEventId);
+    }
+    if (onTopEventsCountChange) {
+      onTopEventsCountChange(tempTopEventsCount);
     }
     closeModal();
   };
@@ -178,6 +198,13 @@ export default function TimelineControls({
     return dateStr.trim();
   };
 
+  // Reset all filters to default values
+  const resetAllFilters = () => {
+    setTempStartEventId(null);
+    setTempEndEventId(null);
+    setTempTopEventsCount(null);
+  };
+
   // Sort events chronologically
   const sortedEvents = [...events].sort((a, b) => {
     const aYear = a.start_date?.year || 0;
@@ -193,6 +220,15 @@ export default function TimelineControls({
     const bDay = b.start_date?.day || 0;
     return aDay - bDay;
   });
+
+  // Generate options for top events dropdown
+  const topEventOptions = [5, 10, 15, 20, 25, 50];
+
+  // Check if any filters are applied (for reset button visibility)
+  const areFiltersApplied =
+    tempStartEventId !== null ||
+    tempEndEventId !== null ||
+    tempTopEventsCount !== null;
 
   return (
     <>
@@ -319,61 +355,28 @@ export default function TimelineControls({
                 />
               )}
 
-              {/* Date Range Filter */}
+              {/* Filters Section */}
               {activeModal === "filter" && events.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-md font-semibold mb-3">
-                    Filter Events by Date Range
-                  </h4>
+                <div className="space-y-6">
+                  {/* Date Range Filter */}
+                  <div>
+                    <h4 className="text-md font-semibold mb-3">
+                      Filter Events by Date Range
+                    </h4>
 
-                  <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Start Event
-                    </label>
-                    <select
-                      value={tempStartEventId || ""}
-                      onChange={handleTempStartEventChange}
-                      className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
-                    >
-                      <option value="">-- All Events --</option>
-                      {sortedEvents.map((event) => (
-                        <option
-                          key={`start-${event.unique_id}`}
-                          value={event.unique_id}
-                        >
-                          {`[${formatEventDate(
-                            event
-                          )}] ${event.text.headline.replace(/<[^>]*>?/gm, "")}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mb-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      End Event
-                    </label>
-                    <select
-                      value={tempEndEventId || ""}
-                      onChange={handleTempEndEventChange}
-                      className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
-                    >
-                      <option value="">-- All Events --</option>
-                      {sortedEvents
-                        // Filter out options that come before the selected start date
-                        .filter(
-                          (event) =>
-                            !tempStartEventId ||
-                            sortedEvents.findIndex(
-                              (e) => e.unique_id === event.unique_id
-                            ) >=
-                              sortedEvents.findIndex(
-                                (e) => e.unique_id === tempStartEventId
-                              )
-                        )
-                        .map((event) => (
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Start Event
+                      </label>
+                      <select
+                        value={tempStartEventId || ""}
+                        onChange={handleTempStartEventChange}
+                        className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
+                      >
+                        <option value="">-- All Events --</option>
+                        {sortedEvents.map((event) => (
                           <option
-                            key={`end-${event.unique_id}`}
+                            key={`start-${event.unique_id}`}
                             value={event.unique_id}
                           >
                             {`[${formatEventDate(
@@ -384,18 +387,84 @@ export default function TimelineControls({
                             )}`}
                           </option>
                         ))}
-                    </select>
+                      </select>
+                    </div>
+
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        End Event
+                      </label>
+                      <select
+                        value={tempEndEventId || ""}
+                        onChange={handleTempEndEventChange}
+                        className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
+                      >
+                        <option value="">-- All Events --</option>
+                        {sortedEvents
+                          // Filter out options that come before the selected start date
+                          .filter(
+                            (event) =>
+                              !tempStartEventId ||
+                              sortedEvents.findIndex(
+                                (e) => e.unique_id === event.unique_id
+                              ) >=
+                                sortedEvents.findIndex(
+                                  (e) => e.unique_id === tempStartEventId
+                                )
+                          )
+                          .map((event) => (
+                            <option
+                              key={`end-${event.unique_id}`}
+                              value={event.unique_id}
+                            >
+                              {`[${formatEventDate(
+                                event
+                              )}] ${event.text.headline.replace(
+                                /<[^>]*>?/gm,
+                                ""
+                              )}`}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
 
-                  {(tempStartEventId || tempEndEventId) && (
+                  {/* Importance Score Filter */}
+                  <div>
+                    <h4 className="text-md font-semibold mb-3">
+                      Filter by Importance
+                    </h4>
+
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Show Top Events
+                      </label>
+                      <select
+                        value={tempTopEventsCount?.toString() || ""}
+                        onChange={handleTempTopEventsCountChange}
+                        className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
+                      >
+                        <option value="">-- Show All Events --</option>
+                        {topEventOptions.map((count) => (
+                          <option key={`top-${count}`} value={count.toString()}>
+                            Show top {count} most important events
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Events are scored from 1-100 based on their importance
+                        to the subject
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Reset Filters Button */}
+                  {areFiltersApplied && (
                     <button
-                      onClick={() => {
-                        setTempStartEventId(null);
-                        setTempEndEventId(null);
-                      }}
+                      onClick={resetAllFilters}
                       className="mt-2 text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                     >
-                      Reset Filters
+                      Reset All Filters
                     </button>
                   )}
                 </div>

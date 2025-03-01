@@ -40,6 +40,7 @@ export default function InteractiveTimelineContent({
   params,
   initialData,
 }: InteractiveTimelineContentProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timelineJSTimeline, setTimelineJSTimeline] =
@@ -52,7 +53,6 @@ export default function InteractiveTimelineContent({
     useState<ColorSchemeId>("default");
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const router = useRouter();
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -70,6 +70,10 @@ export default function InteractiveTimelineContent({
     endEventId: null,
   });
   const [filteredEvents, setFilteredEvents] = useState<TimelineJSEvent[]>([]);
+  const [topEventsCount, setTopEventsCount] = useState<number | null>(null);
+  const [currentFontFamily, setCurrentFontFamily] = useState<string>("inherit");
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [timelineInstance, setTimelineInstance] = useState<any>(null);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -137,7 +141,16 @@ export default function InteractiveTimelineContent({
             resolve(
               formatTimelineEventsForInteractive(
                 initialData.timelines,
-                selectedColorScheme
+                selectedColorScheme,
+                getEventIndexFromId(
+                  timelineJSTimeline?.events,
+                  dateRangeFilter.startEventId
+                ),
+                getEventIndexFromId(
+                  timelineJSTimeline?.events,
+                  dateRangeFilter.endEventId
+                ),
+                topEventsCount ? topEventsCount : undefined
               )
             ),
           0
@@ -178,7 +191,13 @@ export default function InteractiveTimelineContent({
       observer.disconnect();
       clearTimeout(timeout);
     };
-  }, [initialData, selectedColorScheme]);
+  }, [
+    initialData,
+    selectedColorScheme,
+    dateRangeFilter.startEventId,
+    dateRangeFilter.endEventId,
+    topEventsCount,
+  ]);
 
   // Update timeline when color scheme changes
   useEffect(() => {
@@ -186,11 +205,26 @@ export default function InteractiveTimelineContent({
       setTimelineJSTimeline(
         formatTimelineEventsForInteractive(
           initialData.timelines,
-          selectedColorScheme
+          selectedColorScheme,
+          getEventIndexFromId(
+            timelineJSTimeline.events,
+            dateRangeFilter.startEventId
+          ),
+          getEventIndexFromId(
+            timelineJSTimeline.events,
+            dateRangeFilter.endEventId
+          ),
+          topEventsCount ? topEventsCount : undefined
         )
       );
     }
-  }, [selectedColorScheme, initialData]);
+  }, [
+    selectedColorScheme,
+    initialData,
+    dateRangeFilter.startEventId,
+    dateRangeFilter.endEventId,
+    topEventsCount,
+  ]);
 
   // Add a new useEffect to handle filtering events when date range changes
   useEffect(() => {
@@ -261,7 +295,8 @@ export default function InteractiveTimelineContent({
       initialData.timelines,
       selectedColorScheme,
       startIndex,
-      endIndex
+      endIndex,
+      topEventsCount ? topEventsCount : undefined
     );
 
     // Extract the filtered events
@@ -298,6 +333,7 @@ export default function InteractiveTimelineContent({
     dateRangeFilter,
     initialData.timelines,
     selectedColorScheme,
+    topEventsCount,
   ]);
 
   const handleTimelineRefresh = () => {
@@ -380,6 +416,21 @@ export default function InteractiveTimelineContent({
     endEventId: string | null
   ) => {
     setDateRangeFilter({ startEventId, endEventId });
+  };
+
+  // Handle top events count filter changes
+  const handleTopEventsCountChange = (count: number | null) => {
+    setTopEventsCount(count);
+  };
+
+  // Helper function to get event index from ID
+  const getEventIndexFromId = (
+    events: TimelineJSEvent[] | undefined,
+    id: string | null
+  ): number | undefined => {
+    if (!id || !events) return undefined;
+    const index = events.findIndex((event) => event.unique_id === id);
+    return index >= 0 ? index : undefined;
   };
 
   if (loading || !timelineJSTimeline) {
@@ -617,6 +668,8 @@ export default function InteractiveTimelineContent({
                 activeModal={activeControlsModal}
                 setActiveModal={setActiveControlsModal}
                 currentDateRange={dateRangeFilter}
+                onTopEventsCountChange={handleTopEventsCountChange}
+                currentTopEventsCount={topEventsCount}
               />
             </div>
           )}
