@@ -59,6 +59,9 @@ export default function InteractiveTimelineContent({
   const [hasSeenSwipeTip, setHasSeenSwipeTip] = useState(false);
   const timelineContainerRef = useRef<HTMLDivElement>(null);
   const [isControlsExpanded, setIsControlsExpanded] = useState(false);
+  const [activeControlsModal, setActiveControlsModal] = useState<
+    "pages" | "filter" | null
+  >(null);
   const [dateRangeFilter, setDateRangeFilter] = useState<{
     startEventId: string | null;
     endEventId: string | null;
@@ -611,6 +614,8 @@ export default function InteractiveTimelineContent({
                 onExpandedChange={setIsControlsExpanded}
                 events={timelineJSTimeline.events}
                 onDateRangeChange={handleDateRangeChange}
+                activeModal={activeControlsModal}
+                setActiveModal={setActiveControlsModal}
               />
             </div>
           )}

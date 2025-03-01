@@ -1,5 +1,5 @@
 import WikiSearch from "@/app/components/WikiSearch";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { TimelineJSEvent } from "@/app/types/timeline";
 
 interface SelectedPage {
@@ -18,6 +18,8 @@ interface TimelineControlsProps {
     startEventId: string | null,
     endEventId: string | null
   ) => void; // Callback for date range changes
+  activeModal?: "pages" | "filter" | null; // The currently active modal
+  setActiveModal?: (modal: "pages" | "filter" | null) => void; // Set the active modal
 }
 
 export default function TimelineControls({
@@ -28,9 +30,33 @@ export default function TimelineControls({
   onExpandedChange,
   events = [],
   onDateRangeChange,
+  activeModal,
+  setActiveModal,
 }: TimelineControlsProps) {
   const [startEventId, setStartEventId] = useState<string | null>(null);
   const [endEventId, setEndEventId] = useState<string | null>(null);
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
+  const speedDialRef = useRef<HTMLDivElement>(null);
+
+  // Close speed dial when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        speedDialRef.current &&
+        !speedDialRef.current.contains(event.target as Node)
+      ) {
+        setSpeedDialOpen(false);
+      }
+    };
+
+    if (speedDialOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [speedDialOpen]);
 
   const handlePageChange = (newPages: SelectedPage[]) => {
     if (newPages.length === 0) return;
@@ -66,6 +92,17 @@ export default function TimelineControls({
     if (onDateRangeChange) {
       onDateRangeChange(startEventId, newEndId);
     }
+  };
+
+  const openModal = (type: "pages" | "filter") => {
+    setActiveModal?.(type);
+    setSpeedDialOpen(false);
+    onExpandedChange(true);
+  };
+
+  const closeModal = () => {
+    setActiveModal?.(null);
+    onExpandedChange(false);
   };
 
   // Format date from TimelineJSEvent - now using display_date directly
@@ -135,27 +172,86 @@ export default function TimelineControls({
 
   return (
     <>
-      {/* Floating Button - Position relative to timeline container */}
-      <button
-        onClick={() => onExpandedChange(true)}
-        className="absolute right-4 bottom-4 z-40 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-transform hover:scale-105"
+      {/* Speed Dial Floating Action Button */}
+      <div
+        ref={speedDialRef}
+        className="absolute right-4 bottom-4 z-40 flex flex-col-reverse items-end"
       >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-          />
-        </svg>
-      </button>
+        {/* Speed Dial Options */}
+        {speedDialOpen && (
+          <div className="mb-2 flex flex-col gap-2 items-end">
+            {/* Edit Pages Option */}
+            <button
+              onClick={() => openModal("pages")}
+              className="flex items-center bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full p-3 shadow-lg transition-transform hover:scale-105 group"
+            >
+              <span className="absolute right-12 bg-gray-800 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Edit Pages
+              </span>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </button>
 
-      {/* Modal Overlay - Updated with consistent top spacing */}
+            {/* Filter Option */}
+            <button
+              onClick={() => openModal("filter")}
+              className="flex items-center bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full p-3 shadow-lg transition-transform hover:scale-105 group"
+            >
+              <span className="absolute right-12 bg-gray-800 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Filter Events
+              </span>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Main Speed Dial Button */}
+        <button
+          onClick={() => setSpeedDialOpen(!speedDialOpen)}
+          className={`bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all ${
+            speedDialOpen ? "rotate-45" : ""
+          }`}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Modal Overlay */}
       {isExpanded && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-start sm:items-center justify-center p-4 top-16 sm:top-0">
           <div
@@ -163,9 +259,13 @@ export default function TimelineControls({
             style={{ height: "calc(100vh - 200px)" }}
           >
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Edit Timeline</h3>
+              <h3 className="text-lg font-semibold">
+                {activeModal === "pages"
+                  ? "Edit Timeline Pages"
+                  : "Filter Timeline Events"}
+              </h3>
               <button
-                onClick={() => onExpandedChange(false)}
+                onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <svg
@@ -185,17 +285,19 @@ export default function TimelineControls({
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto">
-              <WikiSearch
-                selectedPages={selectedPages}
-                onPagesChange={handlePageChange}
-                onSubmit={() => {}}
-                placeholder="Add more Wikipedia pages..."
-                className="mb-4"
-              />
+              {activeModal === "pages" && (
+                <WikiSearch
+                  selectedPages={selectedPages}
+                  onPagesChange={handlePageChange}
+                  onSubmit={() => {}}
+                  placeholder="Add Wikipedia pages..."
+                  className="mb-4"
+                />
+              )}
 
               {/* Date Range Filter */}
-              {events.length > 0 && (
-                <div className="mb-6 mt-6 border-t pt-4 border-gray-200 dark:border-gray-700">
+              {activeModal === "filter" && events.length > 0 && (
+                <div className="mb-6">
                   <h4 className="text-md font-semibold mb-3">
                     Filter Events by Date Range
                   </h4>
@@ -283,11 +385,11 @@ export default function TimelineControls({
               <button
                 onClick={() => {
                   onRefresh();
-                  onExpandedChange(false);
+                  closeModal();
                 }}
                 className="px-8 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
               >
-                Update Timeline
+                {activeModal === "pages" ? "Update Timeline" : "Apply Filters"}
               </button>
             </div>
           </div>
