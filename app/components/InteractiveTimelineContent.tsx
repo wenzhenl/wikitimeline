@@ -486,7 +486,7 @@ export default function InteractiveTimelineContent({
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden">
+        <div className="md:hidden flex justify-end w-full">
           <button
             onClick={() => setIsOptionsOpen(!isOptionsOpen)}
             className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
