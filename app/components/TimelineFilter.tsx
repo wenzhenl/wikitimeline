@@ -42,10 +42,16 @@ export default function TimelineFilter({
 
   // Sort events chronologically for consistent display in dropdowns
   const sortedEvents = [...events].sort((a, b) => {
-    const aYear = a.start_date.year;
-    const bYear = b.start_date.year;
+    const aYear = a.start_date?.year || 0;
+    const bYear = b.start_date?.year || 0;
     return aYear - bYear;
   });
+
+  // Initialize all values when component mounts or when events change
+  useEffect(() => {
+    // Update filtered count initial value
+    setFilteredEventsCount(events.length);
+  }, [events]);
 
   // Update filter counts and adjust slider max when date range changes
   useEffect(() => {
@@ -113,13 +119,25 @@ export default function TimelineFilter({
     setTempEndEventId(newEndId);
   };
 
-  // Update temporary top events count with slider
+  // Update the slider or input with slider value
   const handleTopEventsSliderChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
-    const newCount = value === "" ? null : parseInt(value, 10);
+    // When the value is the max value (all events), set to null (no filter)
+    const newCount =
+      value === "" || parseInt(value, 10) === filteredEventsCount
+        ? null
+        : parseInt(value, 10);
     setTempTopEventsCount(newCount);
+  };
+
+  // Get the visual slider value - this ensures the slider is at max when tempTopEventsCount is null
+  const getSliderValue = () => {
+    if (tempTopEventsCount === null) {
+      return filteredEventsCount; // Max position (right end) when no filter is applied
+    }
+    return tempTopEventsCount;
   };
 
   // Apply filters when the Apply Filters button is clicked
@@ -275,9 +293,9 @@ export default function TimelineFilter({
               type="range"
               min="0"
               max={filteredEventsCount}
-              value={tempTopEventsCount || 0}
+              value={getSliderValue()}
               onChange={handleTopEventsSliderChange}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 slider-thumb"
             />
             <button
               onClick={() => setTempTopEventsCount(null)}
@@ -288,6 +306,42 @@ export default function TimelineFilter({
               Reset
             </button>
           </div>
+
+          {/* Custom slider styles */}
+          <style jsx>{`
+            .slider-thumb::-webkit-slider-thumb {
+              appearance: none;
+              width: 20px;
+              height: 20px;
+              background: #3b82f6;
+              border-radius: 50%;
+              cursor: pointer;
+              border: none;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .slider-thumb::-moz-range-thumb {
+              width: 20px;
+              height: 20px;
+              background: #3b82f6;
+              border-radius: 50%;
+              cursor: pointer;
+              border: none;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .slider-thumb:active::-webkit-slider-thumb {
+              width: 24px;
+              height: 24px;
+              background: #2563eb;
+            }
+
+            .slider-thumb:active::-moz-range-thumb {
+              width: 24px;
+              height: 24px;
+              background: #2563eb;
+            }
+          `}</style>
         </div>
       </div>
 
