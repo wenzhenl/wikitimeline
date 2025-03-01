@@ -220,7 +220,7 @@ export default function TextTimelinePageContent({
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden relative">
+        <div className="md:hidden relative flex justify-end w-full">
           <button
             ref={buttonRef}
             onClick={() => setIsOptionsOpen(!isOptionsOpen)}
