@@ -160,7 +160,7 @@ export function formatTimelineEventsForInteractive(
       text: {
         headline: isMultiplePages
           ? `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">Comparative Timeline</span>`
-          : `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">Interactive Timeline of ${pageNames[0]}</span>`,
+          : `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">${pageNames[0]}</span>`,
         text: isMultiplePages
           ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${pageNames.join(' vs. ')}</span>`
           : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline.title}</span>`
