@@ -55,37 +55,46 @@ export default function TimelineControls({
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const speedDialRef = useRef<HTMLDivElement>(null);
 
+  // Store the original full list of events for reference
+  const [allEvents, setAllEvents] = useState<TimelineJSEvent[]>([]);
+
   // Calculate filtered events count based on current date range filter
   const [filteredEventsCount, setFilteredEventsCount] = useState<number>(
     events.length
   );
 
+  // Store the full list of events when it changes
+  useEffect(() => {
+    if (events.length > 0) {
+      // Sort chronologically
+      const sortedAllEvents = [...events].sort((a, b) => {
+        const aYear = a.start_date?.year || 0;
+        const bYear = b.start_date?.year || 0;
+
+        if (aYear !== bYear) return aYear - bYear;
+
+        const aMonth = a.start_date?.month || 0;
+        const bMonth = b.start_date?.month || 0;
+        if (aMonth !== bMonth) return aMonth - bMonth;
+
+        const aDay = a.start_date?.day || 0;
+        const bDay = b.start_date?.day || 0;
+        return aDay - bDay;
+      });
+      setAllEvents(sortedAllEvents);
+    }
+  }, [events]);
+
   // Update filter counts and adjust slider max when date range changes
   useEffect(() => {
-    if (!events.length) return;
-
-    // Sort events chronologically
-    const sortedEvents = [...events].sort((a, b) => {
-      const aYear = a.start_date?.year || 0;
-      const bYear = b.start_date?.year || 0;
-
-      if (aYear !== bYear) return aYear - bYear;
-
-      const aMonth = a.start_date?.month || 0;
-      const bMonth = b.start_date?.month || 0;
-      if (aMonth !== bMonth) return aMonth - bMonth;
-
-      const aDay = a.start_date?.day || 0;
-      const bDay = b.start_date?.day || 0;
-      return aDay - bDay;
-    });
+    if (!allEvents.length) return;
 
     let startIndex = 0;
-    let endIndex = sortedEvents.length - 1;
+    let endIndex = allEvents.length - 1;
 
     // Get start index from date range filter
     if (tempStartEventId) {
-      const foundStartIndex = sortedEvents.findIndex(
+      const foundStartIndex = allEvents.findIndex(
         (event) => event.unique_id === tempStartEventId
       );
       if (foundStartIndex !== -1) {
@@ -95,7 +104,7 @@ export default function TimelineControls({
 
     // Get end index from date range filter
     if (tempEndEventId) {
-      const foundEndIndex = sortedEvents.findIndex(
+      const foundEndIndex = allEvents.findIndex(
         (event) => event.unique_id === tempEndEventId
       );
       if (foundEndIndex !== -1) {
@@ -111,7 +120,7 @@ export default function TimelineControls({
     if (tempTopEventsCount && tempTopEventsCount > count) {
       setTempTopEventsCount(count);
     }
-  }, [events, tempStartEventId, tempEndEventId, tempTopEventsCount]);
+  }, [allEvents, tempStartEventId, tempEndEventId, tempTopEventsCount]);
 
   // Update temp filter values when the modal opens with filter tool
   useEffect(() => {
@@ -156,10 +165,10 @@ export default function TimelineControls({
 
     // If end date is before start date, reset end date
     if (newStartId && tempEndEventId) {
-      const startIdx = events.findIndex(
+      const startIdx = allEvents.findIndex(
         (event) => event.unique_id === newStartId
       );
-      const endIdx = events.findIndex(
+      const endIdx = allEvents.findIndex(
         (event) => event.unique_id === tempEndEventId
       );
       if (startIdx > endIdx) {
@@ -262,22 +271,6 @@ export default function TimelineControls({
     setTempEndEventId(null);
     setTempTopEventsCount(null);
   };
-
-  // Sort events chronologically
-  const sortedEvents = [...events].sort((a, b) => {
-    const aYear = a.start_date?.year || 0;
-    const bYear = b.start_date?.year || 0;
-
-    if (aYear !== bYear) return aYear - bYear;
-
-    const aMonth = a.start_date?.month || 0;
-    const bMonth = b.start_date?.month || 0;
-    if (aMonth !== bMonth) return aMonth - bMonth;
-
-    const aDay = a.start_date?.day || 0;
-    const bDay = b.start_date?.day || 0;
-    return aDay - bDay;
-  });
 
   // Check if any filters are applied (for reset button visibility)
   const areFiltersApplied =
@@ -411,7 +404,7 @@ export default function TimelineControls({
               )}
 
               {/* Filters Section */}
-              {activeModal === "filter" && events.length > 0 && (
+              {activeModal === "filter" && allEvents.length > 0 && (
                 <div className="space-y-6">
                   {/* Date Range Filter */}
                   <div>
@@ -429,7 +422,7 @@ export default function TimelineControls({
                         className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
                       >
                         <option value="">-- All Events --</option>
-                        {sortedEvents.map((event) => (
+                        {allEvents.map((event) => (
                           <option
                             key={`start-${event.unique_id}`}
                             value={event.unique_id}
@@ -455,15 +448,15 @@ export default function TimelineControls({
                         className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
                       >
                         <option value="">-- All Events --</option>
-                        {sortedEvents
+                        {allEvents
                           // Filter out options that come before the selected start date
                           .filter(
                             (event) =>
                               !tempStartEventId ||
-                              sortedEvents.findIndex(
+                              allEvents.findIndex(
                                 (e) => e.unique_id === event.unique_id
                               ) >=
-                                sortedEvents.findIndex(
+                                allEvents.findIndex(
                                   (e) => e.unique_id === tempStartEventId
                                 )
                           )
