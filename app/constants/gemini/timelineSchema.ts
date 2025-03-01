@@ -17,9 +17,10 @@ export const TIMELINE_SCHEMA = {
               headline: { type: SchemaType.STRING },
               description: { type: SchemaType.STRING },
               startDate: { type: SchemaType.STRING },
-              endDate: { type: SchemaType.STRING }
+              endDate: { type: SchemaType.STRING },
+              score: { type: SchemaType.INTEGER }
             },
-            required: ["headline", "description", "startDate"]
+            required: ["headline", "description", "startDate", "score"]
           }
         }
       },
