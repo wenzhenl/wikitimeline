@@ -20,6 +20,10 @@ interface TimelineControlsProps {
   ) => void; // Callback for date range changes
   activeModal?: "pages" | "filter" | null; // The currently active modal
   setActiveModal?: (modal: "pages" | "filter" | null) => void; // Set the active modal
+  currentDateRange?: {
+    startEventId: string | null;
+    endEventId: string | null;
+  }; // Current date range filter values
 }
 
 export default function TimelineControls({
@@ -32,11 +36,25 @@ export default function TimelineControls({
   onDateRangeChange,
   activeModal,
   setActiveModal,
+  currentDateRange = { startEventId: null, endEventId: null },
 }: TimelineControlsProps) {
-  const [startEventId, setStartEventId] = useState<string | null>(null);
-  const [endEventId, setEndEventId] = useState<string | null>(null);
+  // Temporary filter state - only applied when user clicks "Apply Filters"
+  const [tempStartEventId, setTempStartEventId] = useState<string | null>(
+    currentDateRange.startEventId
+  );
+  const [tempEndEventId, setTempEndEventId] = useState<string | null>(
+    currentDateRange.endEventId
+  );
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const speedDialRef = useRef<HTMLDivElement>(null);
+
+  // Update temp filter values when the modal opens with filter tool
+  useEffect(() => {
+    if (activeModal === "filter" && isExpanded) {
+      setTempStartEventId(currentDateRange.startEventId);
+      setTempEndEventId(currentDateRange.endEventId);
+    }
+  }, [activeModal, isExpanded, currentDateRange]);
 
   // Close speed dial when clicking outside
   useEffect(() => {
@@ -63,35 +81,41 @@ export default function TimelineControls({
     onPagesChange(newPages);
   };
 
-  const handleStartEventChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  // Update temporary start event ID, but don't apply filter yet
+  const handleTempStartEventChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const newStartId = e.target.value || null;
-    setStartEventId(newStartId);
+    setTempStartEventId(newStartId);
 
     // If end date is before start date, reset end date
-    if (newStartId && endEventId) {
+    if (newStartId && tempEndEventId) {
       const startIdx = events.findIndex(
         (event) => event.unique_id === newStartId
       );
       const endIdx = events.findIndex(
-        (event) => event.unique_id === endEventId
+        (event) => event.unique_id === tempEndEventId
       );
       if (startIdx > endIdx) {
-        setEndEventId(null);
+        setTempEndEventId(null);
       }
-    }
-
-    if (onDateRangeChange) {
-      onDateRangeChange(newStartId, endEventId);
     }
   };
 
-  const handleEndEventChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  // Update temporary end event ID, but don't apply filter yet
+  const handleTempEndEventChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const newEndId = e.target.value || null;
-    setEndEventId(newEndId);
+    setTempEndEventId(newEndId);
+  };
 
+  // Apply filters when the Apply Filters button is clicked
+  const applyFilters = () => {
     if (onDateRangeChange) {
-      onDateRangeChange(startEventId, newEndId);
+      onDateRangeChange(tempStartEventId, tempEndEventId);
     }
+    closeModal();
   };
 
   const openModal = (type: "pages" | "filter") => {
@@ -307,8 +331,8 @@ export default function TimelineControls({
                       Start Event
                     </label>
                     <select
-                      value={startEventId || ""}
-                      onChange={handleStartEventChange}
+                      value={tempStartEventId || ""}
+                      onChange={handleTempStartEventChange}
                       className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
                     >
                       <option value="">-- All Events --</option>
@@ -330,8 +354,8 @@ export default function TimelineControls({
                       End Event
                     </label>
                     <select
-                      value={endEventId || ""}
-                      onChange={handleEndEventChange}
+                      value={tempEndEventId || ""}
+                      onChange={handleTempEndEventChange}
                       className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
                     >
                       <option value="">-- All Events --</option>
@@ -339,12 +363,12 @@ export default function TimelineControls({
                         // Filter out options that come before the selected start date
                         .filter(
                           (event) =>
-                            !startEventId ||
+                            !tempStartEventId ||
                             sortedEvents.findIndex(
                               (e) => e.unique_id === event.unique_id
                             ) >=
                               sortedEvents.findIndex(
-                                (e) => e.unique_id === startEventId
+                                (e) => e.unique_id === tempStartEventId
                               )
                         )
                         .map((event) => (
@@ -363,14 +387,11 @@ export default function TimelineControls({
                     </select>
                   </div>
 
-                  {(startEventId || endEventId) && (
+                  {(tempStartEventId || tempEndEventId) && (
                     <button
                       onClick={() => {
-                        setStartEventId(null);
-                        setEndEventId(null);
-                        if (onDateRangeChange) {
-                          onDateRangeChange(null, null);
-                        }
+                        setTempStartEventId(null);
+                        setTempEndEventId(null);
                       }}
                       className="mt-2 text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                     >
@@ -382,15 +403,24 @@ export default function TimelineControls({
             </div>
 
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-center">
-              <button
-                onClick={() => {
-                  onRefresh();
-                  closeModal();
-                }}
-                className="px-8 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-              >
-                {activeModal === "pages" ? "Update Timeline" : "Apply Filters"}
-              </button>
+              {activeModal === "pages" ? (
+                <button
+                  onClick={() => {
+                    onRefresh();
+                    closeModal();
+                  }}
+                  className="px-8 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  Update Timeline
+                </button>
+              ) : (
+                <button
+                  onClick={applyFilters}
+                  className="px-8 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  Apply Filters
+                </button>
+              )}
             </div>
           </div>
         </div>

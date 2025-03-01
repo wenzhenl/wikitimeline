@@ -616,6 +616,7 @@ export default function InteractiveTimelineContent({
                 onDateRangeChange={handleDateRangeChange}
                 activeModal={activeControlsModal}
                 setActiveModal={setActiveControlsModal}
+                currentDateRange={dateRangeFilter}
               />
             </div>
           )}
