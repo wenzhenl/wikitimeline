@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+
+  // disable middleware in development
+  if (process.env.NODE_ENV !== 'production') {
+    return NextResponse.next();
+  }
+
   // Only apply to /api routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const apiKey = request.headers.get('x-api-key');
