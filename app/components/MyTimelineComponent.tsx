@@ -12,6 +12,11 @@ interface MyTimelineComponentProps {
   scale?: "human" | "cosmological";
 }
 
+// Extend WheelEvent to include wheelDelta which exists in some browsers
+interface ExtendedWheelEvent extends WheelEvent {
+  wheelDelta?: number;
+}
+
 const MyTimelineComponent = ({
   title,
   events,
@@ -64,7 +69,7 @@ const MyTimelineComponent = ({
           console.log("Setting up Firefox scroll handlers");
 
           // Direct approach: Add scroll handlers to the entire timeline container
-          // This is a completely new approach that doesn't rely on patching TimelineJS
+          // This is a completely new approach that uses the TimelineJS API for navigation
           const setupFirefoxScrolling = () => {
             const isFirefox =
               navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
@@ -78,128 +83,121 @@ const MyTimelineComponent = ({
               return;
             }
 
-            // Try to locate the timeline navigation container
-            // Try multiple selectors to ensure we find the correct element
-            // Firefox often needs direct scroll handling
-            const possibleSelectors = [
+            // New approach: Use TimelineJS API for navigation
+            const handleFirefoxScroll = (event: Event) => {
+              // Cast to our extended WheelEvent type to access wheel-specific properties
+              const e = event as ExtendedWheelEvent;
+
+              // Use shift key to determine if this is a horizontal scroll attempt
+              const isHorizontalScroll =
+                e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY);
+
+              if (!isHorizontalScroll) {
+                return; // Not a horizontal scroll, let the normal handler work
+              }
+
+              // Prevent default to avoid page scrolling
+              e.preventDefault();
+              e.stopPropagation();
+
+              console.log("Horizontal scroll detected in Firefox", {
+                shiftKey: e.shiftKey,
+                deltaX: e.deltaX,
+                deltaY: e.deltaY,
+                detail: e.detail,
+              });
+
+              // Determine scroll direction
+              // Check multiple sources for direction information
+              let direction = 0;
+
+              // First try deltaX (most reliable for native horizontal scrolling)
+              if (e.deltaX !== 0) {
+                direction = e.deltaX > 0 ? 1 : -1;
+                console.log("Direction determined from deltaX:", direction);
+              }
+              // Then try deltaY with shift key (for shift+scroll)
+              else if (e.shiftKey && e.deltaY !== 0) {
+                direction = e.deltaY > 0 ? 1 : -1;
+                console.log(
+                  "Direction determined from shift+deltaY:",
+                  direction
+                );
+              }
+              // Finally try wheel delta or detail as fallback
+              else if (e.wheelDelta) {
+                direction = e.wheelDelta < 0 ? 1 : -1;
+                console.log("Direction determined from wheelDelta:", direction);
+              } else if (e.detail) {
+                direction = e.detail > 0 ? 1 : -1;
+                console.log("Direction determined from detail:", direction);
+              }
+
+              // Use the Timeline API to navigate
+              if (direction !== 0) {
+                try {
+                  // Cast to any type to access the API methods
+                  const timelineApi = timeline as any;
+
+                  if (direction > 0) {
+                    // Scroll right/down -> go to next slide
+                    console.log("Navigating to next slide");
+                    timelineApi.goToNext();
+                  } else {
+                    // Scroll left/up -> go to previous slide
+                    console.log("Navigating to previous slide");
+                    timelineApi.goToPrev();
+                  }
+                } catch (error) {
+                  console.error("Error navigating timeline:", error);
+                }
+                return false;
+              }
+            };
+
+            // Try to attach our handler to various elements
+            // The goal is to intercept wheel events before they're handled by the library
+            const possibleTargets = [
               ".tl-timenav",
               ".tl-timenav-container",
               ".tl-timenav-slider",
-              "#timeline-embed",
+              ".tl-timemarker-content-container",
+              ".tl-timeaxis-background",
+              ".tl-timeaxis",
             ];
 
-            for (const selector of possibleSelectors) {
-              const element = timelineRef.current?.querySelector(selector);
-              if (element) {
-                console.log(`Found timeline element: ${selector}`);
+            for (const selector of possibleTargets) {
+              const elements = document.querySelectorAll(selector);
 
-                // Add the wheel event listener directly to this element
-                element.addEventListener(
-                  "wheel",
-                  (event) => {
-                    // Cast to WheelEvent to access the wheel-specific properties
-                    const e = event as WheelEvent;
-
-                    // Log every wheel event for debugging
-                    console.log("Wheel event on " + selector, {
-                      shiftKey: e.shiftKey,
-                      deltaX: e.deltaX,
-                      deltaY: e.deltaY,
-                      type: e.type,
-                    });
-
-                    // Check if this is a horizontal scroll attempt
-                    // Either with shift key or native horizontal wheel
-                    if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                      console.log("Horizontal scroll detected");
-
-                      // Prevent the default scroll behavior
-                      e.preventDefault();
-
-                      // Calculate delta - how much to scroll
-                      // For shift+scroll in Firefox, deltaY becomes the horizontal scroll amount
-                      const delta = e.shiftKey ? -e.deltaY : -e.deltaX;
-
-                      // Find the slider element
-                      const slider = document.querySelector(
-                        ".tl-timenav-slider"
-                      ) as HTMLElement;
-                      if (slider) {
-                        // Get current position
-                        const currentLeft = parseInt(
-                          slider.style.left.replace("px", "") || "0"
-                        );
-
-                        // Calculate new position with amplification for better scrolling
-                        const scrollTo = currentLeft + delta * 3;
-
-                        // Apply constraints like the original code (get these from TimelineJS)
-                        const timelineAny = timeline as any;
-                        if (
-                          timelineAny._timenav &&
-                          timelineAny._timenav.timescale
-                        ) {
-                          const constraint = {
-                            right: -(
-                              timelineAny._timenav.timescale.getPixelWidth() -
-                              timelineAny._timenav.options.width / 2
-                            ),
-                            left: timelineAny._timenav.options.width / 2,
-                          };
-
-                          let constrainedScrollTo = scrollTo;
-                          if (scrollTo > constraint.left) {
-                            constrainedScrollTo = constraint.left;
-                          } else if (scrollTo < constraint.right) {
-                            constrainedScrollTo = constraint.right;
-                          }
-
-                          // Apply the new position
-                          console.log(
-                            `Scrolling from ${currentLeft} to ${constrainedScrollTo}`
-                          );
-                          slider.style.left = constrainedScrollTo + "px";
-                        } else {
-                          // If we can't get constraints, just apply the scroll
-                          console.log(
-                            `Simple scroll from ${currentLeft} to ${scrollTo}`
-                          );
-                          slider.style.left = scrollTo + "px";
-                        }
-                      } else {
-                        console.log("Could not find slider element");
-                      }
-                    }
-                  },
-                  { passive: false }
-                );
-              }
+              elements.forEach((element) => {
+                console.log(`Attaching Firefox scroll handler to ${selector}`);
+                element.addEventListener("wheel", handleFirefoxScroll, {
+                  passive: false,
+                });
+              });
             }
 
-            // Also add a handler to the document for debugging
-            document.addEventListener(
-              "wheel",
-              (event) => {
-                // Cast to WheelEvent to access wheel-specific properties
-                const e = event as WheelEvent;
-
-                // Only log if shift key is pressed to avoid console spam
-                if (e.shiftKey) {
-                  console.log("Document wheel event", {
-                    shiftKey: e.shiftKey,
-                    target: e.target,
-                    deltaX: e.deltaX,
-                    deltaY: e.deltaY,
-                  });
-                }
-              },
-              { passive: true }
-            );
+            // Direct access approach - try to get to the container directly
+            if (timelineRef.current) {
+              timelineRef.current.addEventListener(
+                "wheel",
+                (e: Event) => {
+                  const wheelEvent = e as ExtendedWheelEvent;
+                  if (wheelEvent.shiftKey) {
+                    console.log("Container wheel event detected", {
+                      target: e.target,
+                    });
+                    handleFirefoxScroll(e);
+                  }
+                },
+                { passive: false }
+              );
+            }
           };
 
           // Run the setup function
           setupFirefoxScrolling();
-        }, 500); // Wait for timeline to initialize
+        }, 1000); // Increased wait time for timeline to fully initialize
       });
     }
 
