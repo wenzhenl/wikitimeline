@@ -74,6 +74,8 @@ export default function InteractiveTimelineContent({
   const [currentFontFamily, setCurrentFontFamily] = useState<string>("inherit");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
+  const [originalTimelineJSTimeline, setOriginalTimelineJSTimeline] =
+    useState<TimelineJSTimeline | null>(null);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -141,21 +143,15 @@ export default function InteractiveTimelineContent({
             resolve(
               formatTimelineEventsForInteractive(
                 initialData.timelines,
-                selectedColorScheme,
-                getEventIndexFromId(
-                  timelineJSTimeline?.events,
-                  dateRangeFilter.startEventId
-                ),
-                getEventIndexFromId(
-                  timelineJSTimeline?.events,
-                  dateRangeFilter.endEventId
-                ),
-                topEventsCount ? topEventsCount : undefined
+                selectedColorScheme
               )
             ),
           0
         );
       });
+
+      // Store both the original timeline and the current timeline
+      setOriginalTimelineJSTimeline(formatted);
       setTimelineJSTimeline(formatted);
 
       // Initialize filtered events with all events
@@ -191,62 +187,40 @@ export default function InteractiveTimelineContent({
       observer.disconnect();
       clearTimeout(timeout);
     };
-  }, [
-    initialData,
-    selectedColorScheme,
-    dateRangeFilter.startEventId,
-    dateRangeFilter.endEventId,
-    topEventsCount,
-  ]);
+  }, [initialData, selectedColorScheme]);
 
   // Update timeline when color scheme changes
   useEffect(() => {
-    if (timelineJSTimeline) {
-      setTimelineJSTimeline(
-        formatTimelineEventsForInteractive(
-          initialData.timelines,
-          selectedColorScheme,
-          getEventIndexFromId(
-            timelineJSTimeline.events,
-            dateRangeFilter.startEventId
-          ),
-          getEventIndexFromId(
-            timelineJSTimeline.events,
-            dateRangeFilter.endEventId
-          ),
-          topEventsCount ? topEventsCount : undefined
-        )
+    if (initialData.timelines) {
+      const formatted = formatTimelineEventsForInteractive(
+        initialData.timelines,
+        selectedColorScheme
       );
-    }
-  }, [
-    selectedColorScheme,
-    initialData,
-    dateRangeFilter.startEventId,
-    dateRangeFilter.endEventId,
-    topEventsCount,
-  ]);
 
-  // Add a new useEffect to handle filtering events when date range changes
+      // Update both the original and current timeline
+      setOriginalTimelineJSTimeline(formatted);
+      setTimelineJSTimeline(formatted);
+
+      // Reset filters when color scheme changes
+      setFilteredEvents(formatted.events);
+    }
+  }, [selectedColorScheme, initialData]);
+
+  // Simplified filtering - directly filter events from the original timeline
   useEffect(() => {
-    if (!timelineJSTimeline || !timelineJSTimeline.events) return;
+    if (!originalTimelineJSTimeline || !originalTimelineJSTimeline.events)
+      return;
 
     logger.debug("Filter change detected", {
       startEventId: dateRangeFilter.startEventId,
       endEventId: dateRangeFilter.endEventId,
-      currentScale: timelineJSTimeline.scale || "human",
+      topEventsCount: topEventsCount,
     });
 
-    if (!dateRangeFilter.startEventId && !dateRangeFilter.endEventId) {
-      // No filters applied, show all events
-      setFilteredEvents(timelineJSTimeline.events);
-      logger.debug(
-        "No filter applied, using all events with scale:",
-        timelineJSTimeline.scale || "human"
-      );
-      return;
-    }
+    // Start with the original events
+    let allEvents = [...originalTimelineJSTimeline.events];
 
-    const allEvents = [...timelineJSTimeline.events];
+    // Sort chronologically if not already sorted
     const sortedEvents = allEvents.sort((a, b) => {
       const aYear = a.start_date?.year || 0;
       const bYear = b.start_date?.year || 0;
@@ -262,79 +236,110 @@ export default function InteractiveTimelineContent({
       return aDay - bDay;
     });
 
-    let startIndex = 0;
-    let endIndex = sortedEvents.length - 1;
+    // Apply date range filtering
+    let filteredByDateRange = sortedEvents;
 
-    if (dateRangeFilter.startEventId) {
-      const foundStartIndex = sortedEvents.findIndex(
-        (event) => event.unique_id === dateRangeFilter.startEventId
-      );
-      if (foundStartIndex !== -1) {
-        startIndex = foundStartIndex;
+    if (dateRangeFilter.startEventId || dateRangeFilter.endEventId) {
+      let startIndex = 0;
+      let endIndex = sortedEvents.length - 1;
+
+      if (dateRangeFilter.startEventId) {
+        const foundStartIndex = sortedEvents.findIndex(
+          (event) => event.unique_id === dateRangeFilter.startEventId
+        );
+        if (foundStartIndex !== -1) {
+          startIndex = foundStartIndex;
+        }
       }
+
+      if (dateRangeFilter.endEventId) {
+        const foundEndIndex = sortedEvents.findIndex(
+          (event) => event.unique_id === dateRangeFilter.endEventId
+        );
+        if (foundEndIndex !== -1) {
+          endIndex = foundEndIndex;
+        }
+      }
+
+      logger.debug("Applying date range filter", { startIndex, endIndex });
+      filteredByDateRange = sortedEvents.slice(startIndex, endIndex + 1);
     }
 
-    if (dateRangeFilter.endEventId) {
-      const foundEndIndex = sortedEvents.findIndex(
-        (event) => event.unique_id === dateRangeFilter.endEventId
-      );
-      if (foundEndIndex !== -1) {
-        endIndex = foundEndIndex;
-      }
-    }
+    // Apply importance score filtering
+    let finalFilteredEvents = filteredByDateRange;
 
-    // Log the indices for debugging
-    logger.debug("Filter indices:", {
-      startIndex,
-      endIndex,
-      totalEvents: sortedEvents.length,
-    });
+    if (
+      topEventsCount &&
+      topEventsCount > 0 &&
+      topEventsCount < filteredByDateRange.length
+    ) {
+      // Create a copy sorted by score (descending)
+      const scoreSortedEvents = [...filteredByDateRange].sort((a, b) => {
+        // Get the score from each timeline event
+        // Access the score property using a type assertion
+        const scoreA = (a as any).original_event?.score || 0;
+        const scoreB = (b as any).original_event?.score || 0;
 
-    // Use the improved formatting function with indices to determine scale and get filtered events
-    const reformatted = formatTimelineEventsForInteractive(
-      initialData.timelines,
-      selectedColorScheme,
-      startIndex,
-      endIndex,
-      topEventsCount ? topEventsCount : undefined
-    );
+        // Sort by score (descending)
+        const scoreDiff = scoreB - scoreA;
 
-    // Extract the filtered events
-    const filtered = reformatted.events;
+        // If scores are equal, maintain chronological order
+        if (scoreDiff === 0) {
+          return sortedEvents.indexOf(a) - sortedEvents.indexOf(b);
+        }
 
-    logger.debug(
-      "Filtered events count:",
-      filtered.length,
-      "of",
-      timelineJSTimeline.events.length,
-      "with scale:",
-      reformatted.scale || "human"
-    );
-
-    // Check if the scale has changed
-    if (reformatted.scale !== timelineJSTimeline.scale) {
-      logger.debug("Scale change detected, updating timeline", {
-        oldScale: timelineJSTimeline.scale || "human",
-        newScale: reformatted.scale || "human",
+        return scoreDiff;
       });
 
-      // Only update the entire timeline object if scale changed
+      // Take only the top N events
+      const topEvents = scoreSortedEvents.slice(0, topEventsCount);
+
+      // Sort back to chronological order
+      topEvents.sort(
+        (a, b) => sortedEvents.indexOf(a) - sortedEvents.indexOf(b)
+      );
+
+      finalFilteredEvents = topEvents;
+
+      logger.debug(
+        `Applied importance filter: ${finalFilteredEvents.length} events after filtering by top ${topEventsCount}`
+      );
+    }
+
+    // Check if the scale has changed due to filtering
+    const needsCosmologicalScale = finalFilteredEvents.some((event) =>
+      requiresCosmologicalScale(event.start_date)
+    );
+
+    // Update the timeline scale if needed
+    if (
+      (needsCosmologicalScale &&
+        timelineJSTimeline?.scale !== "cosmological") ||
+      (!needsCosmologicalScale && timelineJSTimeline?.scale === "cosmological")
+    ) {
+      logger.debug("Scale change detected due to filtering", {
+        oldScale: timelineJSTimeline?.scale || "human",
+        newScale: needsCosmologicalScale ? "cosmological" : "human",
+      });
+
       setTimelineJSTimeline({
-        ...timelineJSTimeline,
-        scale: reformatted.scale,
-        events: timelineJSTimeline.events, // Keep all events, just update the scale
+        ...originalTimelineJSTimeline,
+        scale: needsCosmologicalScale ? "cosmological" : undefined,
+        events: originalTimelineJSTimeline.events, // Keep all events, just update the scale
       });
     }
 
-    // Always update filtered events
-    setFilteredEvents(filtered);
-  }, [
-    timelineJSTimeline,
-    dateRangeFilter,
-    initialData.timelines,
-    selectedColorScheme,
-    topEventsCount,
-  ]);
+    // Update filtered events for display
+    setFilteredEvents(finalFilteredEvents);
+  }, [originalTimelineJSTimeline, dateRangeFilter, topEventsCount]);
+
+  // Helper function to check if a date requires cosmological scale
+  function requiresCosmologicalScale(date: any): boolean {
+    if (!date || !date.year) return false;
+
+    const absYear = Math.abs(date.year);
+    return date.year < 0 ? absYear > 271821 : absYear > 275760;
+  }
 
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
@@ -421,16 +426,6 @@ export default function InteractiveTimelineContent({
   // Handle top events count filter changes
   const handleTopEventsCountChange = (count: number | null) => {
     setTopEventsCount(count);
-  };
-
-  // Helper function to get event index from ID
-  const getEventIndexFromId = (
-    events: TimelineJSEvent[] | undefined,
-    id: string | null
-  ): number | undefined => {
-    if (!id || !events) return undefined;
-    const index = events.findIndex((event) => event.unique_id === id);
-    return index >= 0 ? index : undefined;
   };
 
   if (loading || !timelineJSTimeline) {
