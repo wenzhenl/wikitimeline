@@ -274,17 +274,17 @@ export default function TimelineControls({
       {/* Speed Dial Floating Action Button */}
       <div
         ref={speedDialRef}
-        className="absolute right-4 bottom-4 z-40 flex flex-col items-end"
+        className="absolute right-4 bottom-4 z-40 flex flex-col items-end gap-3"
       >
-        {/* Speed Dial Options - placed ABOVE the main button */}
+        {/* Speed Dial Options - standalone buttons instead of pod */}
         {speedDialOpen && (
-          <div className="mb-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-3 px-2 flex flex-col gap-3 items-center">
+          <>
             {/* Filter Option */}
             <button
               onClick={() => openModal("filter")}
-              className="flex items-center justify-center text-blue-600 dark:text-blue-400 rounded-full p-2.5 transition-transform hover:scale-105 group"
+              className="flex items-center justify-center bg-white/80 dark:bg-gray-800/90 text-blue-600 dark:text-blue-400 rounded-full p-3 shadow-md hover:bg-white dark:hover:bg-gray-800 transition-all group w-12 h-12"
             >
-              <span className="absolute right-12 bg-gray-800 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="absolute right-14 bg-gray-800 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Filter Events
               </span>
               <svg
@@ -305,9 +305,9 @@ export default function TimelineControls({
             {/* Edit Pages Option */}
             <button
               onClick={() => openModal("pages")}
-              className="flex items-center justify-center text-blue-600 dark:text-blue-400 rounded-full p-2.5 transition-transform hover:scale-105 group"
+              className="flex items-center justify-center bg-white/80 dark:bg-gray-800/90 text-blue-600 dark:text-blue-400 rounded-full p-3 shadow-md hover:bg-white dark:hover:bg-gray-800 transition-all group w-12 h-12"
             >
-              <span className="absolute right-12 bg-gray-800 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="absolute right-14 bg-gray-800 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Edit Pages
               </span>
               <svg
@@ -324,13 +324,17 @@ export default function TimelineControls({
                 />
               </svg>
             </button>
-          </div>
+          </>
         )}
 
         {/* Main Speed Dial Button - fixed at the bottom position */}
         <button
           onClick={() => setSpeedDialOpen(!speedDialOpen)}
-          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-3 shadow-lg transition-all"
+          className={`flex items-center justify-center rounded-full shadow-lg transition-all w-12 h-12 ${
+            speedDialOpen
+              ? "bg-blue-500 hover:bg-blue-600 text-white"
+              : "bg-blue-500 hover:bg-blue-600 text-white"
+          }`}
         >
           <svg
             className="w-6 h-6"
