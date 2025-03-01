@@ -221,17 +221,13 @@ export function formatTimelineEventsForInteractive(
           displayDate = `${displayDate.trim()} | Age ${event.age}`;
         }
       }
-      
-      // Include the importance score in the display
-      const scoreDisplay = `<span style="font-size: 0.85em; opacity: 0.8;">[Importance: ${event.score}/100]</span>`;
-      const combinedText = `${scoreDisplay}<br />${event.description}`;
 
       return {
         start_date: formattedEvent.start_date,
         display_date: displayDate, // Always include display_date
         text: {
           headline: `<span style="color: ${colors.textColor}; font-weight: 600; text-shadow: none;">${event.headline}</span>`,
-          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${combinedText}</span>`,
+          text: `<span style="color: ${colors.textColor}; text-shadow: none;">${event.description}</span>`,
         },
         group: formattedEvent.group,
         ...(formattedEvent.media && { media: formattedEvent.media }),

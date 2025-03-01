@@ -55,6 +55,64 @@ export default function TimelineControls({
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const speedDialRef = useRef<HTMLDivElement>(null);
 
+  // Calculate filtered events count based on current date range filter
+  const [filteredEventsCount, setFilteredEventsCount] = useState<number>(
+    events.length
+  );
+
+  // Update filter counts and adjust slider max when date range changes
+  useEffect(() => {
+    if (!events.length) return;
+
+    // Sort events chronologically
+    const sortedEvents = [...events].sort((a, b) => {
+      const aYear = a.start_date?.year || 0;
+      const bYear = b.start_date?.year || 0;
+
+      if (aYear !== bYear) return aYear - bYear;
+
+      const aMonth = a.start_date?.month || 0;
+      const bMonth = b.start_date?.month || 0;
+      if (aMonth !== bMonth) return aMonth - bMonth;
+
+      const aDay = a.start_date?.day || 0;
+      const bDay = b.start_date?.day || 0;
+      return aDay - bDay;
+    });
+
+    let startIndex = 0;
+    let endIndex = sortedEvents.length - 1;
+
+    // Get start index from date range filter
+    if (tempStartEventId) {
+      const foundStartIndex = sortedEvents.findIndex(
+        (event) => event.unique_id === tempStartEventId
+      );
+      if (foundStartIndex !== -1) {
+        startIndex = foundStartIndex;
+      }
+    }
+
+    // Get end index from date range filter
+    if (tempEndEventId) {
+      const foundEndIndex = sortedEvents.findIndex(
+        (event) => event.unique_id === tempEndEventId
+      );
+      if (foundEndIndex !== -1) {
+        endIndex = foundEndIndex;
+      }
+    }
+
+    // Calculate events in current date range
+    const count = endIndex - startIndex + 1;
+    setFilteredEventsCount(count);
+
+    // If top events count is greater than filtered count, adjust it down
+    if (tempTopEventsCount && tempTopEventsCount > count) {
+      setTempTopEventsCount(count);
+    }
+  }, [events, tempStartEventId, tempEndEventId, tempTopEventsCount]);
+
   // Update temp filter values when the modal opens with filter tool
   useEffect(() => {
     if (activeModal === "filter" && isExpanded) {
@@ -118,12 +176,12 @@ export default function TimelineControls({
     setTempEndEventId(newEndId);
   };
 
-  // Update temporary top events count
-  const handleTempTopEventsCountChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+  // Update temporary top events count with slider
+  const handleTopEventsSliderChange = (
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
-    const newCount = value ? parseInt(value, 10) : null;
+    const newCount = value === "" ? null : parseInt(value, 10);
     setTempTopEventsCount(newCount);
   };
 
@@ -220,9 +278,6 @@ export default function TimelineControls({
     const bDay = b.start_date?.day || 0;
     return aDay - bDay;
   });
-
-  // Generate options for top events dropdown
-  const topEventOptions = [5, 10, 15, 20, 25, 50];
 
   // Check if any filters are applied (for reset button visibility)
   const areFiltersApplied =
@@ -429,31 +484,49 @@ export default function TimelineControls({
                     </div>
                   </div>
 
-                  {/* Importance Score Filter */}
+                  {/* Importance Score Filter - now with slider */}
                   <div>
                     <h4 className="text-md font-semibold mb-3">
                       Filter by Importance
                     </h4>
 
                     <div className="mb-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Show Top Events
-                      </label>
-                      <select
-                        value={tempTopEventsCount?.toString() || ""}
-                        onChange={handleTempTopEventsCountChange}
-                        className="block w-full p-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-md shadow-sm text-sm"
-                      >
-                        <option value="">-- Show All Events --</option>
-                        {topEventOptions.map((count) => (
-                          <option key={`top-${count}`} value={count.toString()}>
-                            Show top {count} most important events
-                          </option>
-                        ))}
-                      </select>
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Events are scored from 1-100 based on their importance
-                        to the subject
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Show Top Events
+                        </label>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {tempTopEventsCount
+                            ? `Top ${tempTopEventsCount} of ${filteredEventsCount}`
+                            : `All ${filteredEventsCount} events`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min="0"
+                          max={filteredEventsCount}
+                          step="1"
+                          value={tempTopEventsCount || 0}
+                          onChange={handleTopEventsSliderChange}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                        />
+
+                        {tempTopEventsCount && (
+                          <button
+                            onClick={() => setTempTopEventsCount(null)}
+                            className="text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 whitespace-nowrap"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        {tempTopEventsCount
+                          ? "Showing only the most important events based on relevance to the subject."
+                          : "Move the slider to show only the most important events."}
                       </p>
                     </div>
                   </div>
