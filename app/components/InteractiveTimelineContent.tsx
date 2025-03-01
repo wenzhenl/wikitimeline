@@ -42,7 +42,6 @@ export default function InteractiveTimelineContent({
 }: InteractiveTimelineContentProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [timelineJSTimeline, setTimelineJSTimeline] =
     useState<TimelineJSTimeline | null>(null);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
@@ -52,7 +51,6 @@ export default function InteractiveTimelineContent({
   const [selectedColorScheme, setSelectedColorScheme] =
     useState<ColorSchemeId>("default");
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -71,9 +69,6 @@ export default function InteractiveTimelineContent({
   });
   const [filteredEvents, setFilteredEvents] = useState<TimelineJSEvent[]>([]);
   const [topEventsCount, setTopEventsCount] = useState<number | null>(null);
-  const [currentFontFamily, setCurrentFontFamily] = useState<string>("inherit");
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  const [timelineInstance, setTimelineInstance] = useState<any>(null);
   const [originalTimelineJSTimeline, setOriginalTimelineJSTimeline] =
     useState<TimelineJSTimeline | null>(null);
 
