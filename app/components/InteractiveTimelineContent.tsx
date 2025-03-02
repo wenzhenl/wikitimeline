@@ -30,6 +30,7 @@ interface SelectedPage {
 
 type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
 type FontId = (typeof AVAILABLE_FONTS)[number]["value"];
+type TimenavPosition = "top" | "bottom";
 
 interface InteractiveTimelineContentProps {
   params: { pageName: string };
@@ -50,6 +51,8 @@ export default function InteractiveTimelineContent({
   );
   const [selectedColorScheme, setSelectedColorScheme] =
     useState<ColorSchemeId>("default");
+  const [selectedTimenavPosition, setSelectedTimenavPosition] =
+    useState<TimenavPosition>("bottom");
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -101,6 +104,15 @@ export default function InteractiveTimelineContent({
       COLOR_SCHEMES.some((scheme) => scheme.id === savedColorScheme)
     ) {
       setSelectedColorScheme(savedColorScheme as ColorSchemeId);
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedTimenavPosition = localStorage.getItem(
+      "timeline-timenav-position"
+    );
+    if (savedTimenavPosition === "top" || savedTimenavPosition === "bottom") {
+      setSelectedTimenavPosition(savedTimenavPosition as TimenavPosition);
     }
   }, []);
 
@@ -477,6 +489,8 @@ export default function InteractiveTimelineContent({
               setSelectedFont={setSelectedFont}
               selectedColorScheme={selectedColorScheme}
               setSelectedColorScheme={setSelectedColorScheme}
+              selectedTimenavPosition={selectedTimenavPosition}
+              setSelectedTimenavPosition={setSelectedTimenavPosition}
               isSettingsOpen={isSettingsOpen}
               setIsSettingsOpen={setIsSettingsOpen}
             />
@@ -560,6 +574,8 @@ export default function InteractiveTimelineContent({
                 setSelectedFont={setSelectedFont}
                 selectedColorScheme={selectedColorScheme}
                 setSelectedColorScheme={setSelectedColorScheme}
+                selectedTimenavPosition={selectedTimenavPosition}
+                setSelectedTimenavPosition={setSelectedTimenavPosition}
                 isSettingsOpen={isSettingsOpen}
                 setIsSettingsOpen={setIsSettingsOpen}
                 isMobileButton={true}
@@ -639,6 +655,7 @@ export default function InteractiveTimelineContent({
                   events={filteredEvents}
                   scale={timelineJSTimeline.scale}
                   font={selectedFont}
+                  timenavPosition={selectedTimenavPosition}
                 />
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
@@ -647,6 +664,7 @@ export default function InteractiveTimelineContent({
                   events={filteredEvents}
                   scale={timelineJSTimeline.scale}
                   font={selectedFont}
+                  timenavPosition={selectedTimenavPosition}
                 />
               </div>
               <TimelineControls
@@ -668,13 +686,15 @@ export default function InteractiveTimelineContent({
         </div>
       </main>
 
-      {/* Use the new TimelineCustomizer for mobile (this is just for the modal) */}
+      {/* Use the TimelineCustomizer for mobile (this is just for the modal) */}
       {isSettingsOpen && (
         <TimelineCustomizer
           selectedFont={selectedFont}
           setSelectedFont={setSelectedFont}
           selectedColorScheme={selectedColorScheme}
           setSelectedColorScheme={setSelectedColorScheme}
+          selectedTimenavPosition={selectedTimenavPosition}
+          setSelectedTimenavPosition={setSelectedTimenavPosition}
           isSettingsOpen={isSettingsOpen}
           setIsSettingsOpen={setIsSettingsOpen}
         />

@@ -10,6 +10,7 @@ interface MyTimelineComponentProps {
   events: TimelineJSEvent[];
   font: string;
   scale?: "human" | "cosmological";
+  timenavPosition?: "top" | "bottom";
 }
 
 // Extend WheelEvent to include wheelDelta which exists in some browsers
@@ -24,6 +25,7 @@ const MyTimelineComponent = ({
   events,
   font,
   scale,
+  timenavPosition = "bottom",
 }: MyTimelineComponentProps) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
@@ -46,6 +48,7 @@ const MyTimelineComponent = ({
           marker_height_min: 50,
           timenav_height_percentage: 20,
           timenav_mobile_height_percentage: 20,
+          timenav_position: timenavPosition,
           font,
         };
 
@@ -59,6 +62,7 @@ const MyTimelineComponent = ({
           scale: scale || "human",
           eventsCount: events.length,
           font,
+          timenavPosition,
         });
 
         setTimelineInstance(timeline);
@@ -222,7 +226,7 @@ const MyTimelineComponent = ({
         timelineRef.current.innerHTML = "";
       }
     };
-  }, [title, events, font, scale]);
+  }, [title, events, font, scale, timenavPosition]);
 
   return <div ref={timelineRef} id="timeline-embed" />;
 };

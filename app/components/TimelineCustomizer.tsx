@@ -5,12 +5,15 @@ import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 
 type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
 type FontId = (typeof AVAILABLE_FONTS)[number]["value"];
+type TimenavPosition = "top" | "bottom";
 
 interface TimelineCustomizerProps {
   selectedFont: FontId;
   setSelectedFont: (font: FontId) => void;
   selectedColorScheme: ColorSchemeId;
   setSelectedColorScheme: (colorScheme: ColorSchemeId) => void;
+  selectedTimenavPosition: TimenavPosition;
+  setSelectedTimenavPosition: (position: TimenavPosition) => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (isOpen: boolean) => void;
   isMobileButton?: boolean;
@@ -22,6 +25,8 @@ export default function TimelineCustomizer({
   setSelectedFont,
   selectedColorScheme,
   setSelectedColorScheme,
+  selectedTimenavPosition,
+  setSelectedTimenavPosition,
   isSettingsOpen,
   setIsSettingsOpen,
   isMobileButton = false,
@@ -36,6 +41,14 @@ export default function TimelineCustomizer({
   const handleColorSchemeChange = (value: string) => {
     setSelectedColorScheme(value);
     localStorage.setItem("timeline-color-scheme", value);
+  };
+
+  const handleTimenavPositionChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newPosition = e.target.value as TimenavPosition;
+    setSelectedTimenavPosition(newPosition);
+    localStorage.setItem("timeline-timenav-position", newPosition);
   };
 
   // For mobile menu button, we just want a button without the modal
@@ -142,6 +155,23 @@ export default function TimelineCustomizer({
                       {font.label}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="timenav-position-select"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  Timeline Navigation Position
+                </label>
+                <select
+                  id="timenav-position-select"
+                  value={selectedTimenavPosition}
+                  onChange={handleTimenavPositionChange}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                >
+                  <option value="bottom">Bottom</option>
+                  <option value="top">Top</option>
                 </select>
               </div>
               <div>
