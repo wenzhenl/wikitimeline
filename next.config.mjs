@@ -3,11 +3,13 @@ import path from 'path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  compiler: {
-    removeConsole: {
-      exclude: ["error", "warn"], // Keeps errors & warnings but removes others
-    },
-  },
+  compiler: process.env.NODE_ENV === 'production' 
+    ? {
+        removeConsole: {
+          exclude: ["error", "warn"], // Keeps errors & warnings but removes others
+        },
+      } 
+    : undefined,
   async headers() {
     return [
       {
