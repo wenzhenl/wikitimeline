@@ -77,9 +77,14 @@ vercel deploy
 
 ## 🎯 Example Timelines
 
-- [George Washington & Qianlong Emperor](https://wiki-timeline.com/timeline/George_Washington%7CQianlong_Emperor) - Two great leaders, two empires, one era
-- [The Three Titans](https://wiki-timeline.com/timeline/Michelangelo%7CLeonardo_da_Vinci%7CRaphael) - Renaissance masters who shaped art history
-- [The Poet Saints](https://wiki-timeline.com/timeline/Li_Bai%7CDu_Fu) - China's greatest poets of the Golden Age
+- ![George Washington & Qianlong Emperor](public/featured/George_Washington_and_Qianlong_Emperor.png)
+  [George Washington & Qianlong Emperor](https://wiki-timeline.com/timeline/George_Washington%7CQianlong_Emperor) - Two great leaders, two empires, one era
+
+- ![The Three Titans](public/featured/Michelangelo_Leonardo_da_Vinci_Raphael.png)
+  [The Three Titans](https://wiki-timeline.com/timeline/Michelangelo%7CLeonardo_da_Vinci%7CRaphael) - Renaissance masters who shaped art history
+
+- ![The Poet Saints](public/featured/Li_Bai_and_Du_Fu.png)
+  [The Poet Saints](https://wiki-timeline.com/timeline/Li_Bai%7CDu_Fu) - China's greatest poets of the Golden Age
 
 ## 🛠️ Tech Stack
 
