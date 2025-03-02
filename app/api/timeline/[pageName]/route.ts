@@ -9,7 +9,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
-import { CURRENT_PROMPT_VERSION, MAX_CHUNK_SIZE } from "@/app/constants/gemini";
+import { CURRENT_PROMPT_VERSION, MAX_CHUNK_SIZE, TEMPERATURE } from "@/app/constants/gemini";
 import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
 
 // Initialize Redis
@@ -392,7 +392,7 @@ async function processChunk(
   const geminiModel = genAI.getGenerativeModel({ 
     model: "gemini-2.0-flash",
     generationConfig: {
-      temperature: 0,
+      temperature: TEMPERATURE,
       responseMimeType: "application/json",
       responseSchema: TIMELINE_SCHEMA,
     },
