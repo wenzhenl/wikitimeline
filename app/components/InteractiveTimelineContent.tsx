@@ -42,6 +42,21 @@ export default function InteractiveTimelineContent({
   initialData,
 }: InteractiveTimelineContentProps) {
   const router = useRouter();
+
+  // Safe localStorage helper functions
+  const safeGetItem = (key: string, defaultValue: string = ""): string => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(key) || defaultValue;
+    }
+    return defaultValue;
+  };
+
+  const safeSetItem = (key: string, value: string): void => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(key, value);
+    }
+  };
+
   const [loading, setLoading] = useState(true);
   const [timelineJSTimeline, setTimelineJSTimeline] =
     useState<TimelineJSTimeline | null>(null);
@@ -55,7 +70,7 @@ export default function InteractiveTimelineContent({
     useState<TimenavPosition>("bottom");
   const [timenavHeightPercentage, setTimenavHeightPercentage] =
     useState<number>(() => {
-      const savedPercentage = localStorage.getItem("timeline-timenav-height");
+      const savedPercentage = safeGetItem("timeline-timenav-height");
       return savedPercentage ? parseInt(savedPercentage, 10) : 50;
     });
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
@@ -96,14 +111,14 @@ export default function InteractiveTimelineContent({
   }, [params.pageName]);
 
   useEffect(() => {
-    const savedFont = localStorage.getItem("timeline-font");
+    const savedFont = safeGetItem("timeline-font");
     if (savedFont) {
       setSelectedFont(savedFont as FontId);
     }
   }, []);
 
   useEffect(() => {
-    const savedColorScheme = localStorage.getItem("timeline-color-scheme");
+    const savedColorScheme = safeGetItem("timeline-color-scheme");
     if (
       savedColorScheme &&
       COLOR_SCHEMES.some((scheme) => scheme.id === savedColorScheme)
@@ -113,9 +128,7 @@ export default function InteractiveTimelineContent({
   }, []);
 
   useEffect(() => {
-    const savedTimenavPosition = localStorage.getItem(
-      "timeline-timenav-position"
-    );
+    const savedTimenavPosition = safeGetItem("timeline-timenav-position");
     if (savedTimenavPosition === "top" || savedTimenavPosition === "bottom") {
       setSelectedTimenavPosition(savedTimenavPosition as TimenavPosition);
     }
@@ -412,12 +425,12 @@ export default function InteractiveTimelineContent({
   }, [isOptionsOpen]);
 
   useEffect(() => {
-    const tipSeen = localStorage.getItem("timeline-swipe-tip-seen");
+    const tipSeen = safeGetItem("timeline-swipe-tip-seen");
     if (tipSeen) {
       setHasSeenSwipeTip(true);
     } else {
       const handleNavigation = () => {
-        localStorage.setItem("timeline-swipe-tip-seen", "true");
+        safeSetItem("timeline-swipe-tip-seen", "true");
         setHasSeenSwipeTip(true);
       };
       document.addEventListener("keydown", handleNavigation);

@@ -48,17 +48,23 @@ export default function TimelineCustomizer({
   const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFont = e.target.value;
     setSelectedFont(newFont as FontId);
-    localStorage.setItem("timeline-font", newFont);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("timeline-font", newFont);
+    }
   };
 
   const handleColorSchemeChange = (value: string) => {
     setSelectedColorScheme(value);
-    localStorage.setItem("timeline-color-scheme", value);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("timeline-color-scheme", value);
+    }
   };
 
   const handleTimenavPositionChange = (position: TimenavPosition) => {
     setSelectedTimenavPosition(position);
-    localStorage.setItem("timeline-timenav-position", position);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("timeline-timenav-position", position);
+    }
   };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +74,9 @@ export default function TimelineCustomizer({
 
   const handleSliderChangeComplete = () => {
     setTimenavHeightPercentage(sliderValue);
-    localStorage.setItem("timeline-timenav-height", sliderValue.toString());
+    if (typeof window !== "undefined") {
+      localStorage.setItem("timeline-timenav-height", sliderValue.toString());
+    }
   };
 
   // For mobile menu button, we just want a button without the modal
