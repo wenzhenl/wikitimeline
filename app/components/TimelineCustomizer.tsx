@@ -2,6 +2,7 @@
 
 import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
+import { useState, useEffect } from "react";
 
 type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
 type FontId = (typeof AVAILABLE_FONTS)[number]["value"];
@@ -14,6 +15,8 @@ interface TimelineCustomizerProps {
   setSelectedColorScheme: (colorScheme: ColorSchemeId) => void;
   selectedTimenavPosition: TimenavPosition;
   setSelectedTimenavPosition: (position: TimenavPosition) => void;
+  timenavHeightPercentage: number;
+  setTimenavHeightPercentage: (percentage: number) => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (isOpen: boolean) => void;
   isMobileButton?: boolean;
@@ -27,11 +30,21 @@ export default function TimelineCustomizer({
   setSelectedColorScheme,
   selectedTimenavPosition,
   setSelectedTimenavPosition,
+  timenavHeightPercentage,
+  setTimenavHeightPercentage,
   isSettingsOpen,
   setIsSettingsOpen,
   isMobileButton = false,
   onMobileClick,
 }: TimelineCustomizerProps) {
+  // Local state for the slider value
+  const [sliderValue, setSliderValue] = useState(timenavHeightPercentage);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setSliderValue(timenavHeightPercentage);
+  }, [timenavHeightPercentage]);
+
   const handleFontChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFont = e.target.value;
     setSelectedFont(newFont as FontId);
@@ -46,6 +59,16 @@ export default function TimelineCustomizer({
   const handleTimenavPositionChange = (position: TimenavPosition) => {
     setSelectedTimenavPosition(position);
     localStorage.setItem("timeline-timenav-position", position);
+  };
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value, 10);
+    setSliderValue(newValue);
+  };
+
+  const handleSliderChangeComplete = () => {
+    setTimenavHeightPercentage(sliderValue);
+    localStorage.setItem("timeline-timenav-height", sliderValue.toString());
   };
 
   // For mobile menu button, we just want a button without the modal
@@ -256,6 +279,110 @@ export default function TimelineCustomizer({
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+
+              {/* Timeline Navigation Height Slider */}
+              <section className="mb-6">
+                <h4 className="text-base font-medium text-gray-800 dark:text-gray-200 mb-3">
+                  Navigation Bar Size
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Adjust how much space the timeline navigation bar takes up
+                </p>
+
+                <div className="mt-4 px-2">
+                  {/* Visual representation of what the slider controls */}
+                  <div className="h-16 mb-3 border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden relative">
+                    {selectedTimenavPosition === "top" ? (
+                      <>
+                        <div
+                          className="w-full bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 flex items-center justify-center transition-all"
+                          style={{ height: `${sliderValue}%` }}
+                        >
+                          <div className="h-1 w-3/4 bg-blue-500 rounded"></div>
+                          <div
+                            className="absolute inset-x-0 text-xs text-center text-gray-500 dark:text-gray-400"
+                            style={{
+                              top: `${sliderValue / 2}%`,
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            Timeline Navigation ({sliderValue}%)
+                          </div>
+                        </div>
+                        <div
+                          className="w-full bg-white dark:bg-gray-800 flex items-center justify-center transition-all"
+                          style={{ height: `${100 - sliderValue}%` }}
+                        >
+                          <div
+                            className="absolute inset-x-0 text-xs text-center text-gray-500 dark:text-gray-400"
+                            style={{
+                              top: `${sliderValue + (100 - sliderValue) / 2}%`,
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            Content ({100 - sliderValue}%)
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          className="w-full bg-white dark:bg-gray-800 flex items-center justify-center transition-all"
+                          style={{ height: `${100 - sliderValue}%` }}
+                        >
+                          <div
+                            className="absolute inset-x-0 text-xs text-center text-gray-500 dark:text-gray-400"
+                            style={{
+                              top: `${(100 - sliderValue) / 2}%`,
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            Content ({100 - sliderValue}%)
+                          </div>
+                        </div>
+                        <div
+                          className="w-full bg-gray-200 dark:bg-gray-700 border-t border-gray-300 dark:border-gray-600 flex items-center justify-center transition-all"
+                          style={{ height: `${sliderValue}%` }}
+                        >
+                          <div className="h-1 w-3/4 bg-blue-500 rounded"></div>
+                          <div
+                            className="absolute inset-x-0 text-xs text-center text-gray-500 dark:text-gray-400"
+                            style={{
+                              top: `${100 - sliderValue / 2}%`,
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            Timeline Navigation ({sliderValue}%)
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      id="timenav-height-slider"
+                      type="range"
+                      min="20"
+                      max="80"
+                      value={sliderValue}
+                      onChange={handleSliderChange}
+                      onMouseUp={handleSliderChangeComplete}
+                      onTouchEnd={handleSliderChangeComplete}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                    />
+                    <span className="ml-3 w-12 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {sliderValue}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>20%</span>
+                    <span>80%</span>
                   </div>
                 </div>
               </section>

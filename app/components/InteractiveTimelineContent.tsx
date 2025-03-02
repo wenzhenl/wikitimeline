@@ -53,6 +53,11 @@ export default function InteractiveTimelineContent({
     useState<ColorSchemeId>("default");
   const [selectedTimenavPosition, setSelectedTimenavPosition] =
     useState<TimenavPosition>("bottom");
+  const [timenavHeightPercentage, setTimenavHeightPercentage] =
+    useState<number>(() => {
+      const savedPercentage = localStorage.getItem("timeline-timenav-height");
+      return savedPercentage ? parseInt(savedPercentage, 10) : 40;
+    });
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -491,6 +496,8 @@ export default function InteractiveTimelineContent({
               setSelectedColorScheme={setSelectedColorScheme}
               selectedTimenavPosition={selectedTimenavPosition}
               setSelectedTimenavPosition={setSelectedTimenavPosition}
+              timenavHeightPercentage={timenavHeightPercentage}
+              setTimenavHeightPercentage={setTimenavHeightPercentage}
               isSettingsOpen={isSettingsOpen}
               setIsSettingsOpen={setIsSettingsOpen}
             />
@@ -576,6 +583,8 @@ export default function InteractiveTimelineContent({
                 setSelectedColorScheme={setSelectedColorScheme}
                 selectedTimenavPosition={selectedTimenavPosition}
                 setSelectedTimenavPosition={setSelectedTimenavPosition}
+                timenavHeightPercentage={timenavHeightPercentage}
+                setTimenavHeightPercentage={setTimenavHeightPercentage}
                 isSettingsOpen={isSettingsOpen}
                 setIsSettingsOpen={setIsSettingsOpen}
                 isMobileButton={true}
@@ -656,6 +665,7 @@ export default function InteractiveTimelineContent({
                   scale={timelineJSTimeline.scale}
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
+                  timenavMobileHeightPercentage={timenavHeightPercentage}
                 />
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
@@ -665,6 +675,7 @@ export default function InteractiveTimelineContent({
                   scale={timelineJSTimeline.scale}
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
+                  timenavHeightPercentage={timenavHeightPercentage}
                 />
               </div>
               <TimelineControls
@@ -695,6 +706,8 @@ export default function InteractiveTimelineContent({
           setSelectedColorScheme={setSelectedColorScheme}
           selectedTimenavPosition={selectedTimenavPosition}
           setSelectedTimenavPosition={setSelectedTimenavPosition}
+          timenavHeightPercentage={timenavHeightPercentage}
+          setTimenavHeightPercentage={setTimenavHeightPercentage}
           isSettingsOpen={isSettingsOpen}
           setIsSettingsOpen={setIsSettingsOpen}
         />

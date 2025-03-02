@@ -11,6 +11,8 @@ interface MyTimelineComponentProps {
   font: string;
   scale?: "human" | "cosmological";
   timenavPosition?: "top" | "bottom";
+  timenavHeightPercentage?: number;
+  timenavMobileHeightPercentage?: number;
 }
 
 // Extend WheelEvent to include wheelDelta which exists in some browsers
@@ -26,6 +28,8 @@ const MyTimelineComponent = ({
   font,
   scale,
   timenavPosition = "bottom",
+  timenavHeightPercentage = 40, // Default to 40% for desktop
+  timenavMobileHeightPercentage = 40, // Default to 40% for mobile
 }: MyTimelineComponentProps) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
@@ -46,8 +50,8 @@ const MyTimelineComponent = ({
           ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
           duration: 500,
           marker_height_min: 50,
-          timenav_height_percentage: 20,
-          timenav_mobile_height_percentage: 20,
+          timenav_height_percentage: timenavHeightPercentage,
+          timenav_mobile_height_percentage: timenavMobileHeightPercentage,
           timenav_position: timenavPosition,
           font,
         };
@@ -63,6 +67,8 @@ const MyTimelineComponent = ({
           eventsCount: events.length,
           font,
           timenavPosition,
+          timenavHeightPercentage,
+          timenavMobileHeightPercentage,
         });
 
         setTimelineInstance(timeline);
@@ -226,7 +232,15 @@ const MyTimelineComponent = ({
         timelineRef.current.innerHTML = "";
       }
     };
-  }, [title, events, font, scale, timenavPosition]);
+  }, [
+    title,
+    events,
+    font,
+    scale,
+    timenavPosition,
+    timenavHeightPercentage,
+    timenavMobileHeightPercentage,
+  ]);
 
   return <div ref={timelineRef} id="timeline-embed" />;
 };
