@@ -40,9 +40,6 @@ const MyTimelineComponent = ({
 
         const options = {
           initial_zoom: 5,
-          zoom_sequence: [
-            0.5, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
-          ],
           hash_bookmark: true,
           ga_measurement_id: SITE_CONFIG.GOOGLE_ANALYTICS_ID ?? "",
           duration: 500,
