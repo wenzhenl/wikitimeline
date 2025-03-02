@@ -13,6 +13,7 @@ interface MyTimelineComponentProps {
   timenavPosition?: "top" | "bottom";
   timenavHeightPercentage?: number;
   timenavMobileHeightPercentage?: number;
+  onInitialized?: () => void;
 }
 
 // Extend WheelEvent to include wheelDelta which exists in some browsers
@@ -30,6 +31,7 @@ const MyTimelineComponent = ({
   timenavPosition = "bottom",
   timenavHeightPercentage = 50, // Default to 50% for desktop
   timenavMobileHeightPercentage = 50, // Default to 50% for mobile
+  onInitialized,
 }: MyTimelineComponentProps) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
@@ -61,6 +63,14 @@ const MyTimelineComponent = ({
           { title: title, events: events, scale: scale },
           options
         );
+
+        // Listen for the timeline's 'loaded' event to notify parent
+        (timeline as any).on("loaded", () => {
+          console.log("Timeline fully loaded and initialized");
+          if (onInitialized) {
+            onInitialized();
+          }
+        });
 
         logger.debug("Timeline component rendered", {
           scale: scale || "human",
@@ -240,6 +250,7 @@ const MyTimelineComponent = ({
     timenavPosition,
     timenavHeightPercentage,
     timenavMobileHeightPercentage,
+    onInitialized,
   ]);
 
   return <div ref={timelineRef} id="timeline-embed" />;

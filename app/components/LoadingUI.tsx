@@ -1,20 +1,27 @@
 export default function LoadingUI() {
   return (
     <div
-      className="relative flex flex-col items-center justify-center h-[500px] w-full"
+      className="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-900"
       style={{
-        height: "500px", // Matches MyTimelineComponent's mobile height
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        position: "relative",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     >
       <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm" />
       <div
         className="relative w-16 h-16 border-4 border-blue-500 dark:border-blue-400 border-t-transparent rounded-full animate-spin mb-4"
-        style={{ animationTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)" }}
+        style={{
+          animationTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
+          borderColor: "rgb(59 130 246 / 1)", // blue-500
+          borderTopColor: "transparent",
+        }}
       />
       <h2 className="relative text-xl font-medium text-gray-900 dark:text-gray-100">
         Generating Timeline...

@@ -116,22 +116,17 @@ export default function TextTimelinePageContent({
         <NavigationHeader />
         <main className="flex-1 w-full">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="space-y-8 animate-pulse">
+            {/* Empty container with same dimensions as content */}
+            <div className="space-y-8">
               <div className="space-y-4">
                 <div className="h-10 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
-
-              {[...Array(3)].map((_, index) => (
-                <div
-                  key={index}
-                  className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 space-y-3"
-                >
-                  <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                  <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  <div className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </div>
-              ))}
+              <div className="space-y-4">
+                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
             </div>
           </div>
         </main>

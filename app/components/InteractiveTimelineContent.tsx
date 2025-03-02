@@ -18,7 +18,6 @@ import {
   TimelineJSEvent,
 } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
-import LoadingUI from "@/app/components/LoadingUI";
 import { PAGE_DELIMITER } from "@/app/constants";
 import logger from "@/app/utils/logger";
 import NavigationHeader from "@/app/components/NavigationHeader";
@@ -94,6 +93,7 @@ export default function InteractiveTimelineContent({
   const [topEventsCount, setTopEventsCount] = useState<number | null>(null);
   const [originalTimelineJSTimeline, setOriginalTimelineJSTimeline] =
     useState<TimelineJSTimeline | null>(null);
+  const [isTimelineInitialized, setIsTimelineInitialized] = useState(false);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -159,7 +159,6 @@ export default function InteractiveTimelineContent({
     }
   }, [initialData]);
 
-  // Initialize timeline and loading state with MutationObserver
   useEffect(() => {
     const formatEventsAsync = async () => {
       const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
@@ -183,36 +182,17 @@ export default function InteractiveTimelineContent({
       if (formatted && formatted.events) {
         setFilteredEvents(formatted.events);
       }
+
+      // Mark timeline data as ready
+      setLoading(false);
     };
     formatEventsAsync();
-
-    const observer = new MutationObserver(() => {
-      if (
-        timelineContainerRef.current?.querySelector(
-          ".tl-timeline .tl-slider-container"
-        )
-      ) {
-        setLoading(false);
-        observer.disconnect();
-      }
-    });
-    if (timelineContainerRef.current) {
-      observer.observe(timelineContainerRef.current, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
-    const timeout = setTimeout(() => {
-      setLoading(false); // Fallback after 1s
-      observer.disconnect();
-    }, 1000);
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(timeout);
-    };
   }, [initialData, selectedColorScheme]);
+
+  // Add a listener for when the timeline is fully initialized
+  const handleTimelineInitialized = useCallback(() => {
+    setIsTimelineInitialized(true);
+  }, []);
 
   // Update timeline when color scheme changes
   useEffect(() => {
@@ -455,6 +435,7 @@ export default function InteractiveTimelineContent({
     setTopEventsCount(count);
   };
 
+  // If still loading the timeline data, show loading state with header
   if (loading || !timelineJSTimeline) {
     return (
       <div
@@ -478,11 +459,35 @@ export default function InteractiveTimelineContent({
             paddingBottom: "1.5rem",
           }}
         >
-          <div
-            className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]"
-            style={{ minHeight: "500px" }}
-          >
-            <LoadingUI />
+          <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              {/* Timeline placeholder */}
+              <div className="h-[500px] lg:hidden">
+                <div className="h-full flex flex-col">
+                  {/* Timeline navigation placeholder */}
+                  <div className="h-1/2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-3/4 h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                    </div>
+                  </div>
+                  {/* Timeline content placeholder */}
+                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
+                </div>
+              </div>
+              {/* Desktop placeholder */}
+              <div className="hidden lg:block relative w-full aspect-[16/9]">
+                <div className="absolute inset-0 flex flex-col">
+                  {/* Timeline navigation placeholder */}
+                  <div className="h-1/2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-3/4 h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                    </div>
+                  </div>
+                  {/* Timeline content placeholder */}
+                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </main>
       </div>
@@ -668,7 +673,7 @@ export default function InteractiveTimelineContent({
         <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
           {timelineJSTimeline.events.length > 0 && (
             <div
-              ref={timelineContainerRef} // Attach ref here
+              ref={timelineContainerRef}
               className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
             >
               <div className="h-[500px] lg:hidden">
@@ -679,6 +684,7 @@ export default function InteractiveTimelineContent({
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
                   timenavMobileHeightPercentage={timenavHeightPercentage}
+                  onInitialized={handleTimelineInitialized}
                 />
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
@@ -689,6 +695,7 @@ export default function InteractiveTimelineContent({
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
                   timenavHeightPercentage={timenavHeightPercentage}
+                  onInitialized={handleTimelineInitialized}
                 />
               </div>
               <TimelineControls

@@ -167,12 +167,13 @@ export function formatTimelineEventsForInteractive(
       },
       background: {
         color: firstGroupColors.color
-      }
+      },
+      unique_id: "0",
     },
     events: formattedEvents.map((formattedEvent, index) => {
       // Assign a consistent index to each group
       const event = formattedEvent.original_event;
-      const groupKey = formattedEvent.group || 'default';
+      const groupKey = formattedEvent.group || "default";
       if (!groupIndices.has(groupKey)) {
         groupIndices.set(groupKey, groupIndices.size);
       }
@@ -211,7 +212,7 @@ export function formatTimelineEventsForInteractive(
           color: colors.color,
         },
         // Changed to use just the index number without "event-" prefix
-        unique_id: `${index}`,
+        unique_id: `${index + 1}`,
         score: event.score,
       };
     }),
