@@ -11,7 +11,7 @@ import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
 import { CURRENT_PROMPT_VERSION, MAX_CHUNK_SIZE, TEMPERATURE } from "@/app/constants/gemini";
 import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
-
+import { compareDates } from "@/app/utils/helper";
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -23,27 +23,6 @@ logger.info('Wikipedia User-Agent set:', userAgent);
 // Add the NewTimelineFormat interface
 interface NewTimelineFormat {
   timeline: Timeline;
-}
-
-// Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
-function compareDates(dateA: string, dateB: string): number {
-  const aIsNegative = dateA.startsWith("-");
-  const bIsNegative = dateB.startsWith("-");
-  
-  const aParts = (aIsNegative ? dateA.slice(1) : dateA)
-    .split("-")
-    .map(Number);
-  const bParts = (bIsNegative ? dateB.slice(1) : dateB)
-    .split("-")
-    .map(Number);
-  
-  const aYear = aParts[0] * (aIsNegative ? -1 : 1);
-  const bYear = bParts[0] * (bIsNegative ? -1 : 1);
-
-  if (aYear !== bYear) return aYear - bYear;
-  if (aParts[1] && bParts[1] && aParts[1] !== bParts[1]) return aParts[1] - bParts[1];
-  if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
-  return aParts.length - bParts.length;
 }
 
 function calculateAge(birthDate: string, eventDate: string): number | null {

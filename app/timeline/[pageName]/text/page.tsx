@@ -4,23 +4,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
-
-function compareDates(dateA: string, dateB: string): number {
-  const aIsNegative = dateA.startsWith("-");
-  const bIsNegative = dateB.startsWith("-");
-
-  const aParts = (aIsNegative ? dateA.slice(1) : dateA).split("-").map(Number);
-  const bParts = (bIsNegative ? dateB.slice(1) : dateB).split("-").map(Number);
-
-  const aYear = aParts[0] * (aIsNegative ? -1 : 1);
-  const bYear = bParts[0] * (bIsNegative ? -1 : 1);
-
-  if (aYear !== bYear) return aYear - bYear;
-  if (aParts[1] && bParts[1] && aParts[1] !== bParts[1])
-    return aParts[1] - bParts[1];
-  if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
-  return 0;
-}
+import { compareDates } from "@/app/utils/helper";
 
 async function getTimelineData(pageName: string) {
   const targetPages = decodeURIComponent(pageName).split(PAGE_DELIMITER);
