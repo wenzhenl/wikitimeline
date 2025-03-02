@@ -56,7 +56,7 @@ export default function InteractiveTimelineContent({
   const [timenavHeightPercentage, setTimenavHeightPercentage] =
     useState<number>(() => {
       const savedPercentage = localStorage.getItem("timeline-timenav-height");
-      return savedPercentage ? parseInt(savedPercentage, 10) : 40;
+      return savedPercentage ? parseInt(savedPercentage, 10) : 50;
     });
   const [skippedPages, setSkippedPages] = useState<string[]>([]);
   const [showSkippedModal, setShowSkippedModal] = useState(true);

@@ -28,8 +28,8 @@ const MyTimelineComponent = ({
   font,
   scale,
   timenavPosition = "bottom",
-  timenavHeightPercentage = 40, // Default to 40% for desktop
-  timenavMobileHeightPercentage = 40, // Default to 40% for mobile
+  timenavHeightPercentage = 50, // Default to 50% for desktop
+  timenavMobileHeightPercentage = 50, // Default to 50% for mobile
 }: MyTimelineComponentProps) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);

@@ -369,7 +369,7 @@ export default function TimelineCustomizer({
                       id="timenav-height-slider"
                       type="range"
                       min="20"
-                      max="80"
+                      max="100"
                       value={sliderValue}
                       onChange={handleSliderChange}
                       onMouseUp={handleSliderChangeComplete}
@@ -382,7 +382,7 @@ export default function TimelineCustomizer({
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-gray-500 dark:text-gray-400">
                     <span>20%</span>
-                    <span>80%</span>
+                    <span>100%</span>
                   </div>
                 </div>
               </section>
