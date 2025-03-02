@@ -43,12 +43,9 @@ export default function TimelineCustomizer({
     localStorage.setItem("timeline-color-scheme", value);
   };
 
-  const handleTimenavPositionChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const newPosition = e.target.value as TimenavPosition;
-    setSelectedTimenavPosition(newPosition);
-    localStorage.setItem("timeline-timenav-position", newPosition);
+  const handleTimenavPositionChange = (position: TimenavPosition) => {
+    setSelectedTimenavPosition(position);
+    localStorage.setItem("timeline-timenav-position", position);
   };
 
   // For mobile menu button, we just want a button without the modal
@@ -113,7 +110,7 @@ export default function TimelineCustomizer({
               onClick={() => setIsSettingsOpen(false)}
             />
             <div className="inline-block w-full max-w-md p-6 my-8 text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-5">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                   Customize Timeline
                 </h3>
@@ -137,12 +134,17 @@ export default function TimelineCustomizer({
                   </svg>
                 </button>
               </div>
-              <div className="mb-4">
+
+              {/* Font Selection */}
+              <section className="mb-6">
+                <h4 className="text-base font-medium text-gray-800 dark:text-gray-200 mb-3">
+                  Font Style
+                </h4>
                 <label
                   htmlFor="font-select"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  className="block text-sm text-gray-700 dark:text-gray-300 mb-2"
                 >
-                  Timeline Font
+                  Choose a font for your timeline content
                 </label>
                 <select
                   id="font-select"
@@ -156,31 +158,118 @@ export default function TimelineCustomizer({
                     </option>
                   ))}
                 </select>
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="timenav-position-select"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Timeline Navigation Position
-                </label>
-                <select
-                  id="timenav-position-select"
-                  value={selectedTimenavPosition}
-                  onChange={handleTimenavPositionChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                >
-                  <option value="bottom">Bottom</option>
-                  <option value="top">Top</option>
-                </select>
-              </div>
-              <div>
-                <label
-                  htmlFor="color-scheme-select"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
+              </section>
+
+              <div className="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+
+              {/* Timeline Navigation Position */}
+              <section className="mb-6">
+                <h4 className="text-base font-medium text-gray-800 dark:text-gray-200 mb-3">
+                  Timeline Navigation Bar
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Choose where the timeline slider navigation bar should appear
+                  (the horizontal bar with date markers that lets you navigate
+                  through the timeline)
+                </p>
+
+                <div className="flex flex-col gap-4 mt-2">
+                  {/* Top Position Option */}
+                  <div
+                    className={`relative flex items-start p-3 rounded-lg border ${
+                      selectedTimenavPosition === "top"
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700"
+                    } cursor-pointer`}
+                    onClick={() => handleTimenavPositionChange("top")}
+                  >
+                    <div className="min-w-0 flex-1 text-sm">
+                      <div className="flex items-center">
+                        <input
+                          id="timenav-top"
+                          name="timenav-position"
+                          type="radio"
+                          checked={selectedTimenavPosition === "top"}
+                          onChange={() => handleTimenavPositionChange("top")}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                        />
+                        <label
+                          htmlFor="timenav-top"
+                          className="ml-3 font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Top
+                        </label>
+                      </div>
+                      <div className="mt-2 ml-7">
+                        <div className="h-12 border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
+                          {/* Visual representation of timeline with nav at top */}
+                          <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                            <div className="h-1 w-3/4 bg-blue-500 rounded"></div>
+                          </div>
+                          <div className="h-9 bg-white dark:bg-gray-800 flex items-center justify-center">
+                            <span className="text-xs text-gray-400">
+                              Content
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Position Option */}
+                  <div
+                    className={`relative flex items-start p-3 rounded-lg border ${
+                      selectedTimenavPosition === "bottom"
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700"
+                    } cursor-pointer`}
+                    onClick={() => handleTimenavPositionChange("bottom")}
+                  >
+                    <div className="min-w-0 flex-1 text-sm">
+                      <div className="flex items-center">
+                        <input
+                          id="timenav-bottom"
+                          name="timenav-position"
+                          type="radio"
+                          checked={selectedTimenavPosition === "bottom"}
+                          onChange={() => handleTimenavPositionChange("bottom")}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                        />
+                        <label
+                          htmlFor="timenav-bottom"
+                          className="ml-3 font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Bottom
+                        </label>
+                      </div>
+                      <div className="mt-2 ml-7">
+                        <div className="h-12 border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
+                          {/* Visual representation of timeline with nav at bottom */}
+                          <div className="h-9 bg-white dark:bg-gray-800 flex items-center justify-center">
+                            <span className="text-xs text-gray-400">
+                              Content
+                            </span>
+                          </div>
+                          <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 border-t border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                            <div className="h-1 w-3/4 bg-blue-500 rounded"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="border-t border-gray-200 dark:border-gray-700 mb-6"></div>
+
+              {/* Color Scheme */}
+              <section>
+                <h4 className="text-base font-medium text-gray-800 dark:text-gray-200 mb-3">
                   Color Scheme
-                </label>
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Choose a color palette for your timeline
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                   {COLOR_SCHEMES.map((scheme) => (
                     <button
@@ -213,7 +302,7 @@ export default function TimelineCustomizer({
                     </button>
                   ))}
                 </div>
-              </div>
+              </section>
             </div>
           </div>
         </div>
