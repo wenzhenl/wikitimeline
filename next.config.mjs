@@ -2,6 +2,12 @@ import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  compiler: {
+    removeConsole: {
+      exclude: ["error", "warn"], // Keeps errors & warnings but removes others
+    },
+  },
   async headers() {
     return [
       {
