@@ -1,3 +1,16 @@
+V2 release note:
+
+for non english languages, ask gemini to respect variants of the same languages even, for example simplified Chinese v.s. traditional, and output should
+not mix them.
+
+Should not consider age as year, Einstein plays violin at 5, should not make the start year 5.
+
+Ask it in the description to explain why the event is related to the subject, if no or not strong relevance found, should
+drop the event, or at least give very low score. So that at the application side, we can filter low score events out.
+
+Optimize the chunck size for spliting wiki article.
+
+
 https://dumps.wikimedia.org/other/pageview_complete/2024/2024-10/pageviews-20241001-user.bz2
 Downloading 20241001...
 Rank 0: Main_Page (4,713,553 views)
