@@ -267,69 +267,14 @@ export default function WikiSearch({
       }}
       ref={searchRef}
     >
+      {/* Selected pages - moved above the search input */}
       <div
-        className="relative flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
-        style={{
-          padding: "0.25rem",
-          borderRadius: "0.5rem",
-        }}
-      >
-        {/* Language dropdown with tooltip */}
-        <div className="relative mr-2 flex-shrink-0 group">
-          <select
-            className="block appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-1 px-2 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-sm"
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            aria-label="Select Wikipedia language"
-            title="Select Wikipedia language"
-          >
-            {LANGUAGE_OPTIONS.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.code.toUpperCase()}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-400">
-            <svg
-              className="fill-current h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-            </svg>
-          </div>
-          <div className="absolute hidden group-hover:block bottom-full left-0 mb-2 bg-gray-800 text-white text-xs p-2 rounded shadow-lg whitespace-nowrap">
-            Search Wikipedia in this language
-          </div>
-        </div>
-
-        {/* Search input */}
-        <input
-          type="text"
-          ref={inputRef}
-          className="flex-grow px-3 py-2 bg-transparent outline-none text-gray-700 dark:text-white"
-          style={{
-            backgroundColor: "transparent",
-            boxShadow: "none",
-            outline: "none",
-            width: "100%",
-            border: "none",
-          }}
-          value={inputValue}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => setShowResults(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder || defaultPlaceholder}
-          autoFocus={autoFocus}
-        />
-      </div>
-      <div
-        className="flex flex-wrap gap-2 mb-2"
+        className="flex flex-wrap gap-2 mb-4"
         style={{
           display: "flex",
           flexWrap: "wrap",
           gap: "0.5rem",
-          marginBottom: "0.5rem",
+          marginBottom: "1rem",
         }}
       >
         {selectedPages.map((page, index) => (
@@ -372,6 +317,64 @@ export default function WikiSearch({
           </div>
         ))}
       </div>
+
+      <div
+        className="relative flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+        style={{
+          padding: "0.25rem",
+          borderRadius: "0.5rem",
+        }}
+      >
+        {/* Search input - dropdown moved to right side */}
+        <input
+          type="text"
+          ref={inputRef}
+          className="flex-grow px-3 py-2 bg-transparent outline-none text-gray-700 dark:text-white"
+          style={{
+            backgroundColor: "transparent",
+            boxShadow: "none",
+            outline: "none",
+            width: "100%",
+            border: "none",
+          }}
+          value={inputValue}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onFocus={() => setShowResults(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || defaultPlaceholder}
+          autoFocus={autoFocus}
+        />
+
+        {/* Language dropdown with tooltip - moved to right side */}
+        <div className="relative ml-2 flex-shrink-0 group">
+          <select
+            className="block appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-1 px-2 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-sm"
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            aria-label="Select Wikipedia language"
+            title="Select Wikipedia language"
+          >
+            {LANGUAGE_OPTIONS.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-400">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+          <div className="absolute hidden group-hover:block bottom-full right-0 mb-2 bg-gray-800 text-white text-xs p-2 rounded shadow-lg whitespace-nowrap">
+            Search Wikipedia in this language
+          </div>
+        </div>
+      </div>
+
       <div
         className="relative"
         style={{
