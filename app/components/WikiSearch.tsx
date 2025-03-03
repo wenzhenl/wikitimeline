@@ -3,8 +3,14 @@ import Image from "next/image";
 import logger from "@/app/utils/logger";
 import wiki from "wikipedia";
 
-// Common language options for Wikipedia
-const LANGUAGE_OPTIONS = [
+// Interface for language options
+interface LanguageOption {
+  code: string;
+  name: string;
+}
+
+// Top 10 most common languages for Wikipedia
+const COMMON_LANGUAGES: LanguageOption[] = [
   { code: "en", name: "English" },
   { code: "es", name: "Español" },
   { code: "fr", name: "Français" },
@@ -318,63 +324,109 @@ export default function WikiSearch({
         ))}
       </div>
 
+      {/* Search container with fixed dimensions and explicit border styles */}
       <div
-        className="relative flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+        className="flex items-center border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg"
         style={{
-          padding: "0.25rem",
-          borderRadius: "0.5rem",
+          width: "100%",
+          height: "40px",
+          padding: "4px",
+          boxSizing: "border-box",
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        {/* Search input - dropdown moved to right side */}
-        <input
-          type="text"
-          ref={inputRef}
-          className="flex-grow px-3 py-2 bg-transparent outline-none text-gray-700 dark:text-white"
+        {/* Search input - simplified styles with explicit width */}
+        <div
           style={{
-            backgroundColor: "transparent",
-            boxShadow: "none",
-            outline: "none",
-            width: "100%",
-            border: "none",
+            width: "calc(100% - 115px)",
+            height: "100%",
+            boxSizing: "border-box",
           }}
-          value={inputValue}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => setShowResults(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder || defaultPlaceholder}
-          autoFocus={autoFocus}
-        />
+        >
+          <input
+            type="text"
+            ref={inputRef}
+            className="w-full h-full bg-transparent outline-none text-gray-700 dark:text-white"
+            style={{
+              width: "100%",
+              height: "100%",
+              padding: "0 12px",
+              border: "none",
+              boxSizing: "border-box",
+              backgroundColor: "transparent",
+              outline: "none",
+            }}
+            value={inputValue}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onFocus={() => setShowResults(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder || defaultPlaceholder}
+            autoFocus={autoFocus}
+          />
+        </div>
 
-        {/* Language dropdown with tooltip - moved to right side */}
-        <div className="relative ml-2 flex-shrink-0 group">
+        {/* Language dropdown with fixed width and explicit positioning */}
+        <div
+          style={{
+            width: "110px",
+            height: "100%",
+            position: "relative",
+            boxSizing: "border-box",
+            marginLeft: "5px",
+          }}
+        >
           <select
-            className="block appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-1 px-2 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-sm"
+            className="w-full h-full px-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white"
+            style={{
+              width: "100%",
+              height: "100%",
+              appearance: "none",
+              paddingRight: "20px",
+              paddingLeft: "8px",
+              boxSizing: "border-box",
+              borderRadius: "0.5rem",
+            }}
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
             aria-label="Select Wikipedia language"
             title="Select Wikipedia language"
           >
-            {LANGUAGE_OPTIONS.map((lang) => (
+            {COMMON_LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>
                 {lang.name}
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-400">
+          {/* Arrow positioned absolutely within the container */}
+          <div
+            style={{
+              position: "absolute",
+              right: "8px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+              width: "12px",
+              height: "12px",
+            }}
+          >
             <svg
-              className="fill-current h-4 w-4"
+              className="text-gray-700 dark:text-gray-300"
+              style={{
+                width: "100%",
+                height: "100%",
+                fill: "currentColor",
+              }}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
             >
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>
           </div>
-          <div className="absolute hidden group-hover:block bottom-full right-0 mb-2 bg-gray-800 text-white text-xs p-2 rounded shadow-lg whitespace-nowrap">
-            Search Wikipedia in this language
-          </div>
         </div>
       </div>
 
+      {/* Search results container */}
       <div
         className="relative"
         style={{
