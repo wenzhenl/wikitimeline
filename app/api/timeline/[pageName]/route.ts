@@ -12,6 +12,11 @@ import { FORCE_REGENERATE_ON_VERSION_MISMATCH } from "@/app/constants";
 import { CURRENT_PROMPT_VERSION, MAX_CHUNK_SIZE, TEMPERATURE } from "@/app/constants/gemini";
 import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
 import { compareDates } from "@/app/utils/helper";
+
+// API Constants
+const API_VERSION = "1"; // Current API version
+const DEFAULT_LANGUAGE = "en"; // Default language is English
+
 // Initialize Redis
 const redis = Redis.fromEnv();
 
@@ -23,6 +28,42 @@ logger.info('Wikipedia User-Agent set:', userAgent);
 // Add the NewTimelineFormat interface
 interface NewTimelineFormat {
   timeline: Timeline;
+  apiVersion: string;
+}
+
+// Interface for language and page name
+interface PageInfo {
+  language: string;
+  pageName: string;
+  original: string;
+}
+
+// Parse a page name with optional language prefix
+function parsePageName(rawName: string): PageInfo {
+  const trimmedName = rawName.trim();
+  
+  // Check if there's a language prefix (e.g., "en:Page_Name")
+  const match = trimmedName.match(/^([a-z]{2}):(.+)$/);
+  
+  if (match) {
+    return {
+      language: match[1],
+      pageName: match[2],
+      original: trimmedName
+    };
+  }
+  
+  // No language specified, use default
+  return {
+    language: DEFAULT_LANGUAGE,
+    pageName: trimmedName,
+    original: trimmedName
+  };
+}
+
+// Function to construct cache key
+function buildCacheKey(pageInfo: PageInfo): string {
+  return `timeline|${API_VERSION}|${pageInfo.language}|${pageInfo.pageName}`;
 }
 
 function calculateAge(birthDate: string, eventDate: string): number | null {
@@ -415,24 +456,25 @@ async function processChunk(
   }
 }
 
-// Add route segment config
-export const runtime = 'edge';
-export const revalidate = 3600; // Cache for 1 hour
-
-// Cache the wiki summary
+// Cache the wiki summary with language support
 const getCachedWikiSummary = unstable_cache(
-  async (pageName: string) => {
+  async (pageInfo: PageInfo) => {
     try {
-      const summary = await wiki.summary(pageName);
+      // Set the Wikipedia API to use the correct language
+      wiki.setLang(pageInfo.language);
+      
+      const summary = await wiki.summary(pageInfo.pageName);
       return {
         canonicalTitle: summary.titles.canonical,
-        thumbnail: summary.thumbnail?.source
+        thumbnail: summary.thumbnail?.source,
+        language: pageInfo.language
       };
     } catch (error) {
-      logger.warn('Could not fetch wiki summary, using fallback:', error);
+      logger.warn(`Could not fetch wiki summary for ${pageInfo.language}:${pageInfo.pageName}, using fallback:`, error);
       return {
-        canonicalTitle: pageName,
-        thumbnail: undefined
+        canonicalTitle: pageInfo.pageName,
+        thumbnail: undefined,
+        language: pageInfo.language
       };
     }
   },
@@ -452,29 +494,39 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
   return new GoogleGenerativeAI(apiKey!);
 }
 
-// Update the GET handler to simplify cache retrieval
+// Update the GET handler to support language prefixes
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   const clientType = request.headers.get('x-internal-client-type');
+  const apiVersion = request.headers.get('x-api-version') || API_VERSION;
   const genAI = getGeminiClient(clientType);
     
   try {
     // First decode the URL parameters
-    const pageNames = decodeURIComponent(params.pageName)
+    const rawPageNames = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
       .map(name => name.trim())
       .filter(Boolean);
-
+      
+    // Parse each page name to extract language and actual page name
+    const pageInfos = rawPageNames.map(parsePageName);
+    
+    logger.info(`Processing ${pageInfos.length} pages with API version ${apiVersion}`);
+    
     // Get canonical names first
-    const canonicalNames = await Promise.all(
-      pageNames.map(async (name) => {
-        const summary = await getCachedWikiSummary(name);
-        if (summary.canonicalTitle !== name) {
-          logger.info(`Redirecting ${name} to canonical title: ${summary.canonicalTitle}`);
+    const canonicalInfos = await Promise.all(
+      pageInfos.map(async (pageInfo) => {
+        const summary = await getCachedWikiSummary(pageInfo);
+        if (summary.canonicalTitle !== pageInfo.pageName) {
+          logger.info(`Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${summary.canonicalTitle}`);
         }
-        return summary.canonicalTitle;
+        
+        return {
+          ...pageInfo,
+          pageName: summary.canonicalTitle
+        };
       })
     );
 
@@ -483,10 +535,9 @@ export async function GET(
     const timelines: Record<string, TimelineWithWikiSummary> = {};
 
     await Promise.all(
-      canonicalNames.map(async (pageName) => {
-        const trimmedName = pageName.trim();
-        // Use the decoded name for the cache key
-        const cacheKey = `timeline:${trimmedName}`;
+      canonicalInfos.map(async (pageInfo) => {
+        // Use the language and page name for the cache key
+        const cacheKey = buildCacheKey(pageInfo);
         
         // Try to get cached timeline
         let timeline: Timeline | null = null;
@@ -499,10 +550,10 @@ export async function GET(
             
             // Check version match
             if (timeline && timeline.version !== CURRENT_PROMPT_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-              logger.info(`Cache version mismatch for ${trimmedName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
+              logger.info(`Cache version mismatch for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version} vs ${CURRENT_PROMPT_VERSION}), regenerating...`);
               timeline = null;
             } else if (timeline) {
-              logger.info(`Cache hit for timeline: ${trimmedName} (version ${timeline.version || 'unknown'})`);
+              logger.info(`Cache hit for timeline: ${pageInfo.language}:${pageInfo.pageName} (version ${timeline.version || 'unknown'})`);
             }
           }
         } catch (error) {
@@ -512,69 +563,86 @@ export async function GET(
         // Generate new timeline if no cache or version mismatch
         if (!timeline) {
           try {
-            // Use decoded name for Wikipedia API
-            logger.info("Fetching wiki page for:", trimmedName);
+            // Set wiki to the correct language
+            wiki.setLang(pageInfo.language);
             
-            const page = await wiki.page(trimmedName);
+            logger.info(`Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`);
+            
+            const page = await wiki.page(pageInfo.pageName);
             const [content, summary] = await Promise.all([
               page.content(),
               page.summary()
             ]);
 
             try {
-              timeline = await generateTimeline(trimmedName, content, summary.extract, genAI);
+              timeline = await generateTimeline(pageInfo.pageName, content, summary.extract, genAI);
               
               if (timeline) {
-                // Cache the new timeline
-                await redis.set(cacheKey, { timeline });
-                logger.info(`Cached new timeline for ${trimmedName} (version ${timeline.version || CURRENT_PROMPT_VERSION})`);
+                // Cache the new timeline with API version
+                await redis.set(cacheKey, { 
+                  timeline,
+                  apiVersion
+                });
+                logger.info(`Cached new timeline for ${pageInfo.language}:${pageInfo.pageName} (version ${timeline.version || CURRENT_PROMPT_VERSION})`);
               } else {
-                logger.warn(`Failed to generate timeline for ${trimmedName}`);
-                failedPages.push(trimmedName);
+                logger.warn(`Failed to generate timeline for ${pageInfo.language}:${pageInfo.pageName}`);
+                failedPages.push(pageInfo.original);
                 return;
               }
             } catch (error) {
-              logger.error(`Error generating timeline for ${trimmedName}:`, error);
-              failedPages.push(trimmedName);
+              logger.error(`Error generating timeline for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+              failedPages.push(pageInfo.original);
               return;
             }
           } catch (error) {
-            logger.error(`Error fetching Wikipedia content for ${trimmedName}:`, error);
-            failedPages.push(trimmedName);
+            logger.error(`Error fetching Wikipedia content for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+            failedPages.push(pageInfo.original);
             return;
           }
         }
 
         // Check if we have enough events
         if (!timeline || timeline.events.length < MIN_NUM_EVENTS_FOR_TIMELINE) {
-          logger.warn(`Not enough events for ${trimmedName}: ${timeline?.events.length || 0} events`);
-          noTimelinePages.push(trimmedName);
+          logger.warn(`Not enough events for ${pageInfo.language}:${pageInfo.pageName}: ${timeline?.events.length || 0} events`);
+          noTimelinePages.push(pageInfo.original);
           return;
         }
 
-        // Get wiki summary data
-        const summaryData = await getCachedWikiSummary(trimmedName);
-        
-        // Create proper WikiSummary object
-        const wikiSummary: WikiSummary = {
-          pageUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(trimmedName)}`,
-          thumbnail: summaryData.thumbnail
-        };
+        // Get or generate a wiki summary
+        let wikiSummary: WikiSummary;
+        try {
+          // Set wiki to the correct language
+          wiki.setLang(pageInfo.language);
+          
+          const pageSummary = await wiki.summary(pageInfo.pageName);
+          wikiSummary = {
+            pageUrl: pageSummary.content_urls?.desktop?.page || `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`,
+            thumbnail: pageSummary.thumbnail?.source,
+            summary: pageSummary.extract
+          };
+        } catch (error) {
+          logger.error(`Error fetching detailed wiki summary for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+          wikiSummary = {
+            pageUrl: `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`,
+            thumbnail: undefined
+          };
+        }
 
-        // Add to timelines
-        timelines[trimmedName] = {
+        // Store the timeline and wiki summary
+        timelines[pageInfo.original] = {
           timeline,
           wikiSummary
         };
       })
     );
 
-    // Prepare the response with correct type
+    // Create the response
     const response: TimelineAPIResponse = {
       timelines,
+      apiVersion,
       errors: failedPages.length > 0 || noTimelinePages.length > 0 ? {
-        message: `Could not generate timeline for some pages`,
-        failedPages: [...failedPages, ...noTimelinePages],
+        message: "Some pages failed to generate timelines",
+        failedPages,
         details: {
           noWikipediaData: failedPages,
           noTimelineGenerated: noTimelinePages
@@ -585,20 +653,24 @@ export async function GET(
     return new Response(JSON.stringify(response), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+        'X-API-Version': apiVersion
       }
     });
+
   } catch (error) {
     logger.error('Error in timeline API:', error);
-    return new Response(JSON.stringify({ 
-      timelines: {},
-      errors: {
-        message: 'Failed to generate timeline',
-        failedPages: []
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to generate timeline',
+        message: error instanceof Error ? error.message : String(error)
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Version': apiVersion
+        }
       }
-    } as TimelineAPIResponse), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    );
   }
 } 
