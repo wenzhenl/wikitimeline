@@ -3,6 +3,7 @@ import WikiSearch from "@/app/components/WikiSearch";
 interface SelectedPage {
   title: string;
   link: string;
+  language: string; // Language code (e.g., "en", "fr", "de")
 }
 
 interface TimelinePageEditProps {

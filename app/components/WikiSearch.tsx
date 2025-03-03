@@ -3,6 +3,20 @@ import Image from "next/image";
 import logger from "@/app/utils/logger";
 import wiki from "wikipedia";
 
+// Common language options for Wikipedia
+const LANGUAGE_OPTIONS = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français" },
+  { code: "de", name: "Deutsch" },
+  { code: "it", name: "Italiano" },
+  { code: "pt", name: "Português" },
+  { code: "ru", name: "Русский" },
+  { code: "ja", name: "日本語" },
+  { code: "zh", name: "中文" },
+  { code: "ar", name: "العربية" },
+];
+
 interface SearchResult {
   title: string;
   description: string;
@@ -14,11 +28,13 @@ interface SearchResult {
     height: number;
   };
   pageviews: number;
+  language?: string; // Optional language from the search result
 }
 
 interface SelectedPage {
   title: string;
   link: string;
+  language: string; // Language code (e.g., "en", "fr", "de")
 }
 
 interface WikiSearchProps {
@@ -33,112 +49,99 @@ interface WikiSearchProps {
 export default function WikiSearch({
   selectedPages,
   onPagesChange,
+  onSubmit,
   placeholder,
   className,
   autoFocus = true,
 }: WikiSearchProps) {
   const [inputValue, setInputValue] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [showResults, setShowResults] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const resultListRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const extractWikiTitle = (url: string): string | null => {
+  // Default placeholder that mentions language capabilities
+  const defaultPlaceholder =
+    "Search Wikipedia or paste URL (e.g., Albert Einstein, fr:Marie Curie)";
+
+  // Function to extract wiki title and language from URL
+  const extractWikiTitle = (
+    url: string
+  ): { title: string; language: string } | null => {
+    // Try to parse the URL
     try {
-      const urlPattern = /(?:https?:\/\/[^\/]+)?\/wiki\/([^#?]+)/;
-      const match = url.match(urlPattern);
-      if (match) {
-        // First decode any existing encoding to get clean title
-        return decodeURIComponent(match[1]);
+      const urlObj = new URL(url);
+      // Extract language from subdomain (e.g., "en" from "en.wikipedia.org")
+      const hostParts = urlObj.hostname.split(".");
+      const langCode = hostParts[0] === "www" ? "en" : hostParts[0];
+
+      // Check if it's a Wikipedia URL
+      if (urlObj.hostname.includes("wikipedia.org")) {
+        // Get the path parts
+        const pathParts = urlObj.pathname.split("/");
+        // Find the title part (usually after /wiki/)
+        const wikiIndex = pathParts.findIndex((part) => part === "wiki");
+        if (wikiIndex >= 0 && wikiIndex < pathParts.length - 1) {
+          return {
+            title: decodeURIComponent(
+              pathParts[wikiIndex + 1].replace(/_/g, " ")
+            ),
+            language: langCode,
+          };
+        }
       }
-      return null;
-    } catch (error) {
-      logger.error("Error parsing Wikipedia URL:", error);
-      return null;
+    } catch (e) {
+      // Invalid URL, continue with title detection
     }
+    return null;
   };
 
   const handleInputChange = async (value: string) => {
     setInputValue(value);
-    setShowDropdown(true);
+    setShowResults(true);
 
     // Check if input looks like a Wikipedia URL
-    const wikiTitle = extractWikiTitle(value);
-    if (wikiTitle) {
-      // If it's a valid Wikipedia URL, add it directly
-      const newPage = {
-        title: wikiTitle,
-        link: `https://en.wikipedia.org/wiki/${wikiTitle.replace(/ /g, "_")}`,
-      };
+    if (value.includes("wikipedia.org") || value.includes("/wiki/")) {
+      const wikiTitle = extractWikiTitle(value);
+      if (wikiTitle) {
+        // If it's a valid Wikipedia URL, add it directly
+        const newPage = {
+          title: wikiTitle.title,
+          link: `https://${
+            wikiTitle.language
+          }.wikipedia.org/wiki/${wikiTitle.title.replace(/ /g, "_")}`,
+          language: wikiTitle.language,
+        };
 
-      // Check if page already exists
-      if (!selectedPages.some((page) => page.link === newPage.link)) {
         onPagesChange([...selectedPages, newPage]);
         setInputValue("");
-        setSearchResults([]);
-        return undefined;
-      }
-    }
-
-    // Continue with existing search logic for non-URL inputs
-    if (!value.trim()) {
-      setSearchResults([]);
-      return undefined;
-    }
-
-    // Existing search logic...
-    const fetchResults = async () => {
-      if (!value.trim()) {
-        setSearchResults([]);
         return;
       }
+    }
 
-      setIsLoading(true);
-      try {
-        const results = await wiki.search(value, {
-          limit: 10,
-          suggestion: true,
-        });
-
-        // Convert to our SearchResult format
-        const searchResults = await Promise.all(
-          results.results.map(async (result) => {
-            const summary = await wiki.summary(result.title);
-            return {
-              title: result.title,
-              description: summary.description || summary.extract || "",
-              pageid: summary.pageid,
-              fullurl: `https://en.wikipedia.org/wiki/${encodeURIComponent(
-                summary.titles.canonical
-              )}`,
-              thumbnail: summary.thumbnail,
-              pageviews: 0, // Note: pageviews not available in this API
-            };
-          })
-        );
-
-        setSearchResults(searchResults);
-      } catch (error) {
-        logger.error("Error fetching Wikipedia search results:", error);
+    // Debounced search logic
+    const timeoutId = setTimeout(() => {
+      if (value.trim()) {
+        fetchResults();
+      } else {
         setSearchResults([]);
       }
-      setIsLoading(false);
-    };
+    }, 300);
 
-    // Debounce the search
-    const timeoutId = setTimeout(fetchResults, 300);
+    // Cleanup timeout on next input change
     return () => clearTimeout(timeoutId);
   };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
       ) {
-        setShowDropdown(false);
+        setShowResults(false);
       }
     };
 
@@ -147,23 +150,30 @@ export default function WikiSearch({
   }, []);
 
   const handleResultClick = (result: SearchResult) => {
-    const newPage = {
-      title: result.title, // Store the clean title for display
-      link:
-        result.fullurl ||
-        `https://en.wikipedia.org/wiki/${encodeURIComponent(result.title)}`,
-    };
+    // Check if page is already selected to avoid duplicates
+    const isAlreadySelected = selectedPages.some(
+      (page) => page.title === result.title
+    );
 
-    // Check if page already exists
-    if (selectedPages.some((page) => page.link === newPage.link)) {
-      return;
+    if (!isAlreadySelected) {
+      const newPage = {
+        title: result.title,
+        link:
+          result.fullurl ||
+          `https://${
+            result.language || selectedLanguage
+          }.wikipedia.org/wiki/${encodeURIComponent(result.title)}`,
+        language: result.language || selectedLanguage,
+      };
+
+      onPagesChange([...selectedPages, newPage]);
     }
 
-    onPagesChange([...selectedPages, newPage]);
+    // Clear input and dropdown
     setInputValue("");
     setSearchResults([]);
-    setShowDropdown(false);
-    setSelectedIndex(-1);
+    setShowResults(false);
+    setHighlightedIndex(-1);
     inputRef.current?.focus();
   };
 
@@ -175,35 +185,35 @@ export default function WikiSearch({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showDropdown || searchResults.length === 0) return;
+    if (!showResults || searchResults.length === 0) return;
 
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setSelectedIndex((prev) =>
+        setHighlightedIndex((prev) =>
           prev < searchResults.length - 1 ? prev + 1 : prev
         );
         break;
       case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
         break;
       case "Enter":
         e.preventDefault();
-        if (selectedIndex >= 0) {
-          handleResultClick(searchResults[selectedIndex]);
+        if (highlightedIndex >= 0) {
+          handleResultClick(searchResults[highlightedIndex]);
         }
         break;
       case "Escape":
-        setShowDropdown(false);
-        setSelectedIndex(-1);
+        setShowResults(false);
+        setHighlightedIndex(-1);
         break;
     }
   };
 
-  // Reset selected index when results change
+  // Reset highlighted index when results change
   useEffect(() => {
-    setSelectedIndex(-1);
+    setHighlightedIndex(-1);
   }, [searchResults]);
 
   useEffect(() => {
@@ -212,51 +222,154 @@ export default function WikiSearch({
     }
   }, []);
 
+  // Function to fetch search results from Wikipedia
+  const fetchResults = async () => {
+    try {
+      // Set wiki to the selected language
+      wiki.setLang(selectedLanguage);
+
+      const searchResponse = await wiki.search(inputValue);
+      if (searchResponse?.results?.length > 0) {
+        // Get more complete data with the page API
+        const detailedResults = await Promise.all(
+          searchResponse.results.slice(0, 5).map(async (result) => {
+            try {
+              const summary = await wiki.summary(result.title);
+              return {
+                title: result.title,
+                description: summary.extract || result.description || "",
+                pageid: result.pageid,
+                fullurl: summary.content_urls?.desktop?.page || result.fullurl,
+                thumbnail: summary.thumbnail,
+                pageviews: 0, // Note: pageviews not available in this API
+                language: selectedLanguage, // Use the selected language
+              };
+            } catch (e) {
+              return result; // Fallback to basic result
+            }
+          })
+        );
+        setSearchResults(detailedResults);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      logger.error("Error searching Wikipedia:", error);
+      setSearchResults([]);
+    }
+  };
+
   return (
     <div
-      className={`relative ${className}`}
+      className={`relative ${className || ""}`}
       style={{
-        position: "relative",
         width: "100%",
       }}
+      ref={searchRef}
     >
+      <div
+        className="relative flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+        style={{
+          padding: "0.25rem",
+          borderRadius: "0.5rem",
+        }}
+      >
+        {/* Language dropdown with tooltip */}
+        <div className="relative mr-2 flex-shrink-0 group">
+          <select
+            className="block appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-1 px-2 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-sm"
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            aria-label="Select Wikipedia language"
+            title="Select Wikipedia language"
+          >
+            {LANGUAGE_OPTIONS.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.code.toUpperCase()}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-400">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+          <div className="absolute hidden group-hover:block bottom-full left-0 mb-2 bg-gray-800 text-white text-xs p-2 rounded shadow-lg whitespace-nowrap">
+            Search Wikipedia in this language
+          </div>
+        </div>
+
+        {/* Search input */}
+        <input
+          type="text"
+          ref={inputRef}
+          className="flex-grow px-3 py-2 bg-transparent outline-none text-gray-700 dark:text-white"
+          style={{
+            backgroundColor: "transparent",
+            boxShadow: "none",
+            outline: "none",
+            width: "100%",
+            border: "none",
+          }}
+          value={inputValue}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onFocus={() => setShowResults(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || defaultPlaceholder}
+          autoFocus={autoFocus}
+        />
+      </div>
       <div
         className="flex flex-wrap gap-2 mb-2"
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "0.5rem", // matches gap-2
-          marginBottom: "0.5rem", // matches mb-2
-          width: "100%",
+          gap: "0.5rem",
+          marginBottom: "0.5rem",
         }}
       >
         {selectedPages.map((page, index) => (
-          <span
+          <div
             key={index}
-            className="flex items-center gap-1 px-2 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-md"
+            className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full px-3 py-1"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.25rem", // matches gap-1
-              padding: "0.5rem 0.25rem", // matches px-2 py-1
-              borderRadius: "0.375rem", // matches rounded-md
+              backgroundColor: "var(--blue-100, #dbeafe)",
+              color: "var(--blue-800, #1e40af)",
+              borderRadius: "9999px",
+              paddingLeft: "0.75rem",
+              paddingRight: "0.75rem",
+              paddingTop: "0.25rem",
+              paddingBottom: "0.25rem",
             }}
           >
-            {page.title}
+            <span className="truncate max-w-xs">{page.title}</span>
+            <span className="ml-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs px-1.5 py-0.5 rounded-full">
+              {page.language}
+            </span>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                removePage(index);
-              }}
-              className="ml-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
-              style={{
-                marginLeft: "0.25rem", // matches ml-1
-              }}
+              className="ml-2 text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100"
+              onClick={() => removePage(index)}
+              aria-label={`Remove ${page.title}`}
             >
-              ×
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </button>
-          </span>
+          </div>
         ))}
       </div>
       <div
@@ -266,35 +379,15 @@ export default function WikiSearch({
           width: "100%",
         }}
       >
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => setShowDropdown(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder || "Search Wikipedia or paste URL..."}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
-          style={{
-            width: "100%",
-            padding: "0.5rem 1rem", // matches px-4 py-2
-            borderRadius: "0.5rem", // matches rounded-lg
-          }}
-        />
-        {showDropdown && inputValue.trim() && (
+        {showResults && inputValue.trim() && (
           <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
-            {isLoading ? (
-              <div className="p-4 text-gray-500 dark:text-gray-400 text-center">
-                <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"></div>
-                <p className="mt-2">Searching Wikipedia...</p>
-              </div>
-            ) : searchResults.length > 0 ? (
+            {searchResults.length > 0 ? (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {searchResults.map((result, index) => (
                   <li
                     key={result.pageid}
                     className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex items-start gap-3 ${
-                      index === selectedIndex
+                      index === highlightedIndex
                         ? "bg-gray-50 dark:bg-gray-700"
                         : ""
                     }`}

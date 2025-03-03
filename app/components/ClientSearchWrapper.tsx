@@ -9,6 +9,7 @@ import { isMobile } from "@/app/utils/deviceDetection";
 interface SelectedPage {
   title: string;
   link: string;
+  language: string; // Language code (e.g., "en", "fr", "de")
 }
 
 export function ClientSearchWrapper() {
@@ -17,20 +18,25 @@ export function ClientSearchWrapper() {
   const router = useRouter();
 
   const handleSubmit = async (e?: FormEvent) => {
-    e?.preventDefault();
+    if (e) e.preventDefault();
     if (selectedPages.length === 0) {
       setError("Please select at least one Wikipedia page.");
       return;
     }
     setError("");
+
+    // Create pageName parameters
     const pageNames = selectedPages
       .map((page) => {
-        const titleFromUrl = page.link.split("/wiki/").pop();
-        if (titleFromUrl) {
-          const cleanTitle = decodeURIComponent(
-            titleFromUrl.split("#")[0].split("?")[0]
-          );
-          return encodeURIComponent(cleanTitle);
+        // For each page, format as 'language:PageName'
+        if (page.title) {
+          // Add language prefix if not from the default language
+          const formattedName =
+            page.language !== "en"
+              ? `${page.language}:${page.title.replace(/ /g, "_")}`
+              : page.title.replace(/ /g, "_");
+
+          return formattedName;
         }
         return null;
       })
