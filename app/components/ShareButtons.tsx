@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { deviceDetection } from "@/app/utils/deviceDetection";
+import { isMobile, hasShareApi } from "@/app/utils/deviceDetection";
 import logger from "@/app/utils/logger";
 
 interface ShareButtonsProps {
@@ -19,11 +19,11 @@ export default function ShareButtons({
   customAction,
 }: ShareButtonsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const isMobile = deviceDetection.isMobile();
-  const hasShareApi = deviceDetection.hasShareApi();
+  const isDeviceMobile = isMobile();
+  const canShare = hasShareApi();
 
   const handleShare = async () => {
-    if (isMobile && hasShareApi) {
+    if (isDeviceMobile && canShare) {
       try {
         await navigator.share({
           title,
@@ -48,7 +48,7 @@ export default function ShareButtons({
 
   return (
     <>
-      {isMobile ? (
+      {isDeviceMobile ? (
         <button
           onClick={handleShare}
           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"

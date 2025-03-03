@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import WikiSearch from "@/app/components/WikiSearch";
 import { PAGE_DELIMITER } from "@/app/constants";
+import { isMobile } from "@/app/utils/deviceDetection";
 
 interface SelectedPage {
   title: string;
@@ -39,9 +40,13 @@ export function ClientSearchWrapper() {
       setError("Invalid Wikipedia URL or title");
       return;
     }
-    router.push(
-      `/timeline/${pageNames.join(encodeURIComponent(PAGE_DELIMITER))}`
-    );
+
+    const baseUrl = `/timeline/${pageNames.join(
+      encodeURIComponent(PAGE_DELIMITER)
+    )}`;
+    const targetUrl = isMobile() ? `${baseUrl}/text` : baseUrl;
+
+    router.push(targetUrl);
   };
 
   return (
