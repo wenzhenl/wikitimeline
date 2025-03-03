@@ -1,8 +1,13 @@
-// Helper function to get the appropriate system instruction based on chunk index
-export function getSystemInstruction(isFirstChunk: boolean): string {
+// Helper function to get the appropriate system instruction based on chunk index and language
+export function getSystemInstruction(isFirstChunk: boolean, language: string = "en", version: string = "1"): string {
+  // Currently we only support one version of the prompt, but this allows future extensibility
+  
   return `
 You are a timeline generator that extracts events from provided Wikipedia article content. 
 Your task is to carefully read through the provided article text and identify ALL events that have associated dates and are directly related to the subject.
+
+IMPORTANT: Output the title, event headlines, and descriptions in the SAME LANGUAGE as the Wikipedia content (${language}). 
+However, the date formats MUST always follow the specified format (YYYY-MM-DD, YYYY-MM, or YYYY) regardless of language.
 
 Output JSONFormat:
 {

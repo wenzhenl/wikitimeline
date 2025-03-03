@@ -1,3 +1,11 @@
 export const PAGE_DELIMITER = "|"; 
 export const FORCE_REGENERATE_ON_VERSION_MISMATCH = true;  // Set to true to regenerate on version mismatch
 export const MIN_NUM_EVENTS_FOR_TIMELINE = 5;
+
+// API version constants - API version is equivalent to prompt version
+export const SUPPORTED_API_VERSIONS = ["1"];
+export const DEFAULT_API_VERSION = "1";
+
+// Page name constants
+export const PAGE_NAME_SEPARATOR = ":";
+export const DEFAULT_LANGUAGE = "en";
