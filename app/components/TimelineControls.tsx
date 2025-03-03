@@ -6,6 +6,7 @@ import TimelinePageEdit from "@/app/components/TimelinePageEdit";
 interface SelectedPage {
   title: string;
   link: string;
+  language: string; // Language code (e.g., "en", "fr", "de")
 }
 
 interface TimelineControlsProps {

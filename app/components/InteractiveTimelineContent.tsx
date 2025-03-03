@@ -25,6 +25,7 @@ import NavigationHeader from "@/app/components/NavigationHeader";
 interface SelectedPage {
   title: string;
   link: string;
+  language: string;
 }
 
 type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
@@ -106,6 +107,7 @@ export default function InteractiveTimelineContent({
       pageNames.map((name) => ({
         title: name.replace(/_/g, " "),
         link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
+        language: "en",
       }))
     );
   }, [params.pageName]);
