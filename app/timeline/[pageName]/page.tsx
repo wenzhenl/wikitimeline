@@ -1,6 +1,7 @@
 import { SITE_CONFIG } from "@/app/config/site";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import InteractiveTimelineContent from "@/app/components/InteractiveTimelineContent";
+import ErrorPage from "@/app/components/ErrorPage";
 import logger from "@/app/utils/logger";
 import { notFound } from "next/navigation";
 
@@ -17,6 +18,9 @@ async function getTimelineData(pageName: string) {
     );
 
     if (!response.ok) {
+      if (response.status === 404) {
+        notFound();
+      }
       throw new Error(`Failed to fetch timeline data: ${response.statusText}`);
     }
 
@@ -39,10 +43,14 @@ export default async function TimelinePage({
   try {
     const initialData = await getTimelineData(params.pageName);
 
-    // If we got a successful response but no timeline data, show 404
+    // Show 404 if no timeline data or empty timelines
     if (
+      !initialData ||
       !initialData.timelines ||
-      Object.keys(initialData.timelines).length === 0
+      Object.keys(initialData.timelines).length === 0 ||
+      Object.values(initialData.timelines).every(
+        (timeline) => !timeline?.timeline?.events?.length
+      )
     ) {
       notFound();
     }
@@ -53,19 +61,9 @@ export default async function TimelinePage({
       </div>
     );
   } catch (error) {
-    // Only catch non-NEXT_NOT_FOUND errors
+    // Only show ErrorPage for non-404 errors
     if ((error as any)?.digest !== "NEXT_NOT_FOUND") {
-      return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
-              <p className="text-red-800 dark:text-red-200">
-                Error loading timeline data.
-              </p>
-            </div>
-          </div>
-        </div>
-      );
+      return <ErrorPage />;
     }
     throw error;
   }

@@ -1,19 +1,17 @@
 import TextTimelinePageContent from "@/app/components/TextTimelinePageContent";
+import ErrorPage from "@/app/components/ErrorPage";
 import logger from "@/app/utils/logger";
 import { SITE_CONFIG } from "@/app/config/site";
 
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
 import { compareDates } from "@/app/utils/helper";
+import { notFound } from "next/navigation";
 
 async function getTimelineData(pageName: string) {
-  const targetPages = decodeURIComponent(pageName).split(PAGE_DELIMITER);
-
   try {
     const response = await fetch(
-      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(
-        targetPages.join(PAGE_DELIMITER)
-      )}`,
+      `${SITE_CONFIG.DOMAIN}/api/timeline/${encodeURIComponent(pageName)}`,
       {
         cache: "no-store",
         headers: {
@@ -23,6 +21,9 @@ async function getTimelineData(pageName: string) {
     );
 
     if (!response.ok) {
+      if (response.status === 404) {
+        notFound();
+      }
       throw new Error(`Failed to fetch timeline data: ${response.statusText}`);
     }
 
@@ -59,26 +60,23 @@ export default async function TimelineTextPage({
   try {
     const data = await getTimelineData(params.pageName);
 
+    // Show 404 if no timeline data or empty timeline
+    if (!data || !data.timeline || data.timeline.length === 0) {
+      notFound();
+    }
+
     return (
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-        <TextTimelinePageContent
-          params={params}
-          initialData={data || { timeline: [], errors: { failedPages: [] } }}
-        />
+        <TextTimelinePageContent params={params} initialData={data} />
       </div>
     );
   } catch (error) {
-    return (
-      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-        <div className="flex-1 max-w-4xl mx-auto px-4 py-8">
-          <div className="p-4 bg-red-50 dark:bg-red-900/50 rounded">
-            <p className="text-red-800 dark:text-red-200">
-              Error loading timeline data.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    // Only show ErrorPage for non-404 errors
+    if ((error as any)?.digest !== "NEXT_NOT_FOUND") {
+      logger.error("Error in TimelineTextPage:", error);
+      return <ErrorPage />;
+    }
+    throw error;
   }
 }
 
