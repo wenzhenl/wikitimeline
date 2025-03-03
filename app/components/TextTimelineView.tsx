@@ -224,7 +224,7 @@ export default function TextTimelineView({
                     </>
                   )}
                 </span>
-                {event.age !== undefined && event.age > 0 && (
+                {event.age !== undefined && (
                   <>
                     <span className="text-gray-400 dark:text-gray-500 mx-2">
                       |
