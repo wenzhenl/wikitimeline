@@ -1,6 +1,5 @@
 // Helper function to get the appropriate system instruction based on chunk index and language
-export function getSystemInstruction(isFirstChunk: boolean, language: string = "en", version: string = "1"): string {
-  // Currently we only support one version of the prompt, but this allows future extensibility
+export function getSystemInstruction(isFirstChunk: boolean, language: string = "en"): string {
   
   return `
 You are a timeline generator that extracts events from provided Wikipedia article content. 

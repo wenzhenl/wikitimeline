@@ -10,13 +10,15 @@ import {
   SUPPORTED_API_VERSIONS,
   PAGE_NAME_SEPARATOR,
   DEFAULT_LANGUAGE,
-  FORCE_REGENERATE_ON_VERSION_MISMATCH
+  FORCE_REGENERATE_ON_VERSION_MISMATCH,
+  DEFAULT_MODEL,
+  DEFAULT_TIMELINE_VERSION
 } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
-import { getGeminiModel, MAX_CHUNK_SIZE, TEMPERATURE } from "@/app/constants/gemini";
+import { MAX_CHUNK_SIZE, TEMPERATURE } from "@/app/constants/gemini";
 import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
 import { compareDates } from "@/app/utils/helper";
 
@@ -31,7 +33,6 @@ logger.debug('Wikipedia User-Agent set:', userAgent);
 // Add the NewTimelineFormat interface
 interface NewTimelineFormat {
   timeline: Timeline;
-  apiVersion: string;
 }
 
 // Interface for language and page name
@@ -109,6 +110,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     return {
       ...timeline,
       events: [],
+      version: DEFAULT_TIMELINE_VERSION,
       lastUpdatedAt: Date.now()
     };
   }
@@ -204,6 +206,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
   return {
     ...timeline,
     events: uniqueEvents,
+    version: DEFAULT_TIMELINE_VERSION,
     lastUpdatedAt: Date.now()
   };
 }
@@ -312,7 +315,6 @@ async function generateTimeline(
   wikiSummary: string,
   genAI: GoogleGenerativeAI,
   language: string = DEFAULT_LANGUAGE,
-  apiVersion: string = DEFAULT_API_VERSION
 ): Promise<Timeline | null> {
   // Split content into chunks
   const contentChunks = splitContentIntoChunks(wikiContent);
@@ -321,7 +323,7 @@ async function generateTimeline(
   // Process all chunks in parallel
   const chunkResults = await Promise.all(
     contentChunks.map((chunk, index) => 
-      processChunk(pageName, chunk, wikiSummary, index, contentChunks.length, genAI, language, apiVersion)
+      processChunk(pageName, chunk, wikiSummary, index, contentChunks.length, genAI, language)
     )
   );
   
@@ -412,8 +414,7 @@ async function processChunk(
   chunkIndex: number,
   totalChunks: number,
   genAI: GoogleGenerativeAI,
-  language: string = DEFAULT_LANGUAGE,
-  apiVersion: string = DEFAULT_API_VERSION
+  language: string = DEFAULT_LANGUAGE
 ): Promise<{
   events: TimelineEvent[];
   title?: string;
@@ -427,11 +428,11 @@ async function processChunk(
     logger.debug(`Processing chunk ${chunkIndex + 1}/${totalChunks} for ${pageName} (${chunkContent.length} chars)`);
 
     // Get system prompt tailored to this chunk with language consideration
-    const systemInstruction = getSystemInstruction(isFirstChunk, language, apiVersion);
+    const systemInstruction = getSystemInstruction(isFirstChunk, language);
 
     // Create Gemini model with the appropriate settings
     const geminiModel = genAI.getGenerativeModel({ 
-      model: getGeminiModel(apiVersion),
+      model: DEFAULT_MODEL,
       generationConfig: {
         temperature: TEMPERATURE,
         responseMimeType: "application/json",
@@ -614,8 +615,8 @@ export async function GET(
             timeline = cachedData.timeline;
             
             // Check version match
-            if (timeline && timeline.version !== apiVersion && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-              logger.info(`Cache version mismatch for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version} vs ${apiVersion}), regenerating...`);
+            if (timeline && timeline.version !== DEFAULT_TIMELINE_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
+              logger.info(`Cache version mismatch for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version} vs ${DEFAULT_TIMELINE_VERSION}), regenerating...`);
               timeline = null;
             } else if (timeline) {
               logger.info(`Using cached timeline for ${pageInfo.language}:${pageInfo.pageName} (v${timeline.version})`);
@@ -635,8 +636,7 @@ export async function GET(
                 wikiData.content,
                 wikiData.summary, 
                 genAI,
-                pageInfo.language,
-                apiVersion
+                pageInfo.language
               );
               
               if (timeline) {
@@ -644,8 +644,7 @@ export async function GET(
                 
                 // Cache with new format that includes the version
                 await redis.set(cacheKey, {
-                  timeline,
-                  apiVersion
+                  timeline
                 });
               }
             } else {
