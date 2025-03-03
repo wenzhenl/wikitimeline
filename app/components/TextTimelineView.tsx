@@ -15,7 +15,15 @@ interface TimelineEvent {
 interface TextTimelineViewProps {
   data: {
     timeline: TimelineEvent[];
-    errors?: { failedPages: string[] };
+    titles?: Record<string, string>;
+    errors?: {
+      failedPages: string[];
+      message?: string;
+      details?: {
+        noWikipediaData: string[];
+        noTimelineGenerated: string[];
+      };
+    };
   } | null;
   viewMode?: "combined" | "tabs";
   showSource?: boolean;
@@ -99,18 +107,71 @@ export default function TextTimelineView({
     return event.date.startsWith("-") ? year > 271821 : year > 275760;
   });
 
+  // Get unique sources for titles
+  const uniqueSources = data?.timeline
+    ? Array.from(
+        new Set(data.timeline.map((event) => event.source).filter(Boolean))
+      )
+    : [];
+
   return (
     <div className="space-y-8">
-      <p
-        className="
-        text-gray-600 dark:text-gray-400
-        text-sm
-        mb-6
-      "
-      >
-        A chronological timeline generated from Wikipedia content, showing key
-        dates and events in order.
-      </p>
+      {data.titles && uniqueSources.length > 0 ? (
+        <div className="mb-8">
+          {viewMode === "combined" ? (
+            uniqueSources.length > 1 ? (
+              // Multiple timelines in combined view
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/30 shadow-sm">
+                {uniqueSources.map((source, index) => (
+                  <div
+                    key={source}
+                    className={
+                      index > 0
+                        ? "mt-8 pt-6 border-t border-blue-100 dark:border-blue-800/30"
+                        : ""
+                    }
+                  >
+                    {data.titles?.[source || ""] && (
+                      <div className="prose dark:prose-invert max-w-none">
+                        <p className="text-lg text-gray-700 dark:text-gray-200 leading-relaxed italic font-serif">
+                          {data.titles[source || ""]}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Single timeline in combined view
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/30 shadow-sm">
+                {data.titles?.[uniqueSources[0] || ""] && (
+                  <div className="prose dark:prose-invert max-w-none">
+                    <p className="text-lg text-gray-700 dark:text-gray-200 leading-relaxed italic font-serif">
+                      {data.titles[uniqueSources[0] || ""]}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )
+          ) : (
+            // Tabs view (single timeline active)
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 rounded-lg p-6 border border-blue-100 dark:border-blue-800/30 shadow-sm">
+              {data.titles?.[activePage] && (
+                <div className="prose dark:prose-invert max-w-none">
+                  <p className="text-lg text-gray-700 dark:text-gray-200 leading-relaxed italic font-serif">
+                    {data.titles[activePage]}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
+          A chronological timeline generated from Wikipedia content, showing key
+          dates and events in order.
+        </p>
+      )}
 
       {filteredTimeline.map((event: TimelineEvent, index: number) => {
         const isNegativeYear = event.date.startsWith("-");
@@ -124,12 +185,16 @@ export default function TextTimelineView({
           ? sourceColorMap.get(event.source)
           : null;
 
+        const showSourceBadge = showSource && event.source;
+
         return (
           <div
             key={index}
-            className="relative p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+            className={`relative ${
+              showSourceBadge ? "pt-6" : "pt-4"
+            } pb-6 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700`}
           >
-            {showSource && event.source && (
+            {showSourceBadge && (
               <div className="absolute -top-px -left-px rounded-tl-lg">
                 <span
                   style={{
@@ -138,11 +203,11 @@ export default function TextTimelineView({
                   }}
                   className="inline-block px-2 py-1 rounded-tl-lg text-xs"
                 >
-                  {event.source.replace(/_/g, " ")}
+                  {event.source!.replace(/_/g, " ")}
                 </span>
               </div>
             )}
-            <div className="mt-4">
+            <div className={`${showSourceBadge ? "mt-4" : "mt-0"}`}>
               <div className="text-sm mb-4">
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {needsCosmologicalScale ? (

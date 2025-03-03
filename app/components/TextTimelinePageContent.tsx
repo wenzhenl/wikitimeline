@@ -19,8 +19,17 @@ interface TextTimelinePageContentProps {
       headline: string;
       text: string;
       source: string;
+      age?: number;
     }>;
-    errors?: { failedPages: string[] };
+    titles?: Record<string, string>;
+    errors?: {
+      message: string;
+      failedPages: string[];
+      details?: {
+        noWikipediaData: string[];
+        noTimelineGenerated: string[];
+      };
+    };
   };
 }
 
