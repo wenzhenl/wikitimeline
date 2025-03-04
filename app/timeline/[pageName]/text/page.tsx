@@ -73,16 +73,25 @@ export default async function TimelineTextPage({
   params: { pageName: string };
 }) {
   try {
-    const data = await getTimelineData(decodeURIComponent(params.pageName));
+    // Decode the pageName once at the beginning
+    const decodedPageName = decodeURIComponent(params.pageName);
+
+    // Use the decoded pageName for data fetching
+    const data = await getTimelineData(decodedPageName);
 
     // Show 404 if no timeline data or empty timeline
     if (!data || !data.timeline || data.timeline.length === 0) {
       notFound();
     }
 
+    // Create a new params object with the decoded pageName
+    const decodedParams = {
+      pageName: decodedPageName,
+    };
+
     return (
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-        <TextTimelinePageContent params={params} initialData={data} />
+        <TextTimelinePageContent params={decodedParams} initialData={data} />
       </div>
     );
   } catch (error) {
