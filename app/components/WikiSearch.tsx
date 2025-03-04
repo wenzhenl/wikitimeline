@@ -9,6 +9,11 @@ import {
   LanguageOption,
 } from "@/app/constants/languageSettings";
 
+// Constants for search configuration
+const MAX_AUTOCOMPLETE_RESULTS = 20;
+const MAX_SEARCH_RESULTS_TO_DISPLAY = 20;
+const SEARCH_DEBOUNCE_MS = 300;
+
 interface SearchResult {
   title: string;
   description: string;
@@ -134,6 +139,117 @@ export default function WikiSearch({
     return null;
   };
 
+  // Function to fetch autocompletions from Wikipedia
+  const fetchAutocompletions = async (query: string): Promise<string[]> => {
+    if (!query.trim()) return [];
+
+    try {
+      // Set wiki to the selected language
+      wiki.setLang(selectedLanguage);
+
+      // Use the autocompletions API
+      const suggestions = await wiki.autocompletions(query, {
+        limit: MAX_AUTOCOMPLETE_RESULTS,
+      });
+
+      return suggestions;
+    } catch (error) {
+      logger.error("Error fetching autocompletions:", error);
+      return [];
+    }
+  };
+
+  // Function to fetch search results from Wikipedia
+  const fetchResults = async () => {
+    if (!inputValue.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      // Set wiki to the selected language
+      wiki.setLang(selectedLanguage);
+
+      // First try to get autocompletions for better suggestions
+      const suggestions = await fetchAutocompletions(inputValue);
+
+      if (suggestions.length > 0) {
+        // Get detailed results for the top suggestions
+        const detailedResults = await Promise.all(
+          suggestions
+            .slice(0, MAX_SEARCH_RESULTS_TO_DISPLAY)
+            .map(async (title) => {
+              try {
+                const summary = await wiki.summary(title);
+                return {
+                  title,
+                  description: summary.extract || "",
+                  pageid: summary.pageid || 0,
+                  fullurl:
+                    summary.content_urls?.desktop?.page ||
+                    `https://${selectedLanguage}.wikipedia.org/wiki/${encodeURIComponent(
+                      title
+                    )}`,
+                  thumbnail: summary.thumbnail,
+                  pageviews: 0,
+                  language: selectedLanguage,
+                };
+              } catch (e) {
+                // If summary fails, create a basic result
+                return {
+                  title,
+                  description: "",
+                  pageid: 0,
+                  fullurl: `https://${selectedLanguage}.wikipedia.org/wiki/${encodeURIComponent(
+                    title
+                  )}`,
+                  pageviews: 0,
+                  language: selectedLanguage,
+                };
+              }
+            })
+        );
+
+        setSearchResults(detailedResults.filter(Boolean));
+        return;
+      }
+
+      // Fallback to regular search if no autocompletions
+      const searchResponse = await wiki.search(inputValue);
+      if (searchResponse?.results?.length > 0) {
+        // Get more complete data with the page API
+        const detailedResults = await Promise.all(
+          searchResponse.results
+            .slice(0, MAX_SEARCH_RESULTS_TO_DISPLAY)
+            .map(async (result) => {
+              try {
+                const summary = await wiki.summary(result.title);
+                return {
+                  title: result.title,
+                  description: summary.extract || result.description || "",
+                  pageid: result.pageid,
+                  fullurl:
+                    summary.content_urls?.desktop?.page || result.fullurl,
+                  thumbnail: summary.thumbnail,
+                  pageviews: 0,
+                  language: selectedLanguage,
+                };
+              } catch (e) {
+                return result; // Fallback to basic result
+              }
+            })
+        );
+
+        setSearchResults(detailedResults);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      logger.error("Error searching Wikipedia:", error);
+      setSearchResults([]);
+    }
+  };
+
   const handleInputChange = async (value: string) => {
     setInputValue(value);
     setShowResults(true);
@@ -164,7 +280,7 @@ export default function WikiSearch({
       } else {
         setSearchResults([]);
       }
-    }, 300);
+    }, SEARCH_DEBOUNCE_MS);
 
     // Cleanup timeout on next input change
     return () => clearTimeout(timeoutId);
@@ -256,43 +372,6 @@ export default function WikiSearch({
       inputRef.current?.focus();
     }
   }, []);
-
-  // Function to fetch search results from Wikipedia
-  const fetchResults = async () => {
-    try {
-      // Set wiki to the selected language
-      wiki.setLang(selectedLanguage);
-
-      const searchResponse = await wiki.search(inputValue);
-      if (searchResponse?.results?.length > 0) {
-        // Get more complete data with the page API
-        const detailedResults = await Promise.all(
-          searchResponse.results.slice(0, 5).map(async (result) => {
-            try {
-              const summary = await wiki.summary(result.title);
-              return {
-                title: result.title,
-                description: summary.extract || result.description || "",
-                pageid: result.pageid,
-                fullurl: summary.content_urls?.desktop?.page || result.fullurl,
-                thumbnail: summary.thumbnail,
-                pageviews: 0, // Note: pageviews not available in this API
-                language: selectedLanguage, // Use the selected language
-              };
-            } catch (e) {
-              return result; // Fallback to basic result
-            }
-          })
-        );
-        setSearchResults(detailedResults);
-      } else {
-        setSearchResults([]);
-      }
-    } catch (error) {
-      logger.error("Error searching Wikipedia:", error);
-      setSearchResults([]);
-    }
-  };
 
   return (
     <div
