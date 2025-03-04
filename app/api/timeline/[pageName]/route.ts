@@ -640,7 +640,7 @@ export async function GET(
               );
               
               if (timeline) {
-                logger.debug(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
+                logger.warn(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
                 
                 // Cache with new format that includes the version
                 await redis.set(cacheKey, {

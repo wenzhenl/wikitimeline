@@ -38,8 +38,6 @@ const MyTimelineComponent = ({
 
   useEffect(() => {
     if (typeof window !== "undefined" && timelineRef.current) {
-      // Add a startup debug message to verify our code is running
-      console.log("Timeline component initializing");
 
       import("@knight-lab/timelinejs").then(({ Timeline }) => {
         if (timelineInstance && timelineRef.current) {
@@ -80,7 +78,6 @@ const MyTimelineComponent = ({
             navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
 
           if (!isFirefox) {
-            console.log("Not Firefox, no need for special handlers");
             return;
           }
 
@@ -105,13 +102,6 @@ const MyTimelineComponent = ({
             if (!isHorizontalScroll) {
               return; // Let normal vertical scrolling work
             }
-
-            console.log("Firefox horizontal scroll event detected", {
-              shiftKey: wheelEvent.shiftKey,
-              deltaX: wheelEvent.deltaX,
-              deltaY: wheelEvent.deltaY,
-              detail: wheelEvent.detail,
-            });
 
             // Prevent default browser behavior for this event
             e.preventDefault();
@@ -185,7 +175,6 @@ const MyTimelineComponent = ({
           // Also attach to the slider for redundancy
           const slider = document.querySelector(".tl-timenav-slider");
           if (slider) {
-            console.log("Attaching scroll handler to TimeNav slider");
             slider.addEventListener("wheel", handleFirefoxScroll, {
               passive: false,
             });
