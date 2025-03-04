@@ -1,3 +1,5 @@
+import { PAGE_NAME_SEPARATOR } from "@/app/constants";
+
 // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
 export function compareDates(dateA: string, dateB: string): number {
     const aIsNegative = dateA.startsWith("-");
@@ -29,7 +31,7 @@ export function compareDates(dateA: string, dateB: string): number {
  * @param pageNameSeparator The separator used between language code and page name (default is ":")
  * @returns The formatted page name
  */
-export function formatPageName(name: string, pageNameSeparator: string = ":"): {
+export function formatPageName(name: string, pageNameSeparator: string = PAGE_NAME_SEPARATOR): {
   formattedName: string;
   language: string;
 } {
