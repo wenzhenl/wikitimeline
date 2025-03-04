@@ -7,7 +7,7 @@ export const SUPPORTED_API_VERSIONS = ["1"];
 export const DEFAULT_API_VERSION = "1";
 
 // Page name constants
-export const PAGE_NAME_SEPARATOR = ":";
+export const PAGE_NAME_SEPARATOR = ":::";
 export const DEFAULT_LANGUAGE = "en";
 
 // Timeline constants
