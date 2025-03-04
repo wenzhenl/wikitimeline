@@ -30,12 +30,15 @@ export function ClientSearchWrapper() {
     // Create pageName parameters
     const pageNames = selectedPages
       .map((page) => {
-        // For each page, format as 'language:PageName'
+        // For each page, format as 'language:::PageName'
         if (page.title) {
           // Add language prefix if not from the default language
           const formattedName =
             page.language !== "en"
-              ? `${page.language}${PAGE_NAME_SEPARATOR}${page.title.replace(/ /g, "_")}`
+              ? `${page.language}${PAGE_NAME_SEPARATOR}${page.title.replace(
+                  / /g,
+                  "_"
+                )}`
               : page.title.replace(/ /g, "_");
 
           return formattedName;
@@ -49,8 +52,8 @@ export function ClientSearchWrapper() {
       return;
     }
 
-    const baseUrl = `/timeline/${pageNames.join(
-      encodeURIComponent(PAGE_DELIMITER)
+    const baseUrl = `/timeline/${encodeURIComponent(
+      pageNames.join(PAGE_DELIMITER)
     )}`;
     const targetUrl = isMobile() ? `${baseUrl}/text` : baseUrl;
 

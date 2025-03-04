@@ -106,7 +106,9 @@ export default function InteractiveTimelineContent({
     setSelectedPages(
       pageNames.map((name) => {
         // Parse language prefix if present (e.g., "zh:PageName")
-        const langPrefixMatch = name.match(/^([a-z]{2}):(.*)/);
+        const langPrefixMatch = name.match(
+          /^([a-z]{2})${PAGE_NAME_SEPARATOR}(.*)/
+        );
 
         if (langPrefixMatch) {
           const [, langPrefix, actualName] = langPrefixMatch;
@@ -398,8 +400,8 @@ export default function InteractiveTimelineContent({
       .filter(Boolean);
 
     if (pageNames.length > 0) {
-      const newPath = `/timeline/${pageNames.join(
-        encodeURIComponent(PAGE_DELIMITER)
+      const newPath = `/timeline/${encodeURIComponent(
+        pageNames.join(PAGE_DELIMITER)
       )}`;
 
       logger.debug(`Refreshing timeline with path: ${newPath}`);
