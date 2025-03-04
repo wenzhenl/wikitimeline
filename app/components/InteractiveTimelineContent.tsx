@@ -412,12 +412,10 @@ export default function InteractiveTimelineContent({
 
           // Include language prefix for non-English pages
           if (page.language && page.language !== "en") {
-            return encodeURIComponent(
-              `${page.language}${PAGE_NAME_SEPARATOR}${cleanTitle}`
-            );
+            return `${page.language}${PAGE_NAME_SEPARATOR}${cleanTitle}`;
           }
 
-          return encodeURIComponent(cleanTitle);
+          return cleanTitle;
         }
         return null;
       })
