@@ -18,3 +18,48 @@ export function compareDates(dateA: string, dateB: string): number {
     if (aParts[2] && bParts[2]) return aParts[2] - bParts[2];
     return aParts.length - bParts.length;
   }
+
+/**
+ * Formats a page name by:
+ * 1. Decoding URL-encoded characters
+ * 2. Removing language prefixes (e.g., "zh:PageName")
+ * 3. Replacing underscores with spaces
+ * 
+ * @param name The page name to format
+ * @param pageNameSeparator The separator used between language code and page name (default is ":")
+ * @returns The formatted page name
+ */
+export function formatPageName(name: string, pageNameSeparator: string = ":"): {
+  formattedName: string;
+  language: string;
+} {
+  // Make sure the name is fully decoded
+  let decodedName = name;
+  try {
+    // In case it's double-encoded
+    decodedName = decodeURIComponent(name);
+  } catch (e) {
+    // If it fails, it's likely already decoded
+  }
+
+  // Parse language prefix if present (e.g., "zh:PageName")
+  const langPrefixMatch = decodedName.match(
+    new RegExp(`^([a-z]{2})${pageNameSeparator}(.*)`)
+  );
+
+  if (langPrefixMatch) {
+    const [, langPrefix, actualName] = langPrefixMatch;
+    const cleanName = actualName.replace(/_/g, " ");
+    
+    return {
+      formattedName: cleanName,
+      language: langPrefix
+    };
+  }
+
+  // Default case - no language prefix found
+  return {
+    formattedName: decodedName.replace(/_/g, " "),
+    language: "en" // Default to English
+  };
+}
