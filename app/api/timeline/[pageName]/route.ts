@@ -619,7 +619,7 @@ export async function GET(
               logger.info(`Cache version mismatch for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version} vs ${DEFAULT_TIMELINE_VERSION}), regenerating...`);
               timeline = null;
             } else if (timeline) {
-              logger.info(`Using cached timeline for ${pageInfo.language}:${pageInfo.pageName} (v${timeline.version})`);
+              logger.info(`Using cached timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version})`);
             }
           }
           
