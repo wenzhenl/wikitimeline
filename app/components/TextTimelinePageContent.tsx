@@ -10,6 +10,7 @@ import { PAGE_DELIMITER } from "@/app/constants";
 import ReportIssueButton from "@/app/components/ReportIssueButton";
 import NavigationHeader from "@/app/components/NavigationHeader";
 import logger from "@/app/utils/logger";
+import { formatPageName } from "../utils/helper";
 
 interface TextTimelinePageContentProps {
   params: { pageName: string };
@@ -339,9 +340,9 @@ export default function TextTimelinePageContent({
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
                 {viewMode === "combined"
                   ? pageNames
-                      .map((name) => name.replace(/_/g, " "))
+                      .map((name) => formatPageName(name).formattedName)
                       .join(` ${PAGE_DELIMITER} `)
-                  : activePage.replace(/_/g, " ")}
+                  : formatPageName(activePage).formattedName}
               </h1>
             </div>
 
