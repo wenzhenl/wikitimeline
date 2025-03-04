@@ -13,6 +13,8 @@ import {
 const MAX_AUTOCOMPLETE_RESULTS = 20;
 const MAX_SEARCH_RESULTS_TO_DISPLAY = 20;
 const SEARCH_DEBOUNCE_MS = 300;
+const IME_DEBOUNCE_MS = 900; // Longer debounce for IME composition
+const IME_COMPLETE_DELAY = 200; // Delay after composition ends before searching
 
 interface SearchResult {
   title: string;
@@ -61,9 +63,13 @@ export default function WikiSearch({
   const [enabledLanguages, setEnabledLanguages] = useState<string[]>(
     DEFAULT_ENABLED_LANGUAGES
   );
+  const [isComposing, setIsComposing] = useState(false); // Track IME composition
   const searchRef = useRef<HTMLDivElement>(null);
   const resultListRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Store timeout reference
+  const [lastCompletedValue, setLastCompletedValue] = useState(""); // Track last completed IME value
+  const compositionEndTimeRef = useRef<number | null>(null); // Track composition end time
 
   // Default placeholder that mentions language capabilities
   const defaultPlaceholder =
@@ -144,15 +150,36 @@ export default function WikiSearch({
     if (!query.trim()) return [];
 
     try {
-      // Set wiki to the selected language
-      wiki.setLang(selectedLanguage);
+      // Check if query contains a language prefix (e.g., "zh:胡")
+      let languageToUse = selectedLanguage;
+      let searchQuery = query;
 
-      // Use the autocompletions API
-      const suggestions = await wiki.autocompletions(query, {
+      // Parse language prefix if present (format: "xx:")
+      const langPrefixMatch = query.match(/^([a-z]{2}):(.+)/);
+      if (langPrefixMatch) {
+        const [, langPrefix, actualQuery] = langPrefixMatch;
+        // Only use detected language if it's in enabled languages
+        if (enabledLanguages.includes(langPrefix)) {
+          languageToUse = langPrefix;
+          searchQuery = actualQuery.trim();
+        }
+      }
+
+      // Set wiki to the correct language
+      wiki.setLang(languageToUse);
+
+      // Ensure query is properly encoded for international characters
+      const encodedQuery = encodeURIComponent(searchQuery);
+
+      // Use the autocompletions API with proper encoding
+      const suggestions = await wiki.autocompletions(searchQuery, {
         limit: MAX_AUTOCOMPLETE_RESULTS,
       });
 
-      return suggestions;
+      return suggestions.map((suggestion) => {
+        // If we used a language prefix, maintain the prefix in results for clarity
+        return langPrefixMatch ? `${languageToUse}:${suggestion}` : suggestion;
+      });
     } catch (error) {
       logger.error("Error fetching autocompletions:", error);
       return [];
@@ -167,11 +194,44 @@ export default function WikiSearch({
     }
 
     try {
-      // Set wiki to the selected language
-      wiki.setLang(selectedLanguage);
+      // Check if query contains a language prefix (e.g., "zh:胡")
+      let languageToUse = selectedLanguage;
+      let searchQuery = inputValue;
+
+      // Parse language prefix if present (format: "xx:")
+      const langPrefixMatch = inputValue.match(/^([a-z]{2}):(.+)/);
+      if (langPrefixMatch) {
+        const [, langPrefix, actualQuery] = langPrefixMatch;
+        // Only use detected language if it's in enabled languages
+        if (enabledLanguages.includes(langPrefix)) {
+          languageToUse = langPrefix;
+          searchQuery = actualQuery.trim();
+          // If language differs from dropdown, temporarily set it
+          if (languageToUse !== selectedLanguage) {
+            // We're not updating the visible dropdown, just using
+            // this language for this specific search
+            logger.debug(
+              `Using detected language: ${languageToUse} for search`
+            );
+          }
+        }
+      }
+
+      // Set wiki to the correct language
+      wiki.setLang(languageToUse);
 
       // First try to get autocompletions for better suggestions
-      const suggestions = await fetchAutocompletions(inputValue);
+      let suggestions: string[] = [];
+
+      try {
+        // Use autocompletions with properly encoded query
+        suggestions = await wiki.autocompletions(searchQuery, {
+          limit: MAX_AUTOCOMPLETE_RESULTS,
+        });
+      } catch (autoError) {
+        logger.error("Error with autocompletions API:", autoError);
+        // Continue with regular search if autocompletions fails
+      }
 
       if (suggestions.length > 0) {
         // Get detailed results for the top suggestions
@@ -187,12 +247,12 @@ export default function WikiSearch({
                   pageid: summary.pageid || 0,
                   fullurl:
                     summary.content_urls?.desktop?.page ||
-                    `https://${selectedLanguage}.wikipedia.org/wiki/${encodeURIComponent(
+                    `https://${languageToUse}.wikipedia.org/wiki/${encodeURIComponent(
                       title
                     )}`,
                   thumbnail: summary.thumbnail,
                   pageviews: 0,
-                  language: selectedLanguage,
+                  language: languageToUse,
                 };
               } catch (e) {
                 // If summary fails, create a basic result
@@ -200,11 +260,11 @@ export default function WikiSearch({
                   title,
                   description: "",
                   pageid: 0,
-                  fullurl: `https://${selectedLanguage}.wikipedia.org/wiki/${encodeURIComponent(
+                  fullurl: `https://${languageToUse}.wikipedia.org/wiki/${encodeURIComponent(
                     title
                   )}`,
                   pageviews: 0,
-                  language: selectedLanguage,
+                  language: languageToUse,
                 };
               }
             })
@@ -215,7 +275,7 @@ export default function WikiSearch({
       }
 
       // Fallback to regular search if no autocompletions
-      const searchResponse = await wiki.search(inputValue);
+      const searchResponse = await wiki.search(searchQuery);
       if (searchResponse?.results?.length > 0) {
         // Get more complete data with the page API
         const detailedResults = await Promise.all(
@@ -232,10 +292,13 @@ export default function WikiSearch({
                     summary.content_urls?.desktop?.page || result.fullurl,
                   thumbnail: summary.thumbnail,
                   pageviews: 0,
-                  language: selectedLanguage,
+                  language: languageToUse,
                 };
               } catch (e) {
-                return result; // Fallback to basic result
+                return {
+                  ...result,
+                  language: languageToUse, // Ensure language is set even in fallback
+                };
               }
             })
         );
@@ -273,17 +336,60 @@ export default function WikiSearch({
       }
     }
 
+    // If there's a language prefix in the format "xx:", update dropdown
+    const langPrefixMatch = value.match(/^([a-z]{2}):(.*)/);
+    if (langPrefixMatch) {
+      const [, langPrefix] = langPrefixMatch;
+      // Only update dropdown if it's an enabled language
+      if (
+        enabledLanguages.includes(langPrefix) &&
+        langPrefix !== selectedLanguage
+      ) {
+        setSelectedLanguage(langPrefix);
+      }
+    }
+
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Skip immediate search if we're currently composing characters
+    if (isComposing) {
+      // Don't initiate search during composition
+      return;
+    }
+
+    // Check if this is right after composition end (within 300ms)
+    const isImmediatelyAfterComposition =
+      compositionEndTimeRef.current &&
+      Date.now() - compositionEndTimeRef.current < 300;
+
+    // If this change happens immediately after composition end, we should skip it
+    // as the onCompositionEnd handler will trigger the search with the final value
+    if (isImmediatelyAfterComposition && value === lastCompletedValue) {
+      return;
+    }
+
+    // Use a regex to detect if there are non-Latin characters in the query
+    // This helps determine if we should use longer debounce for non-Latin scripts
+    const hasNonLatinChars = /[^\u0000-\u007F]/.test(value);
+    const debounceTime = hasNonLatinChars
+      ? IME_DEBOUNCE_MS
+      : SEARCH_DEBOUNCE_MS;
+
     // Debounced search logic
-    const timeoutId = setTimeout(() => {
+    searchTimeoutRef.current = setTimeout(() => {
       if (value.trim()) {
+        // Log the search query to help with debugging
+        logger.debug(
+          `Searching for: "${value}" with language: ${selectedLanguage}`
+        );
         fetchResults();
       } else {
         setSearchResults([]);
       }
-    }, SEARCH_DEBOUNCE_MS);
-
-    // Cleanup timeout on next input change
-    return () => clearTimeout(timeoutId);
+    }, debounceTime);
   };
 
   useEffect(() => {
@@ -371,6 +477,15 @@ export default function WikiSearch({
     if (autoFocus) {
       inputRef.current?.focus();
     }
+  }, []);
+
+  // Clean up any pending timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, []);
 
   return (
@@ -467,6 +582,38 @@ export default function WikiSearch({
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => setShowResults(true)}
             onKeyDown={handleKeyDown}
+            // Add composition event handlers for IME input
+            onCompositionStart={() => {
+              setIsComposing(true);
+              logger.debug("IME composition started");
+            }}
+            onCompositionUpdate={(e) => {
+              // Track composition updates for debugging
+              logger.debug("IME composition update:", e.data);
+            }}
+            onCompositionEnd={(e) => {
+              setIsComposing(false);
+              compositionEndTimeRef.current = Date.now();
+              setLastCompletedValue(e.data);
+              logger.debug("IME composition ended, final value:", e.data);
+
+              // Capture the composed value directly from the event
+              const finalValue = e.data;
+              if (finalValue && finalValue.trim()) {
+                // Use the value from the composition event rather than state
+                // which might not be updated yet
+                setTimeout(() => {
+                  logger.debug(
+                    "Triggering search with composed value:",
+                    finalValue
+                  );
+                  // We need to make sure inputValue is updated before fetching
+                  if (inputValue === finalValue) {
+                    fetchResults();
+                  }
+                }, IME_COMPLETE_DELAY);
+              }
+            }}
             placeholder={placeholder || defaultPlaceholder}
             autoFocus={autoFocus}
           />
