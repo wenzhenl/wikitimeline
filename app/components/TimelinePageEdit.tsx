@@ -1,4 +1,7 @@
 import WikiSearch from "@/app/components/WikiSearch";
+import { useState, useEffect } from "react";
+import LanguageSettings from "@/app/components/LanguageSettings";
+import logger from "@/app/utils/logger";
 
 interface SelectedPage {
   title: string;
@@ -19,8 +22,38 @@ export default function TimelinePageEdit({
   onRefresh,
   onClose,
 }: TimelinePageEditProps) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Add logging to track page changes
+  useEffect(() => {
+    // Log the languages of existing pages
+    const languageCounts = selectedPages.reduce((acc, page) => {
+      acc[page.language] = (acc[page.language] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    logger.debug(
+      `TimelinePageEdit: Current pages by language: ${JSON.stringify(
+        languageCounts
+      )}`
+    );
+  }, [selectedPages]);
+
   const handlePageChange = (newPages: SelectedPage[]) => {
     if (newPages.length === 0) return;
+
+    // Log the previous and new page count
+    const addedCount = newPages.length - selectedPages.length;
+    if (addedCount > 0) {
+      // Pages were added, log the new pages
+      const addedPages = newPages.slice(selectedPages.length);
+      logger.debug(
+        `TimelinePageEdit: Added ${addedCount} pages: ${JSON.stringify(
+          addedPages.map((p) => ({ title: p.title, language: p.language }))
+        )}`
+      );
+    }
+
     onPagesChange(newPages);
   };
 
@@ -28,6 +61,8 @@ export default function TimelinePageEdit({
     onRefresh();
     onClose();
   };
+
+  const openLanguageSettings = () => setIsSettingsOpen(true);
 
   return (
     <div className="space-y-6">
@@ -37,6 +72,7 @@ export default function TimelinePageEdit({
         onSubmit={() => {}}
         placeholder="Add Wikipedia pages..."
         className="mb-4"
+        onSettingsClick={openLanguageSettings}
       />
 
       {/* Action buttons */}
@@ -54,6 +90,12 @@ export default function TimelinePageEdit({
           Update Timeline
         </button>
       </div>
+
+      {/* Language Settings Modal */}
+      <LanguageSettings
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

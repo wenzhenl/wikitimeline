@@ -220,6 +220,8 @@ export default function WikiSearch({
       // Set wiki to the correct language
       wiki.setLang(languageToUse);
 
+      logger.debug(`Setting language for search to: ${languageToUse}`);
+
       // First try to get autocompletions for better suggestions
       let suggestions: string[] = [];
 
@@ -255,7 +257,7 @@ export default function WikiSearch({
                   language: languageToUse,
                 };
               } catch (e) {
-                // If summary fails, create a basic result
+                // If summary fails, create a basic result with the language still set
                 return {
                   title,
                   description: "",
@@ -297,7 +299,7 @@ export default function WikiSearch({
               } catch (e) {
                 return {
                   ...result,
-                  language: languageToUse, // Ensure language is set even in fallback
+                  language: languageToUse,
                 };
               }
             })
@@ -413,14 +415,21 @@ export default function WikiSearch({
     );
 
     if (!isAlreadySelected) {
+      // Always use the result's language if available, or the currently selected language
+      const pageLanguage = result.language || selectedLanguage;
+
+      logger.debug(
+        `Adding page with language: ${pageLanguage}, title: ${result.title}, selectedLanguage: ${selectedLanguage}`
+      );
+
       const newPage = {
         title: result.title,
         link:
           result.fullurl ||
-          `https://${
-            result.language || selectedLanguage
-          }.wikipedia.org/wiki/${encodeURIComponent(result.title)}`,
-        language: result.language || selectedLanguage,
+          `https://${pageLanguage}.wikipedia.org/wiki/${encodeURIComponent(
+            result.title
+          )}`,
+        language: pageLanguage,
       };
 
       onPagesChange([...selectedPages, newPage]);
@@ -488,6 +497,13 @@ export default function WikiSearch({
     };
   }, []);
 
+  // Add a useEffect to update Wikipedia's language setting when the language changes
+  useEffect(() => {
+    // Set wiki to use the selected language
+    wiki.setLang(selectedLanguage);
+    logger.debug(`Language changed to: ${selectedLanguage}`);
+  }, [selectedLanguage]);
+
   return (
     <div
       className={`relative ${className || ""}`}
@@ -519,7 +535,10 @@ export default function WikiSearch({
               padding: "0.25rem 0.75rem",
             }}
           >
-            <span className="truncate max-w-xs">{page.title}</span>
+            <span className="truncate max-w-xs">
+              {page.language !== "en" ? `${page.language}:` : ""}
+              {page.title}
+            </span>
             <button
               type="button"
               className="ml-2 text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100"
@@ -630,6 +649,7 @@ export default function WikiSearch({
           }}
         >
           <select
+            key={`lang-select-${selectedPages.length}`}
             className="w-full h-full px-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white"
             style={{
               width: "100%",
@@ -643,7 +663,15 @@ export default function WikiSearch({
               fontWeight: "500",
             }}
             value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
+            onChange={(e) => {
+              const newLanguage = e.target.value;
+              logger.debug(`Language dropdown changed to: ${newLanguage}`);
+              setSelectedLanguage(newLanguage);
+              // Clear any pending searches
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+            }}
             aria-label="Select Wikipedia language"
             title="Select Wikipedia language"
           >
