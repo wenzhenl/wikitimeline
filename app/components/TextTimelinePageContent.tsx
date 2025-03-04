@@ -10,7 +10,7 @@ import { PAGE_DELIMITER } from "@/app/constants";
 import ReportIssueButton from "@/app/components/ReportIssueButton";
 import NavigationHeader from "@/app/components/NavigationHeader";
 import logger from "@/app/utils/logger";
-import { formatPageName } from "../utils/helper";
+import { formatPageName } from "@/app/utils/helper";
 
 interface TextTimelinePageContentProps {
   params: { pageName: string };
@@ -368,7 +368,7 @@ export default function TextTimelinePageContent({
                             }
                           `}
                         >
-                          {pageName.replace(/_/g, " ")}
+                          {formatPageName(pageName).formattedName}
                         </button>
                       );
                     })}
