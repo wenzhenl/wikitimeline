@@ -537,7 +537,24 @@ export default function WikiSearch({
           >
             <span className="truncate max-w-xs">
               {page.language !== "en" ? `${page.language}:` : ""}
-              {page.title}
+              {/* Handle potentially encoded titles */}
+              {(() => {
+                // Get the original title
+                let displayTitle = page.title;
+
+                // Check if it's URL encoded or contains encoded characters
+                if (/%[0-9A-F]{2}/i.test(displayTitle)) {
+                  try {
+                    // Try to decode URL-encoded title
+                    displayTitle = decodeURIComponent(displayTitle);
+                  } catch (e) {
+                    // If decoding fails, use the original
+                    logger.warn(`Failed to decode title: ${displayTitle}`, e);
+                  }
+                }
+
+                return displayTitle;
+              })()}
             </span>
             <button
               type="button"

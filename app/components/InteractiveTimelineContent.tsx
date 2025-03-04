@@ -103,37 +103,61 @@ export default function InteractiveTimelineContent({
       .map((name) => name.trim())
       .filter(Boolean);
 
+    logger.debug(`Initializing from page names: ${JSON.stringify(pageNames)}`);
+
     setSelectedPages(
       pageNames.map((name) => {
-        // Parse language prefix if present (e.g., "zh:PageName")
-        const langPrefixMatch = name.match(
-          /^([a-z]{2})${PAGE_NAME_SEPARATOR}(.*)/
-        );
+        try {
+          // Make sure the name is fully decoded (it might be double-encoded)
+          let decodedName = name;
+          try {
+            // In case it's double-encoded
+            decodedName = decodeURIComponent(name);
+          } catch (e) {
+            // If it fails, it's likely already decoded
+          }
 
-        if (langPrefixMatch) {
-          const [, langPrefix, actualName] = langPrefixMatch;
-          const cleanName = actualName.replace(/_/g, " ");
-
-          logger.debug(
-            `Parsed page with language prefix: ${langPrefix}:${cleanName}`
+          // Parse language prefix if present (e.g., "zh:::PageName")
+          const langPrefixMatch = decodedName.match(
+            new RegExp(`^([a-z]{2})${PAGE_NAME_SEPARATOR}(.*)`)
           );
 
+          if (langPrefixMatch) {
+            const [, langPrefix, actualName] = langPrefixMatch;
+            const cleanName = actualName.replace(/_/g, " ");
+
+            logger.debug(
+              `Parsed page with language prefix: ${langPrefix}${PAGE_NAME_SEPARATOR}${cleanName}`
+            );
+
+            return {
+              title: cleanName,
+              link: `https://${langPrefix}.wikipedia.org/wiki/${actualName.replace(
+                / /g,
+                "_"
+              )}`,
+              language: langPrefix,
+            };
+          }
+
+          // Default case - no language prefix found (use English)
           return {
-            title: cleanName,
-            link: `https://${langPrefix}.wikipedia.org/wiki/${actualName.replace(
+            title: decodedName.replace(/_/g, " "),
+            link: `https://en.wikipedia.org/wiki/${decodedName.replace(
               / /g,
               "_"
             )}`,
-            language: langPrefix,
+            language: "en",
+          };
+        } catch (error) {
+          logger.error(`Error parsing page name: ${name}`, error);
+          // Return a fallback in case of error
+          return {
+            title: name.replace(/_/g, " "),
+            link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
+            language: "en",
           };
         }
-
-        // Default case - no language prefix found (use English)
-        return {
-          title: name.replace(/_/g, " "),
-          link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
-          language: "en",
-        };
       })
     );
   }, [params.pageName]);

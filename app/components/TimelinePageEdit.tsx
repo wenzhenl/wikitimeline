@@ -23,6 +23,39 @@ export default function TimelinePageEdit({
   onClose,
 }: TimelinePageEditProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [fixedPages, setFixedPages] = useState<SelectedPage[]>([]);
+
+  // Pre-process and decode any encoded page titles
+  useEffect(() => {
+    // Process potentially encoded titles in selectedPages
+    const processedPages = selectedPages.map((page) => {
+      // Check if the title appears to be URL encoded
+      if (/%[0-9A-F]{2}/i.test(page.title)) {
+        try {
+          const decodedTitle = decodeURIComponent(page.title);
+          logger.debug(
+            `Decoded title from "${page.title}" to "${decodedTitle}"`
+          );
+          return { ...page, title: decodedTitle };
+        } catch (e) {
+          logger.warn(`Failed to decode title: ${page.title}`);
+          return page;
+        }
+      }
+      return page;
+    });
+
+    setFixedPages(processedPages);
+  }, [selectedPages]);
+
+  // Debug logging for selected pages
+  useEffect(() => {
+    // Log the full details of the selected pages for debugging
+    logger.debug(
+      "TimelinePageEdit selected pages:",
+      JSON.stringify(selectedPages, null, 2)
+    );
+  }, [selectedPages]);
 
   // Add logging to track page changes
   useEffect(() => {
@@ -42,11 +75,29 @@ export default function TimelinePageEdit({
   const handlePageChange = (newPages: SelectedPage[]) => {
     if (newPages.length === 0) return;
 
+    // Process potentially encoded titles in newPages
+    const processedPages = newPages.map((page) => {
+      // Check if the title appears to be URL encoded
+      if (/%[0-9A-F]{2}/i.test(page.title)) {
+        try {
+          const decodedTitle = decodeURIComponent(page.title);
+          logger.debug(
+            `Decoded title from "${page.title}" to "${decodedTitle}"`
+          );
+          return { ...page, title: decodedTitle };
+        } catch (e) {
+          logger.warn(`Failed to decode title: ${page.title}`);
+          return page;
+        }
+      }
+      return page;
+    });
+
     // Log the previous and new page count
-    const addedCount = newPages.length - selectedPages.length;
+    const addedCount = processedPages.length - selectedPages.length;
     if (addedCount > 0) {
       // Pages were added, log the new pages
-      const addedPages = newPages.slice(selectedPages.length);
+      const addedPages = processedPages.slice(selectedPages.length);
       logger.debug(
         `TimelinePageEdit: Added ${addedCount} pages: ${JSON.stringify(
           addedPages.map((p) => ({ title: p.title, language: p.language }))
@@ -54,7 +105,7 @@ export default function TimelinePageEdit({
       );
     }
 
-    onPagesChange(newPages);
+    onPagesChange(processedPages);
   };
 
   const handleUpdateTimeline = () => {
@@ -67,7 +118,7 @@ export default function TimelinePageEdit({
   return (
     <div className="space-y-6">
       <WikiSearch
-        selectedPages={selectedPages}
+        selectedPages={fixedPages}
         onPagesChange={handlePageChange}
         onSubmit={() => {}}
         placeholder="Add Wikipedia pages..."
