@@ -2,8 +2,21 @@ import { TimelineJSDate, TimelineWithWikiSummary } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { TimelineJSTimeline } from "@/app/types/timeline";
 import logger from "@/app/utils/logger";
+import { PAGE_NAME_SEPARATOR } from "@/app/constants";
 
 function formatGroupName(name: string): string {
+  // Strip language prefix if present (e.g., "zh:::PageName" becomes "PageName")
+  const separatorIndex = name.indexOf(PAGE_NAME_SEPARATOR);
+  if (separatorIndex > 0) {
+    // Check if the format matches a language code (2 characters) followed by the separator
+    const possibleLangCode = name.substring(0, separatorIndex);
+    if (possibleLangCode.match(/^[a-z]{2}$/)) {
+      // This is a language prefix, strip it
+      name = name.substring(separatorIndex + PAGE_NAME_SEPARATOR.length);
+    }
+  }
+  
+  // Continue with existing formatting
   return name
     .replace(/_/g, ' ')
     .split(' ')
