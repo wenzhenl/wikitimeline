@@ -2,26 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import logger from "@/app/utils/logger";
 import wiki from "wikipedia";
-
-// Interface for language options
-interface LanguageOption {
-  code: string;
-  name: string;
-}
-
-// Top 10 most common languages for Wikipedia
-const COMMON_LANGUAGES: LanguageOption[] = [
-  { code: "en", name: "English" },
-  { code: "es", name: "Español" },
-  { code: "fr", name: "Français" },
-  { code: "de", name: "Deutsch" },
-  { code: "it", name: "Italiano" },
-  { code: "pt", name: "Português" },
-  { code: "ru", name: "Русский" },
-  { code: "ja", name: "日本語" },
-  { code: "zh", name: "中文" },
-  { code: "ar", name: "العربية" },
-];
+import {
+  COMMON_LANGUAGES,
+  DEFAULT_ENABLED_LANGUAGES,
+  STORAGE_KEY_ENABLED_LANGUAGES,
+  LanguageOption,
+} from "@/app/constants/languageSettings";
 
 interface SearchResult {
   title: string;
@@ -65,6 +51,9 @@ export default function WikiSearch({
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [showResults, setShowResults] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [enabledLanguages, setEnabledLanguages] = useState<string[]>(
+    DEFAULT_ENABLED_LANGUAGES
+  );
   const searchRef = useRef<HTMLDivElement>(null);
   const resultListRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +61,44 @@ export default function WikiSearch({
   // Default placeholder that mentions language capabilities
   const defaultPlaceholder =
     "Search Wikipedia or paste URL (e.g., Albert Einstein, fr:Marie Curie)";
+
+  // Load enabled languages from localStorage on mount
+  useEffect(() => {
+    const loadEnabledLanguages = () => {
+      try {
+        const storedLanguages = localStorage.getItem(
+          STORAGE_KEY_ENABLED_LANGUAGES
+        );
+        if (storedLanguages) {
+          const parsedLanguages = JSON.parse(storedLanguages);
+          if (Array.isArray(parsedLanguages) && parsedLanguages.length > 0) {
+            setEnabledLanguages(parsedLanguages);
+            return;
+          }
+        }
+        // Fallback to default if storage is empty or invalid
+        setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
+      } catch (error) {
+        logger.error(
+          "Error loading enabled languages from localStorage:",
+          error
+        );
+        setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
+      }
+    };
+
+    loadEnabledLanguages();
+
+    // Add event listener for storage changes (for cross-tab sync)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY_ENABLED_LANGUAGES) {
+        loadEnabledLanguages();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // Function to extract wiki title and language from URL
   const extractWikiTitle = (
@@ -366,7 +393,7 @@ export default function WikiSearch({
           />
         </div>
 
-        {/* Language dropdown with fixed width and explicit positioning */}
+        {/* Language dropdown with fixed width and explicit positioning - now showing only codes */}
         <div
           style={{
             width: "110px",
@@ -386,15 +413,19 @@ export default function WikiSearch({
               paddingLeft: "8px",
               boxSizing: "border-box",
               borderRadius: "0.5rem",
+              textTransform: "uppercase",
             }}
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
             aria-label="Select Wikipedia language"
             title="Select Wikipedia language"
           >
-            {COMMON_LANGUAGES.map((lang) => (
+            {/* Only show enabled languages */}
+            {COMMON_LANGUAGES.filter((lang) =>
+              enabledLanguages.includes(lang.code)
+            ).map((lang) => (
               <option key={lang.code} value={lang.code}>
-                {lang.name}
+                {lang.code.toUpperCase()}
               </option>
             ))}
           </select>
