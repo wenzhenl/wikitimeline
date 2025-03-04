@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { PAGE_DELIMITER } from "@/app/constants";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
-
+import { formatPageName } from "@/app/utils/helper";
 interface TimelineEvent {
   date: string;
   headline: string;
@@ -203,7 +203,7 @@ export default function TextTimelineView({
                   }}
                   className="inline-block px-2 py-1 rounded-tl-lg text-xs"
                 >
-                  {event.source!.replace(/_/g, " ")}
+                  {formatPageName(event.source || "").formattedName}
                 </span>
               </div>
             )}
