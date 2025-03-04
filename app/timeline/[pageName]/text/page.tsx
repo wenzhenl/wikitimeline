@@ -73,7 +73,7 @@ export default async function TimelineTextPage({
   params: { pageName: string };
 }) {
   try {
-    const data = await getTimelineData(params.pageName);
+    const data = await getTimelineData(decodeURIComponent(params.pageName));
 
     // Show 404 if no timeline data or empty timeline
     if (!data || !data.timeline || data.timeline.length === 0) {
