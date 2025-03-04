@@ -104,11 +104,35 @@ export default function InteractiveTimelineContent({
       .filter(Boolean);
 
     setSelectedPages(
-      pageNames.map((name) => ({
-        title: name.replace(/_/g, " "),
-        link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
-        language: "en",
-      }))
+      pageNames.map((name) => {
+        // Parse language prefix if present (e.g., "zh:PageName")
+        const langPrefixMatch = name.match(/^([a-z]{2}):(.*)/);
+
+        if (langPrefixMatch) {
+          const [, langPrefix, actualName] = langPrefixMatch;
+          const cleanName = actualName.replace(/_/g, " ");
+
+          logger.debug(
+            `Parsed page with language prefix: ${langPrefix}:${cleanName}`
+          );
+
+          return {
+            title: cleanName,
+            link: `https://${langPrefix}.wikipedia.org/wiki/${actualName.replace(
+              / /g,
+              "_"
+            )}`,
+            language: langPrefix,
+          };
+        }
+
+        // Default case - no language prefix found (use English)
+        return {
+          title: name.replace(/_/g, " "),
+          link: `https://en.wikipedia.org/wiki/${name.replace(/ /g, "_")}`,
+          language: "en",
+        };
+      })
     );
   }, [params.pageName]);
 
@@ -353,11 +377,18 @@ export default function InteractiveTimelineContent({
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
       .map((page) => {
+        // Extract the base title from the URL
         const titleFromUrl = page.link.split("/wiki/").pop();
         if (titleFromUrl) {
           const cleanTitle = decodeURIComponent(
             titleFromUrl.split("#")[0].split("?")[0]
           );
+
+          // Include language prefix for non-English pages
+          if (page.language && page.language !== "en") {
+            return encodeURIComponent(`${page.language}:${cleanTitle}`);
+          }
+
           return encodeURIComponent(cleanTitle);
         }
         return null;
@@ -368,6 +399,14 @@ export default function InteractiveTimelineContent({
       const newPath = `/timeline/${pageNames.join(
         encodeURIComponent(PAGE_DELIMITER)
       )}`;
+
+      logger.debug(`Refreshing timeline with path: ${newPath}`);
+      logger.debug(
+        `Selected pages: ${JSON.stringify(
+          selectedPages.map((p) => ({ title: p.title, language: p.language }))
+        )}`
+      );
+
       if (newPath !== `/timeline/${params.pageName}`) {
         setLoading(true);
         router.push(newPath, { scroll: false });
