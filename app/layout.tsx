@@ -13,7 +13,7 @@ const inter = Inter({
 
 export function generateMetadata() {
   const url = SITE_CONFIG.DOMAIN;
-  const previewImageUrl = `${SITE_CONFIG.DOMAIN}/preview.jpg`;
+  const previewImageUrl = `${SITE_CONFIG.DOMAIN}/preview.png`;
 
   return {
     title: {
