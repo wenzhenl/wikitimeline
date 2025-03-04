@@ -366,7 +366,7 @@ export default function WikiSearch({
         {/* Search input - simplified styles with explicit width */}
         <div
           style={{
-            width: "calc(100% - 115px)",
+            width: "calc(100% - 65px)",
             height: "100%",
             boxSizing: "border-box",
           }}
@@ -396,7 +396,7 @@ export default function WikiSearch({
         {/* Language dropdown with fixed width and explicit positioning - now showing only codes */}
         <div
           style={{
-            width: "110px",
+            width: "60px",
             height: "100%",
             position: "relative",
             boxSizing: "border-box",
@@ -410,10 +410,11 @@ export default function WikiSearch({
               height: "100%",
               appearance: "none",
               paddingRight: "20px",
-              paddingLeft: "8px",
+              paddingLeft: "6px",
               boxSizing: "border-box",
               borderRadius: "0.5rem",
               textTransform: "uppercase",
+              fontWeight: "500",
             }}
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
@@ -433,12 +434,12 @@ export default function WikiSearch({
           <div
             style={{
               position: "absolute",
-              right: "8px",
+              right: "5px",
               top: "50%",
               transform: "translateY(-50%)",
               pointerEvents: "none",
-              width: "12px",
-              height: "12px",
+              width: "10px",
+              height: "10px",
             }}
           >
             <svg
