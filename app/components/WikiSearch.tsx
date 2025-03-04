@@ -313,21 +313,17 @@ export default function WikiSearch({
         {selectedPages.map((page, index) => (
           <div
             key={index}
-            className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full px-3 py-1"
+            className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg px-3 py-1"
             style={{
+              display: "flex",
+              alignItems: "center",
               backgroundColor: "var(--blue-100, #dbeafe)",
               color: "var(--blue-800, #1e40af)",
-              borderRadius: "9999px",
-              paddingLeft: "0.75rem",
-              paddingRight: "0.75rem",
-              paddingTop: "0.25rem",
-              paddingBottom: "0.25rem",
+              borderRadius: "0.5rem",
+              padding: "0.25rem 0.75rem",
             }}
           >
             <span className="truncate max-w-xs">{page.title}</span>
-            <span className="ml-1 bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs px-1.5 py-0.5 rounded-full">
-              {page.language}
-            </span>
             <button
               type="button"
               className="ml-2 text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100"
@@ -337,13 +333,15 @@ export default function WikiSearch({
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
             </button>
