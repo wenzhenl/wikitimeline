@@ -18,7 +18,7 @@ import {
   TimelineJSEvent,
 } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
-import { PAGE_DELIMITER } from "@/app/constants";
+import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
 import logger from "@/app/utils/logger";
 import NavigationHeader from "@/app/components/NavigationHeader";
 
@@ -386,7 +386,9 @@ export default function InteractiveTimelineContent({
 
           // Include language prefix for non-English pages
           if (page.language && page.language !== "en") {
-            return encodeURIComponent(`${page.language}:${cleanTitle}`);
+            return encodeURIComponent(
+              `${page.language}${PAGE_NAME_SEPARATOR}${cleanTitle}`
+            );
           }
 
           return encodeURIComponent(cleanTitle);

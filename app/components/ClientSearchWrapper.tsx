@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import WikiSearch from "@/app/components/WikiSearch";
 import LanguageSettings from "@/app/components/LanguageSettings";
-import { PAGE_DELIMITER } from "@/app/constants";
+import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
 import { isMobile } from "@/app/utils/deviceDetection";
 
 interface SelectedPage {
@@ -35,7 +35,7 @@ export function ClientSearchWrapper() {
           // Add language prefix if not from the default language
           const formattedName =
             page.language !== "en"
-              ? `${page.language}:${page.title.replace(/ /g, "_")}`
+              ? `${page.language}${PAGE_NAME_SEPARATOR}${page.title.replace(/ /g, "_")}`
               : page.title.replace(/ /g, "_");
 
           return formattedName;
