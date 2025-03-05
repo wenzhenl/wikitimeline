@@ -209,11 +209,11 @@ export default function TextTimelinePageContent({
             <ShareButtons
               url={pageUrl}
               title={`Timeline of ${pageNames
-                .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-                .join(", ")}`}
+                .map((name) => formatPageName(name).formattedName)
+                .join(" | ")}`}
               description={`📚 Read through the history of ${pageNames
-                .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-                .join(", ")} in chronological order!`}
+                .map((name) => formatPageName(name).formattedName)
+                .join(" | ")} in chronological order!`}
               customAction={{
                 label: "Save as Image",
                 onClick: handleCaptureImage,
@@ -312,11 +312,11 @@ export default function TextTimelinePageContent({
               <ShareButtons
                 url={pageUrl}
                 title={`Timeline of ${pageNames
-                  .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-                  .join(", ")}`}
+                  .map((name) => formatPageName(name).formattedName)
+                  .join(" | ")}`}
                 description={`📚 Read through the history of ${pageNames
-                  .map((name) => decodeURIComponent(name).replace(/_/g, " "))
-                  .join(", ")} in chronological order!`}
+                  .map((name) => formatPageName(name).formattedName)
+                  .join(" | ")} in chronological order!`}
                 customAction={{
                   label: "Save as Image",
                   onClick: handleCaptureImage,
