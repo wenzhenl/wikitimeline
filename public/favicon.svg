@@ -1,0 +1,53 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for gradients -->
+  <defs>
+    <!-- Elegant gradient background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34495e" />
+      <stop offset="100%" stop-color="#2c3e50" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient)" />
+  
+  <!-- Vertical bars in a varied, non-increasing pattern (perfectly symmetrical) -->
+  <!-- Left side -->
+  <rect x="116" y="236" width="16" height="130" fill="#ffffff" opacity="0.7" rx="2" ry="2" />
+  <rect x="146" y="196" width="16" height="170" fill="#ffffff" opacity="0.8" rx="2" ry="2" />
+  <rect x="176" y="226" width="16" height="140" fill="#ffffff" opacity="0.7" rx="2" ry="2" />
+  <rect x="206" y="176" width="16" height="190" fill="#ffffff" opacity="0.9" rx="2" ry="2" />
+  <rect x="236" y="216" width="16" height="150" fill="#ffffff" opacity="0.8" rx="2" ry="2" />
+  
+  <!-- Center bar -->
+  <rect x="248" y="156" width="16" height="210" fill="#ffffff" rx="2" ry="2" />
+  
+  <!-- Right side (mirrored from left) -->
+  <rect x="260" y="216" width="16" height="150" fill="#ffffff" opacity="0.8" rx="2" ry="2" />
+  <rect x="290" y="176" width="16" height="190" fill="#ffffff" opacity="0.9" rx="2" ry="2" />
+  <rect x="320" y="226" width="16" height="140" fill="#ffffff" opacity="0.7" rx="2" ry="2" />
+  <rect x="350" y="196" width="16" height="170" fill="#ffffff" opacity="0.8" rx="2" ry="2" />
+  <rect x="380" y="236" width="16" height="130" fill="#ffffff" opacity="0.7" rx="2" ry="2" />
+  
+  <!-- Photo frames representing events (perfectly symmetrical) -->
+  <rect x="146" y="126" width="50" height="40" rx="3" ry="3" stroke="#ffffff" stroke-width="3" fill="none" />
+  <rect x="231" y="96" width="50" height="40" rx="3" ry="3" stroke="#ffffff" stroke-width="3" fill="none" />
+  <rect x="316" y="126" width="50" height="40" rx="3" ry="3" stroke="#ffffff" stroke-width="3" fill="none" />
+  
+  <!-- Horizontal baseline -->
+  <line x1="106" y1="366" x2="406" y2="366" 
+        stroke="#ffffff" stroke-width="3" stroke-opacity="0.5" />
+        
+  <!-- Small dots representing timeline points (perfectly symmetrical) -->
+  <circle cx="131" cy="366" r="4" fill="#ffffff" />
+  <circle cx="156" cy="366" r="4" fill="#ffffff" />
+  <circle cx="181" cy="366" r="4" fill="#ffffff" />
+  <circle cx="206" cy="366" r="4" fill="#ffffff" />
+  <circle cx="231" cy="366" r="4" fill="#ffffff" />
+  <circle cx="256" cy="366" r="4" fill="#ffffff" />
+  <circle cx="281" cy="366" r="4" fill="#ffffff" />
+  <circle cx="306" cy="366" r="4" fill="#ffffff" />
+  <circle cx="331" cy="366" r="4" fill="#ffffff" />
+  <circle cx="356" cy="366" r="4" fill="#ffffff" />
+  <circle cx="381" cy="366" r="4" fill="#ffffff" />
+</svg> 
