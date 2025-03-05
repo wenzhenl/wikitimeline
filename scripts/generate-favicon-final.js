@@ -29,14 +29,14 @@ async function generateFavicon() {
       )
     );
     
-    // Save the favicon to the public directory
+    // Save the favicon to the public directory - increased to 48x48 for better visibility
     await sharp(pngBuffer)
-      .resize(32, 32)
+      .resize(48, 48)
       .toFile('public/favicon.ico');
     
-    // Also save to app directory for Next.js
+    // Also save to app directory for Next.js - increased to 48x48 for better visibility
     await sharp(pngBuffer)
-      .resize(32, 32)
+      .resize(48, 48)
       .toFile('app/favicon.ico');
     
     // Save larger versions for different devices
