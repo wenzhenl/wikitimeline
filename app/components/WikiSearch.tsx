@@ -55,7 +55,7 @@ export default function WikiSearch({
   onSettingsClick,
 }: WikiSearchProps) {
   const [inputValue, setInputValue] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  const [selectedLanguage, setSelectedLanguage] = useState("");
   const [enabledLanguages, setEnabledLanguages] = useState<string[]>(
     DEFAULT_ENABLED_LANGUAGES
   );
@@ -83,17 +83,20 @@ export default function WikiSearch({
           const parsedLanguages = JSON.parse(storedLanguages);
           if (Array.isArray(parsedLanguages) && parsedLanguages.length > 0) {
             setEnabledLanguages(parsedLanguages);
+            setSelectedLanguage(parsedLanguages[0]);
             return;
           }
         }
         // Fallback to default if storage is empty or invalid
         setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
+        setSelectedLanguage(DEFAULT_ENABLED_LANGUAGES[0]);
       } catch (error) {
         logger.error(
           "Error loading enabled languages from localStorage:",
           error
         );
         setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
+        setSelectedLanguage(DEFAULT_ENABLED_LANGUAGES[0]);
       }
     };
 

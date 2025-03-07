@@ -45,8 +45,8 @@ export default function LanguageSettings({
     let updatedLanguages: string[];
 
     if (enabledLanguages.includes(code)) {
-      // Don't allow removing English if it's the only language enabled
-      if (code === "en" && enabledLanguages.length === 1) {
+      // Don't allow removing a language if it's the only language enabled
+      if (enabledLanguages.length === 1) {
         return;
       }
       // Remove language
@@ -122,7 +122,10 @@ export default function LanguageSettings({
                   checked={enabledLanguages.includes(lang.code)}
                   onChange={() => toggleLanguage(lang.code)}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  disabled={lang.code === "en" && enabledLanguages.length === 1}
+                  disabled={
+                    enabledLanguages.includes(lang.code) &&
+                    enabledLanguages.length === 1
+                  }
                 />
                 <label
                   htmlFor={`lang-${lang.code}`}
