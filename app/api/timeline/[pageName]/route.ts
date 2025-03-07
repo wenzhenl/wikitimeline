@@ -504,14 +504,14 @@ const getCachedWikiSummary = unstable_cache(
       return {
         canonicalTitle: summary.titles.canonical,
         thumbnail: summary.thumbnail?.source,
-        language: pageInfo.language
+        pageUrl: summary.content_urls?.desktop?.page || `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`
       };
     } catch (error) {
       logger.warn(`Could not fetch wiki summary for ${pageInfo.language}:${pageInfo.pageName}, using fallback:`, error);
       return {
         canonicalTitle: pageInfo.pageName,
         thumbnail: undefined,
-        language: pageInfo.language
+        pageUrl: `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`
       };
     }
   },
@@ -656,32 +656,13 @@ export async function GET(
           return;
         }
 
-        // Check if we have enough events
-        if (!timeline || timeline.events.length < MIN_NUM_EVENTS_FOR_TIMELINE) {
-          logger.warn(`Not enough events for ${pageInfo.language}:${pageInfo.pageName}: ${timeline?.events.length || 0} events`);
+        if (!timeline) {
           noTimelinePages.push(pageInfo.original);
           return;
         }
 
         // Get or generate a wiki summary
-        let wikiSummary: WikiSummary;
-        try {
-          // Set wiki to the correct language
-          wiki.setLang(pageInfo.language);
-          
-          const pageSummary = await wiki.summary(pageInfo.pageName);
-          wikiSummary = {
-            pageUrl: pageSummary.content_urls?.desktop?.page || `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`,
-            thumbnail: pageSummary.thumbnail?.source,
-            summary: pageSummary.extract
-          };
-        } catch (error) {
-          logger.error(`Error fetching detailed wiki summary for ${pageInfo.language}:${pageInfo.pageName}:`, error);
-          wikiSummary = {
-            pageUrl: `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`,
-            thumbnail: undefined
-          };
-        }
+        let wikiSummary = await getCachedWikiSummary(pageInfo);
 
         // Store the timeline and wiki summary
         timelines[pageInfo.original] = {
