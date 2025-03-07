@@ -46,7 +46,7 @@ interface PageInfo {
 function parsePageName(rawName: string): PageInfo {
   const trimmedName = rawName.trim();
   
-  // Check if there's a language prefix (e.g., "en:Page_Name")
+  // Check if there's a language prefix (e.g., "en:::Page_Name")
   const separator = PAGE_NAME_SEPARATOR;
   const separatorIndex = trimmedName.indexOf(separator);
   
@@ -54,14 +54,11 @@ function parsePageName(rawName: string): PageInfo {
     const language = trimmedName.substring(0, separatorIndex);
     const pageName = trimmedName.substring(separatorIndex + separator.length);
     
-    // Validate language code is 2 characters
-    if (language.match(/^[a-z]{2}$/)) {
-      return {
-        language,
-        pageName,
-        original: trimmedName
-      };
-    }
+    return {
+      language,
+      pageName,
+      original: trimmedName
+    };
   }
   
   // No language specified or invalid language, use default
