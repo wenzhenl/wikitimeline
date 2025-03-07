@@ -470,19 +470,59 @@ export default function WikiSearch({
       {/* Search container (using div instead of form) */}
       <div className="flex">
         <div className="flex-grow relative" ref={searchContainerRef}>
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onFocus={() => inputValue.trim() && setShowResults(true)}
-            placeholder={placeholder || defaultPlaceholder}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-white"
-            autoFocus={autoFocus}
-          />
+          {/* Input wrapper with integrated language selector */}
+          <div className="relative flex w-full">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onFocus={() => inputValue.trim() && setShowResults(true)}
+              placeholder={placeholder || defaultPlaceholder}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-white pr-20"
+              autoFocus={autoFocus}
+            />
 
-          {/* Search Results Dropdown */}
+            {/* Language selector positioned inside the input */}
+            <div className="absolute right-1 top-1/2 -translate-y-1/2">
+              <select
+                value={selectedLanguage}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Check if the settings option was selected
+                  if (value === "settings" && onSettingsClick) {
+                    onSettingsClick();
+                    // Reset to the previously selected language
+                    setTimeout(() => (e.target.value = selectedLanguage), 0);
+                  } else {
+                    setSelectedLanguage(value);
+                  }
+                }}
+                className="py-1 px-2 text-sm rounded border-none bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-blue-500"
+                aria-label="Select language"
+              >
+                {enabledLanguages.map((lang) => {
+                  const language = COMMON_LANGUAGES.find(
+                    (l) => l.code === lang
+                  );
+                  return (
+                    <option key={lang} value={lang}>
+                      {language ? language.code : lang}
+                    </option>
+                  );
+                })}
+                {/* Add settings option if onSettingsClick is provided */}
+                {onSettingsClick && (
+                  <option value="settings" className="font-semibold">
+                    +
+                  </option>
+                )}
+              </select>
+            </div>
+          </div>
+
+          {/* Search Results Dropdown - full width to match input+dropdown */}
           {showResults && inputValue.trim() && (
             <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
               {isLoading ? (
@@ -555,39 +595,6 @@ export default function WikiSearch({
             </div>
           )}
         </div>
-
-        {/* Language selector dropdown with settings option */}
-        <select
-          value={selectedLanguage}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the settings option was selected
-            if (value === "settings" && onSettingsClick) {
-              onSettingsClick();
-              // Reset to the previously selected language
-              setTimeout(() => (e.target.value = selectedLanguage), 0);
-            } else {
-              setSelectedLanguage(value);
-            }
-          }}
-          className="px-2 py-2 border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-blue-500 focus:border-blue-500 rounded-r-lg"
-          aria-label="Select language"
-        >
-          {enabledLanguages.map((lang) => {
-            const language = COMMON_LANGUAGES.find((l) => l.code === lang);
-            return (
-              <option key={lang} value={lang}>
-                {language ? language.code : lang}
-              </option>
-            );
-          })}
-          {/* Add settings option if onSettingsClick is provided */}
-          {onSettingsClick && (
-            <option value="settings" className="font-semibold">
-              +
-            </option>
-          )}
-        </select>
       </div>
     </div>
   );
