@@ -16,11 +16,14 @@
     "autoprefixer": "^10.4.19",
     "cheerio": "^1.0.0-rc.12",
     "css-loader": "^7.1.2",
+    "dompurify": "^3.2.4",
     "dotenv": "^16.4.7",
     "embla-carousel-react": "^8.5.2",
     "html2canvas": "^1.4.1",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",
+    "micromatch": "^4.0.8",
+    "nanoid": "^5.1.2",
     "next": "14.2.23",
     "node-fetch": "^3.3.2",
     "openai": "^4.76.0",
@@ -30,6 +33,7 @@
     "react-share": "^5.1.1",
     "style-loader": "^4.0.0",
     "unbzip2-stream": "^1.4.3",
+    "webpack": "^5.98.0",
     "wikipedia": "^2.1.2"
   },
   "devDependencies": {
