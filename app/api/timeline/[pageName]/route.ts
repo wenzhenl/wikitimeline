@@ -4,7 +4,6 @@ import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
 import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, WikiSummary } from '@/app/types/timeline';
 import { 
-  MIN_NUM_EVENTS_FOR_TIMELINE, 
   PAGE_DELIMITER, 
   DEFAULT_API_VERSION,
   SUPPORTED_API_VERSIONS,
