@@ -217,22 +217,12 @@ async function generateTimeline(
   try {
     logger.debug(`Generating timeline for ${pageName} (language: ${language})`);
     
-    // Create the Gemini model with the appropriate settings
-    const geminiModel = genAI.getGenerativeModel({
-      model: DEFAULT_MODEL,
-      safetySettings: SAFETY_SETTINGS,
-      generationConfig: {
-        maxOutputTokens: 8192,
-        temperature: TEMPERATURE,
-      },
-    });
-    
     const startTime = Date.now();
     
     // Make two parallel API calls
     const [events, metadata] = await Promise.all([
-      extractEventsFromWikiContent(geminiModel, wikiContent, pageName),
-      extractMetadataFromWikiSummary(geminiModel, wikiSummary, pageName)
+      extractEventsFromWikiContent(genAI, wikiContent, pageName),
+      extractMetadataFromWikiSummary(genAI, wikiSummary, pageName)
     ]);
     
     const endTime = Date.now();
@@ -265,15 +255,24 @@ async function generateTimeline(
 
 // Helper function to extract metadata from wiki summary
 async function extractMetadataFromWikiSummary(
-  model: any,
+  genAI: GoogleGenerativeAI,
   wikiSummary: string,
   pageName: string
 ): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
   try {
+
+    const model = genAI.getGenerativeModel({
+      model: DEFAULT_MODEL,
+      safetySettings: SAFETY_SETTINGS,
+      generationConfig: {
+        maxOutputTokens: 8192,
+        temperature: TEMPERATURE,
+      },
+      systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT
+    });
+
     // Create the prompt for metadata extraction
-    const userPrompt = `
-      ${WIKI_METADATA_EXTRACTION_PROMPT}
-      
+    const userPrompt = `      
       Extract metadata from the following Wikipedia summary:
       ${wikiSummary}
     `;
@@ -328,10 +327,21 @@ async function extractMetadataFromWikiSummary(
 
 // Helper function to extract events from Wikipedia content
 async function extractEventsFromWikiContent(
-  model: any,
+  genAI: GoogleGenerativeAI,
   wikiContent: string,
   pageName: string
 ): Promise<TimelineEvent[]> {
+
+  const model = genAI.getGenerativeModel({
+    model: DEFAULT_MODEL,
+    safetySettings: SAFETY_SETTINGS,
+    generationConfig: {
+      maxOutputTokens: 8192,
+      temperature: TEMPERATURE,
+    },
+    systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT
+  });
+
   // Track accumulated results
   let accumulatedResult = "";
   let iterations = 0;
@@ -339,10 +349,6 @@ async function extractEventsFromWikiContent(
   
   // Initial prompt
   let userPrompt = `
-    <instructions>
-      ${WIKI_EVENTS_EXTRACTION_PROMPT}
-    </instructions>
-    
     Extract events from: ${pageName}
     
     <wikipedia_content>
@@ -389,11 +395,7 @@ async function extractEventsFromWikiContent(
       logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
       
       // Create a new prompt to continue, including the original wiki content
-      userPrompt = `
-        <instructions>
-          ${WIKI_EVENTS_EXTRACTION_PROMPT}
-        </instructions>
-        
+      userPrompt = `        
         Extract events from: ${pageName}
         
         <wikipedia_content>
