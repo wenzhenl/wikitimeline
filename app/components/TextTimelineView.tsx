@@ -298,9 +298,10 @@ export default function TextTimelineView({
               <div className="flex-grow relative">
                 {/* Horizontal connector line from dot to card */}
                 <div className="absolute top-[1.875rem] left-[-2.5rem] w-[2.5rem] h-0.5 bg-blue-200 dark:bg-blue-800"></div>
+
                 <div
                   className={`
-                  rounded-lg p-5 shadow-md border transition-all duration-300
+                  relative rounded-lg p-5 shadow-md border transition-all duration-300
                   ${isFocused ? "ring-2 ring-blue-300 dark:ring-blue-700" : ""}
                   ${
                     isBCE
@@ -309,6 +310,29 @@ export default function TextTimelineView({
                   }
                 `}
                 >
+                  {/* Source badge as a diamond shape in top-left */}
+                  {showSourceBadge && event.source && (
+                    <div
+                      className="absolute -top-3 -left-3 z-10 rotate-45 shadow-lg"
+                      style={{
+                        backgroundColor: sourceColors?.color || "#f3f4f6",
+                      }}
+                    >
+                      <div
+                        className="w-6 h-6 flex items-center justify-center"
+                        style={{
+                          color: sourceColors?.textColor || "#4b5563",
+                        }}
+                      >
+                        <span className="-rotate-45 text-xs font-bold">
+                          {formatPageName(event.source)
+                            .formattedName.charAt(0)
+                            .toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Date and Age at the top of the card */}
                   <div className="flex items-center justify-between mb-3 text-xs text-gray-500 dark:text-gray-400">
                     <div
@@ -323,19 +347,6 @@ export default function TextTimelineView({
                     {event.age !== undefined && <div>Age: {event.age}</div>}
                   </div>
 
-                  {showSourceBadge && event.source && (
-                    <div className="absolute -top-px -right-px rounded-tr-lg rounded-bl-lg overflow-hidden">
-                      <span
-                        style={{
-                          backgroundColor: sourceColors?.color || "#f3f4f6",
-                          color: sourceColors?.textColor || "#4b5563",
-                        }}
-                        className="inline-block px-2 py-1 text-xs"
-                      >
-                        {formatPageName(event.source).formattedName}
-                      </span>
-                    </div>
-                  )}
                   <h3
                     className={`text-lg font-semibold mb-2 ${
                       isBCE
