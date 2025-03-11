@@ -345,8 +345,8 @@ async function extractEventsFromWikiContent(
     systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace('#LANGUAGE#', getLanguageName(language))
   });
 
-  // Track accumulated results
-  let accumulatedResult = "";
+  // Track accumulated events
+  let accumulatedEvents: TimelineEvent[] = [];
   let iterations = 0;
   const MAX_ITERATIONS = 3;
   
@@ -364,111 +364,87 @@ async function extractEventsFromWikiContent(
     logger.debug(`Extracting events (iteration ${iterations + 1}/${MAX_ITERATIONS})`);
     
     const response = await model.generateContent(userPrompt);
-    
-    // Get text response
     let textResponse = response.response.text();
 
     // Track token usage if available
     logger.debug("Token usage for extracting events, iteration " + (iterations + 1) + ":");
     logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
     
-    // Check if the last line of textResponse is complete
-    const lines = textResponse.split('\n');
-    const lastLine = lines[lines.length - 1].trim();
-    
-    // If the last line doesn't look like a complete JSON object, remove it
-    if (lastLine && (!lastLine.endsWith('}') || !lastLine.startsWith('{'))) {
-      logger.debug("Removed incomplete last line from response");
-      lines.pop();
-      textResponse = lines.join('\n');
-    }
-    
-    // Ensure textResponse ends with a line break
-    if (!textResponse.endsWith('\n')) {
-      textResponse += '\n';
-    }
-    
-    // Add this response to our accumulated result
-    accumulatedResult += textResponse;
-    
-    // Check if response was truncated due to token limits
-    const finishReason = response.response.candidates?.[0]?.finishReason;
-    
-    if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
-      logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
+    try {
+      // Clean up the response text
+      let jsonText = textResponse.trim();
       
-      // Create a new prompt to continue, including the original wiki content
-      userPrompt = `        
-        Extract events from: ${pageName}
-        
-        <wikipedia_content>
-        ${wikiContent}
-        </wikipedia_content>
+      // Remove markdown code block indicators if present
+      if (jsonText.startsWith("```json")) {
+        jsonText = jsonText.replace(/```json\n/, "").replace(/\n```$/, "");
+      } else if (jsonText.startsWith("```")) {
+        jsonText = jsonText.replace(/```\n/, "").replace(/\n```$/, "");
+      }
 
-        You were extracting events but reached the token limit. Continue from where you left off.
-        Here are the events you've extracted so far:
-        <events>
-        ${accumulatedResult}
-        </events>
-        
-        Continue extracting events from: ${pageName}, but only extract events that are not already in the <events> tag.
-      `;
+      // Try to fix broken JSON
+      if (!jsonText.endsWith("]")) {
+        // Find the last complete event object
+        const lastCompleteEventIndex = jsonText.lastIndexOf("},");
+        if (lastCompleteEventIndex !== -1) {
+          // Keep everything up to and including the last complete event
+          jsonText = jsonText.substring(0, lastCompleteEventIndex + 1) + "]";
+        } else {
+          // If no complete event found with comma, try finding last complete event
+          const lastEventIndex = jsonText.lastIndexOf("}");
+          if (lastEventIndex !== -1) {
+            jsonText = jsonText.substring(0, lastEventIndex + 1) + "]";
+          } else {
+            throw new Error("No complete events found in response");
+          }
+        }
+      }
+
+      // Parse the JSON array
+      const events = JSON.parse(jsonText) as TimelineEvent[];
       
-      iterations++;
-    } else {
-      // Either we finished successfully or reached our iteration limit
+      // Add valid events to accumulated list
+      if (Array.isArray(events)) {
+        accumulatedEvents = [...accumulatedEvents, ...events];
+      }
+
+      // Check if response was truncated due to token limits
+      const finishReason = response.response.candidates?.[0]?.finishReason;
+      
+      if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
+        logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
+        
+        // Create a new prompt to continue
+        userPrompt = `
+          Extract events from: ${pageName}
+          
+          <wikipedia_content>
+          ${wikiContent}
+          </wikipedia_content>
+
+          You were extracting events but reached the token limit. Continue from where you left off.
+          Here are the events you've extracted so far:
+          ${JSON.stringify(accumulatedEvents, null, 2)}
+          
+          Continue extracting events from: ${pageName}, but only extract events that are not already in the events list above.
+        `;
+        
+        iterations++;
+      } else {
+        // Either we finished successfully or reached our iteration limit
+        break;
+      }
+    } catch (error) {
+      logger.error("Failed to process events response:", error);
+      // If this is not the last iteration, continue to the next one
+      if (iterations < MAX_ITERATIONS - 1) {
+        iterations++;
+        continue;
+      }
       break;
     }
   }
   
-  // Parse the JSON lines
-  try {
-    // Clean up the accumulated result
-    const cleanedResult = accumulatedResult.trim();
-    
-    // Check if no events were found
-    if (cleanedResult === "NO_EVENTS_FOUND") {
-      logger.info(`No events found for ${pageName}`);
-      return [];
-    }
-    
-    // Split by lines and parse each line as JSON
-    const eventLines = cleanedResult.split('\n').filter(line => line.trim() !== '');
-    
-    // Parse each line into an event object
-    const events = eventLines.map(line => {
-      try {
-        // Try to parse the line as JSON
-        const event = JSON.parse(line.trim());
-        
-        // Validate required fields
-        if (!event.headline || !event.description || !event.startDate) {
-          logger.warn(`Event missing required fields: ${line}`);
-          return null;
-        }
-        
-        // Convert score to number if it's a string
-        if (typeof event.score === 'string') {
-          event.score = parseInt(event.score, 10) || 50;
-        }
-        
-        // Ensure endDate is undefined instead of null for compatibility
-        if (event.endDate === null) {
-          event.endDate = undefined;
-        }
-        
-        return event;
-      } catch (parseError) {
-        logger.warn(`Failed to parse event JSON: ${line}`);
-        return null;
-      }
-    }).filter(event => event !== null) as TimelineEvent[];
-    
-    logger.info(`Extracted ${events.length} events from ${pageName}`);
-    return events;
-  } catch (error) {
-    throw new Error(`Failed to parse events from JSON lines: ${error}`);
-  }
+  return accumulatedEvents;
 }
 
 // Cache the wiki summary with language support
