@@ -224,6 +224,8 @@ async function generateTimeline(
       generationConfig: {
         maxOutputTokens: 8192, // Use maximum available tokens
         temperature: TEMPERATURE,
+        responseMimeType: "application/json",
+        responseSchema: TIMELINE_SCHEMA,
       },
     });
     
@@ -232,52 +234,48 @@ async function generateTimeline(
     let iterations = 0;
     const MAX_ITERATIONS = 3;
     
-    // Initialize conversation with system message and user content
-    let conversation = [
-      { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-      { role: 'model', parts: [{ text: "I'll extract events from the Wikipedia content you provide." }] },
-      { role: 'user', parts: [{ text: `Create a timeline for: ${pageName}\n\n${wikiContent}` }] }
-    ];
+    let userPrompt = `      
+      Generate a timeline from the following content:
+      <wikipedia_content>
+      ${wikiContent}
+      </wikipedia_content>
+    `;
     
     while (iterations < MAX_ITERATIONS) {
       // Call Gemini with the conversation history
       logger.debug(`Calling Gemini (iteration ${iterations + 1}/${MAX_ITERATIONS})`);
       
-      const response = await geminiModel.generateContent({
-        contents: conversation,
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: TEMPERATURE,
-        }
-      });
+      const response = await geminiModel.generateContent(userPrompt);
       
       // Get text response
       const textResponse = response.response.text();
-      
+      logger.debug(`Text response: ${textResponse.substring(0, 1000)}`);
+
       // Add this response to our accumulated result
       accumulatedResult += textResponse;
-      
-      // Log debugging info
-      logger.debug(`Response finish reason: ${response.response.candidates?.[0]?.finishReason}`);
-      
+            
       // Check if response was truncated due to token limits
       const finishReason = response.response.candidates?.[0]?.finishReason;
+      logger.debug(`Finish reason: ${finishReason}`);
       
       if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
         logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
-        
-        // Add the model's response to the conversation and ask it to continue
-        conversation.push({ role: 'model', parts: [{ text: textResponse }] });
-        conversation.push({ 
-          role: 'user', 
-          parts: [{ 
-            text: "Your response was cut off due to token limits. Please continue from where you left off. Remember to focus on producing valid JSON that can be merged with your previous output." 
-          }]
-        });
-        
+        // Add a new prompt to the conversation
+        userPrompt += iterations === 0 ? `
+          Your output was cut off due to token limits. Please continue from where you left off, don't repeat events that are already generated in the previous response.
+          Remember to focus on producing valid JSON that can be merged with your previous output.
+          Here is the previous response:
+          ${textResponse}
+        ` : `
+          ${textResponse}
+        `;
+
         iterations++;
       } else {
         // Either we finished successfully or reached our iteration limit
+        if (iterations === MAX_ITERATIONS - 1) {
+          throw new Error('Failed to generate timeline after ${MAX_ITERATIONS} iterations');
+        }
         break;
       }
     }
