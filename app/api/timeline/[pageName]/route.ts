@@ -251,6 +251,8 @@ async function generateTimeline(
       const textResponse = response.response.text();
       result += textResponse;
       
+      logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
+      
       // Check if response was truncated due to token limits
       const finishReason = response.response.candidates?.[0]?.finishReason;
       
