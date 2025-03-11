@@ -19,6 +19,7 @@ import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { TEMPERATURE } from "@/app/constants/gemini";
 import { WIKI_EVENTS_EXTRACTION_PROMPT, WIKI_METADATA_EXTRACTION_PROMPT } from "@/app/constants/gemini/systemPrompt";
 import { compareDates, getLanguageName } from "@/app/utils/helper";
+import { WIKI_EVENTS_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 
 // Initialize Redis
 const redis = Redis.fromEnv();
@@ -338,6 +339,8 @@ async function extractEventsFromWikiContent(
     generationConfig: {
       maxOutputTokens: 8192,
       temperature: TEMPERATURE,
+      responseMimeType: "application/json",
+      responseSchema: WIKI_EVENTS_SCHEMA
     },
     systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace('#LANGUAGE#', getLanguageName(language))
   });
