@@ -18,7 +18,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { TEMPERATURE } from "@/app/constants/gemini";
-import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
+import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
 import { compareDates } from "@/app/utils/helper";
 
 // Initialize Redis
@@ -221,20 +221,19 @@ async function generateTimeline(
     const geminiModel = genAI.getGenerativeModel({
       model: DEFAULT_MODEL,
       safetySettings: SAFETY_SETTINGS,
+
       generationConfig: {
         maxOutputTokens: 8192, // Use maximum available tokens
         temperature: TEMPERATURE,
+        responseMimeType: "application/json",
+        responseSchema: TIMELINE_SCHEMA,
       },
+      systemInstruction: SYSTEM_PROMPT
     });
-    
-    // Assume systemPrompt is a constant (we'll deal with it later)
-    const systemPrompt = "You are a timeline creator that extracts chronological events from Wikipedia content. Extract events in JSON format.";
-    
+        
     // Initialize the user prompt with the full Wikipedia content
-    let userPrompt = `
-      ${systemPrompt}
-      
-      Extract events with dates from the following content:
+    let userPrompt = `      
+      Please create a timeline from the following content:
       ${JSON.stringify(wikiContent)}
     `;
     
