@@ -310,36 +310,28 @@ export default function TextTimelineView({
                   }
                 `}
                 >
-                  {/* Source badge as a diamond shape in top-left */}
+                  {/* Source badge in top-left corner */}
                   {showSourceBadge && event.source && (
-                    <div
-                      className="absolute -top-3 -left-3 z-10 rotate-45 shadow-lg"
-                      style={{
-                        backgroundColor: sourceColors?.color || "#f3f4f6",
-                      }}
-                    >
+                    <div className="absolute -top-2 left-0 z-10">
                       <div
-                        className="w-6 h-6 flex items-center justify-center"
+                        className="px-2 py-1 text-xs font-medium rounded-md shadow-sm"
                         style={{
+                          backgroundColor: sourceColors?.color || "#f3f4f6",
                           color: sourceColors?.textColor || "#4b5563",
                         }}
                       >
-                        <span className="-rotate-45 text-xs font-bold">
-                          {formatPageName(event.source)
-                            .formattedName.charAt(0)
-                            .toUpperCase()}
-                        </span>
+                        {formatPageName(event.source).formattedName}
                       </div>
                     </div>
                   )}
 
                   {/* Date and Age at the top of the card */}
-                  <div className="flex items-center justify-between mb-3 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center justify-between mb-3 text-xs text-gray-600 dark:text-gray-100">
                     <div
                       className={`font-mono ${
                         isBCE
-                          ? "text-amber-600 dark:text-amber-400"
-                          : "text-blue-600 dark:text-blue-400"
+                          ? "text-amber-800 dark:text-amber-200"
+                          : "text-blue-800 dark:text-blue-200"
                       }`}
                     >
                       {displayDate}
@@ -350,19 +342,19 @@ export default function TextTimelineView({
                   <h3
                     className={`text-lg font-semibold mb-2 ${
                       isBCE
-                        ? "text-amber-800 dark:text-amber-300"
-                        : "text-blue-800 dark:text-blue-300"
+                        ? "text-black dark:text-white"
+                        : "text-black dark:text-white"
                     }`}
                   >
                     {event.headline}
                   </h3>
                   <div className="prose dark:prose-invert prose-sm max-w-none">
-                    <p className="text-gray-700 dark:text-gray-300">
+                    <p className="text-gray-700 dark:text-gray-100">
                       {event.text}
                     </p>
                   </div>
                   {showSource && event.source && !showSourceBadge && (
-                    <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="mt-3 text-xs text-gray-600 dark:text-gray-200">
                       Source: {formatPageName(event.source).formattedName}
                     </div>
                   )}
