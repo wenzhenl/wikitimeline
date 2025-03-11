@@ -353,15 +353,12 @@ async function extractEventsFromWikiContent(
     if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
       logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
       
-      // Check if the last event is complete
+      // Check if the last line is a complete JSON object
       const lines = accumulatedResult.split('\n');
-      const lastLine = lines[lines.length - 1];
+      const lastLine = lines[lines.length - 1].trim();
       
-      // If the last line doesn't have all 5 parts (headline|description|startDate|endDate|score),
-      // it's likely incomplete, so remove it
-      const parts = lastLine.split('|');
-      if (parts.length < 5) {
-        // Remove the last line
+      // If the last line doesn't look like a complete JSON object, remove it
+      if (!lastLine.endsWith('}') || !lastLine.startsWith('{')) {
         lines.pop();
         accumulatedResult = lines.join('\n');
         logger.debug("Removed incomplete last event");
@@ -386,7 +383,7 @@ async function extractEventsFromWikiContent(
     }
   }
   
-  // Parse the line-by-line format
+  // Parse the JSON lines
   try {
     // Clean up the accumulated result
     const cleanedResult = accumulatedResult.trim();
@@ -397,34 +394,42 @@ async function extractEventsFromWikiContent(
       return [];
     }
     
-    // Split by lines and parse each line
+    // Split by lines and parse each line as JSON
     const eventLines = cleanedResult.split('\n').filter(line => line.trim() !== '');
     
     // Parse each line into an event object
     const events = eventLines.map(line => {
-      const parts = line.split('|').map(part => part.trim());
-      
-      // Ensure we have all 5 parts
-      if (parts.length < 5) {
-        logger.warn(`Incomplete event line: ${line}`);
+      try {
+        // Try to parse the line as JSON
+        const event = JSON.parse(line.trim());
+        
+        // Validate required fields
+        if (!event.headline || !event.description || !event.startDate) {
+          logger.warn(`Event missing required fields: ${line}`);
+          return null;
+        }
+        
+        // Convert score to number if it's a string
+        if (typeof event.score === 'string') {
+          event.score = parseInt(event.score, 10) || 50;
+        }
+        
+        // Ensure endDate is undefined instead of null for compatibility
+        if (event.endDate === null) {
+          event.endDate = undefined;
+        }
+        
+        return event;
+      } catch (parseError) {
+        logger.warn(`Failed to parse event JSON: ${line}`);
         return null;
       }
-      
-      const [headline, description, startDate, endDate, score] = parts;
-      
-      return {
-        headline,
-        description,
-        startDate,
-        endDate: endDate === 'null' ? undefined : endDate,
-        score: parseInt(score, 10) || 50 // Default to 50 if parsing fails
-      };
     }).filter(event => event !== null) as TimelineEvent[];
     
     logger.info(`Extracted ${events.length} events from ${pageName}`);
     return events;
   } catch (error) {
-    logger.error("Failed to parse events from line-by-line format", error);
+    logger.error("Failed to parse events from JSON lines", error);
     logger.error("Raw response:", accumulatedResult);
     return [];
   }

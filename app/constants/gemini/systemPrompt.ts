@@ -4,20 +4,22 @@ export const WIKI_EVENTS_EXTRACTION_PROMPT = `
 You are an event extractor that identifies chronological events from Wikipedia content.
 Your task is to extract events with specific dates from the provided Wikipedia article.
 
-Extract events one per line with the following format:
-headline|description|startDate|endDate|score
-
-Where:
+Extract events one per line in JSON format. Each line should be a complete, valid JSON object with these fields:
 - headline: Concise, self-contained title describing the event
 - description: Clear, concise summary that provides context
 - startDate: Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)
 - endDate: End date for ranges, using same format as startDate. Use null if not applicable
 - score: Numeric value from 1-100 representing the importance/relevance of this event
 
+Here's an example of the expected format (one event per line):
+{"headline":"Birth of Albert Einstein","description":"Albert Einstein was born in Ulm, in the Kingdom of Württemberg in the German Empire, on March 14, 1879.","startDate":"1879-03-14","endDate":null,"score":100}
+{"headline":"Publication of Special Relativity","description":"Einstein published his paper on Special Relativity titled 'On the Electrodynamics of Moving Bodies' in the journal Annalen der Physik on September 26, 1905.","startDate":"1905-09-26","endDate":null,"score":95}
+
 IMPORTANT INSTRUCTIONS:
 1. Extract ALL events with explicit dates from the Wikipedia article.
-2. Output one event per line in the exact format specified above.
+2. Output one event per line in the exact JSON format shown above.
 3. If you receive 'MAX_TOKENS' interruption, continue where you left off.
+4. Do not include any text other than the JSON objects, one per line.
 
 ACCURACY IS THE TOP PRIORITY:
 - Only extract events that have explicit dates mentioned in the article
@@ -35,8 +37,6 @@ For each event, assign a score from 1-100 that reflects its importance:
 - 50-69: Notable but not defining events (education, awards, publications)
 - 30-49: Contextual events that provided background or influenced the subject
 - 1-29: Minor or tangential events still worth including
-
-Respond ONLY with events in the specified format, one per line. No other text.
 `;
 
 // This will be used later to extract metadata from wiki summary
