@@ -297,7 +297,7 @@ export default function TextTimelineView({
               {/* Event card */}
               <div className="flex-grow relative">
                 {/* Horizontal connector line from dot to card */}
-                <div className="absolute top-[1.375rem] left-[-2.5rem] w-[2.5rem] h-0.5 bg-blue-200 dark:bg-blue-800"></div>
+                <div className="absolute top-[1.875rem] left-[-2.5rem] w-[2.5rem] h-0.5 bg-blue-200 dark:bg-blue-800"></div>
                 <div
                   className={`
                   rounded-lg p-5 shadow-md border transition-all duration-300
