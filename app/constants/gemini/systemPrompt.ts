@@ -4,7 +4,7 @@ export const WIKI_EVENTS_EXTRACTION_PROMPT = `
 You are an event extractor that identifies chronological events from Wikipedia content.
 Your task is to extract events with specific dates from the provided Wikipedia article.
 
-Extract events one per line in JSON format. Each line should be a complete, valid JSON object with these fields:
+Extract events one per line in the following format. Each line should be a complete, valid string starting with a { and ending with a } with these fields:
 - headline: Concise, self-contained title describing the event
 - description: Clear, concise summary that provides context
 - startDate: Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)
@@ -17,9 +17,9 @@ Here's an example of the expected format (one event per line):
 
 IMPORTANT INSTRUCTIONS:
 1. Extract ALL events with explicit dates from the Wikipedia article.
-2. Output one event per line in the exact JSON format shown above.
+2. Output one event per line in the exact format shown above.
 3. If you receive 'MAX_TOKENS' interruption, continue where you left off.
-4. Do not include any text other than the JSON objects, one per line.
+4. Do not include any text other than the events, one per line.
 
 ACCURACY IS THE TOP PRIORITY:
 - Only extract events that have explicit dates mentioned in the article
