@@ -4,7 +4,7 @@ Your task is to extract events with specific dates from the provided Wikipedia a
 
 Extract events one per line in the following format. Each line should be a complete, valid string starting with a { and ending with a } with these fields:
 - headline: Concise, self-contained title describing the event
-- description: Clear, concise summary that provides context
+- description: Clear, concise summary that provides context. Avoid direct Wikipedia quotes, instead summarize the content in your own words. Please rely on the provided wikipedia content for reference, don't rely on your training data.
 - startDate: Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)
 - endDate: End date for ranges, using same format as startDate. Use null if not applicable
 - score: Numeric value from 1-100 representing the importance/relevance of this event
