@@ -313,7 +313,6 @@ async function generateTimeline(
       return processedTimeline.events.length > 0 ? processedTimeline : null;
     } catch (jsonError) {
       logger.error("Failed to parse JSON from response", jsonError);
-      logger.error("Raw response:", accumulatedResult);
       return null;
     }
   } catch (error) {
