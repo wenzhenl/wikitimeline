@@ -18,7 +18,7 @@ import { SITE_CONFIG } from "@/app/config/site";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { TEMPERATURE } from "@/app/constants/gemini";
 import { WIKI_EVENTS_EXTRACTION_PROMPT, WIKI_METADATA_EXTRACTION_PROMPT } from "@/app/constants/gemini/systemPrompt";
-import { compareDates } from "@/app/utils/helper";
+import { compareDates, getLanguageName } from "@/app/utils/helper";
 
 // Initialize Redis
 const redis = Redis.fromEnv();
@@ -221,8 +221,8 @@ async function generateTimeline(
     
     // Make two parallel API calls
     const [events, metadata] = await Promise.all([
-      extractEventsFromWikiContent(genAI, wikiContent, pageName),
-      extractMetadataFromWikiSummary(genAI, wikiSummary, pageName)
+      extractEventsFromWikiContent(genAI, wikiContent, pageName, language),
+      extractMetadataFromWikiSummary(genAI, wikiSummary, pageName, language)
     ]);
     
     const endTime = Date.now();
@@ -257,10 +257,10 @@ async function generateTimeline(
 async function extractMetadataFromWikiSummary(
   genAI: GoogleGenerativeAI,
   wikiSummary: string,
-  pageName: string
+  pageName: string,
+  language: string
 ): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
   try {
-
     const model = genAI.getGenerativeModel({
       model: DEFAULT_MODEL,
       safetySettings: SAFETY_SETTINGS,
@@ -268,7 +268,7 @@ async function extractMetadataFromWikiSummary(
         maxOutputTokens: 8192,
         temperature: TEMPERATURE,
       },
-      systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT
+      systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT.replace('#LANGUAGE#', getLanguageName(language))
     });
 
     // Create the prompt for metadata extraction
@@ -329,9 +329,9 @@ async function extractMetadataFromWikiSummary(
 async function extractEventsFromWikiContent(
   genAI: GoogleGenerativeAI,
   wikiContent: string,
-  pageName: string
+  pageName: string,
+  language: string
 ): Promise<TimelineEvent[]> {
-
   const model = genAI.getGenerativeModel({
     model: DEFAULT_MODEL,
     safetySettings: SAFETY_SETTINGS,
@@ -339,7 +339,7 @@ async function extractEventsFromWikiContent(
       maxOutputTokens: 8192,
       temperature: TEMPERATURE,
     },
-    systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT
+    systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace('#LANGUAGE#', getLanguageName(language))
   });
 
   // Track accumulated results

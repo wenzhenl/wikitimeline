@@ -34,7 +34,7 @@ IMPORTANT INSTRUCTIONS:
 5. Always escape double quotes in text fields with a backslash (\\").
 
 LANGUAGE INSTRUCTIONS:
-1. Use the SAME LANGUAGE as the Wikipedia article for all text fields (headline, description).
+1. Use the SAME LANGUAGE: #LANGUAGE# as the Wikipedia article for all text fields (headline, description).
 2. Keep field names (headline, description, startDate, endDate, score) in English.
 3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
 4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT consistently throughout all events, matching the variant used in the Wikipedia article.
@@ -75,7 +75,7 @@ IMPORTANT INSTRUCTIONS:
 4. Always escape double quotes in text fields with a backslash (\\").
 
 LANGUAGE INSTRUCTIONS:
-1. Use the SAME LANGUAGE as the Wikipedia summary providedfor the title field.
+1. Use the SAME LANGUAGE: #LANGUAGE# as the Wikipedia summary for all the text fields.
 2. Keep field names (title, birthDate, deathDate) in English.
 3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
 4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT as the Wikipedia summary.

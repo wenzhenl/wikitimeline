@@ -1,4 +1,5 @@
 import { PAGE_NAME_SEPARATOR } from "@/app/constants";
+import { COMMON_LANGUAGES } from "@/app/constants/languageSettings";
 
 // Helper function to compare dates that might be in YYYY, YYYY-MM, or YYYY-MM-DD format
 export function compareDates(dateA: string, dateB: string): number {
@@ -64,4 +65,14 @@ export function formatPageName(name: string, pageNameSeparator: string = PAGE_NA
     formattedName: decodedName.replace(/_/g, " "),
     language: "en" // Default to English
   };
+}
+
+/**
+ * Converts a language code to its full name (e.g., "en" -> "English")
+ * @param languageCode The two-letter language code
+ * @returns The full name of the language
+ */
+export function getLanguageName(languageCode: string): string {
+  const language = COMMON_LANGUAGES.find(lang => lang.code === languageCode);
+  return language?.name || languageCode.toUpperCase();
 }
