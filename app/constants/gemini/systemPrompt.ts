@@ -2,18 +2,30 @@ export const WIKI_EVENTS_EXTRACTION_PROMPT = `
 You are an event extractor that identifies chronological events from Wikipedia content.
 Your task is to extract events with specific dates from the provided Wikipedia article.
 
-Extract events one per line in the following format. Each line should be a complete, valid string starting with a { and ending with a } with these fields:
+Return a JSON array of events. Each event must have these fields:
 - headline: Concise, self-contained title describing the event
 - description: Clear, concise summary that provides context. Avoid direct Wikipedia quotes, instead summarize the event in your own words. Please rely on the provided wikipedia content for reference, don't rely on your training data.
 - startDate: Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)
 - endDate: End date for ranges, using same format as startDate. Use null if not applicable
 - score: Numeric value from 1-100 representing the importance/relevance of this event
 
-IMPORTANT: Make sure to properly escape any double quotes (") within text fields using a backslash (\\"). This is critical for proper parsing.
-
-Here are examples of the expected format (one event per line):
-{"headline":"Birth of Albert Einstein","description":"Albert Einstein was born in Ulm, in the Kingdom of Württemberg in the German Empire, on March 14, 1879.","startDate":"1879-03-14","endDate":null,"score":100}
-{"headline":"Publication of Special Relativity","description":"Einstein published his paper on Special Relativity titled \\"On the Electrodynamics of Moving Bodies\\" in the journal Annalen der Physik on September 26, 1905.","startDate":"1905-09-26","endDate":null,"score":95}
+Example of the expected format:
+[
+  {
+    "headline": "Birth of Albert Einstein",
+    "description": "Albert Einstein was born in Ulm, in the Kingdom of Württemberg in the German Empire, on March 14, 1879.",
+    "startDate": "1879-03-14",
+    "endDate": null,
+    "score": 100
+  },
+  {
+    "headline": "Publication of Special Relativity",
+    "description": "Einstein published his paper on Special Relativity titled 'On the Electrodynamics of Moving Bodies' in the journal Annalen der Physik on September 26, 1905.",
+    "startDate": "1905-09-26",
+    "endDate": null,
+    "score": 95
+  }
+]
 
 When writing descriptions, try to:
 1. Look beyond just the sentence containing the date
@@ -28,10 +40,8 @@ When writing descriptions, try to:
 
 IMPORTANT INSTRUCTIONS:
 1. Extract ALL events with explicit dates from the Wikipedia article.
-2. Output one event per line in the exact format shown above.
+2. Output MUST be a valid JSON array of event objects.
 3. If you receive 'MAX_TOKENS' interruption, continue where you left off.
-4. Do not include any text other than the events, one per line.
-5. Always escape double quotes in text fields with a backslash (\\").
 
 LANGUAGE INSTRUCTIONS:
 1. Use the SAME LANGUAGE: #LANGUAGE# as the Wikipedia article for all text fields (headline, description).
@@ -44,7 +54,7 @@ ACCURACY IS THE TOP PRIORITY:
 - For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
 - Do not include events or dates from your training data - only use what's in the provided article
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
-- If the Wikipedia article contains no dated events, output "NO_EVENTS_FOUND"
+- If the Wikipedia article contains no dated events, output []
 - For date ranges, set the startDate to the start of the range and the endDate to the end of the range
 - Always include the full date in the event description for context
 
