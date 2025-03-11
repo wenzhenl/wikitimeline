@@ -475,9 +475,7 @@ async function extractEventsFromWikiContent(
     logger.info(`Extracted ${events.length} events from ${pageName}`);
     return events;
   } catch (error) {
-    logger.error("Failed to parse events from JSON lines", error);
-    logger.error("Raw response:", accumulatedResult);
-    return [];
+    throw new Error(`Failed to parse events from JSON lines: ${error}`);
   }
 }
 
