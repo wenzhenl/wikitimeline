@@ -249,13 +249,18 @@ async function generateTimeline(
       
       // Get text response
       const textResponse = response.response.text();
+
+      logger.debug(`Gemini response: ${textResponse}`);
+
       result += textResponse;
       
       logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
-      
+
       // Check if response was truncated due to token limits
       const finishReason = response.response.candidates?.[0]?.finishReason;
       
+      logger.debug(`Finish reason: ${finishReason}`);
+
       if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
         logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
         
