@@ -221,51 +221,60 @@ async function generateTimeline(
     const geminiModel = genAI.getGenerativeModel({
       model: DEFAULT_MODEL,
       safetySettings: SAFETY_SETTINGS,
-
       generationConfig: {
         maxOutputTokens: 8192, // Use maximum available tokens
         temperature: TEMPERATURE,
-        responseMimeType: "application/json",
-        responseSchema: TIMELINE_SCHEMA,
       },
-      systemInstruction: SYSTEM_PROMPT
     });
-        
-    // Initialize the user prompt with the full Wikipedia content
-    let userPrompt = `      
-      Please create a timeline from the following content:
-      ${JSON.stringify(wikiContent)}
-    `;
     
-    // Track our results through iterations
-    let result = "";
+    // Track accumulated results and conversation
+    let accumulatedResult = "";
     let iterations = 0;
     const MAX_ITERATIONS = 3;
     
+    // Initialize conversation with system message and user content
+    let conversation = [
+      { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
+      { role: 'model', parts: [{ text: "I'll extract events from the Wikipedia content you provide." }] },
+      { role: 'user', parts: [{ text: `Create a timeline for: ${pageName}\n\n${wikiContent}` }] }
+    ];
+    
     while (iterations < MAX_ITERATIONS) {
-      // Call Gemini with the prompt
-      logger.debug(`Calling Gemini (iteration ${iterations + 1})`);
-      const response = await geminiModel.generateContent(userPrompt);
+      // Call Gemini with the conversation history
+      logger.debug(`Calling Gemini (iteration ${iterations + 1}/${MAX_ITERATIONS})`);
+      
+      const response = await geminiModel.generateContent({
+        contents: conversation,
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: TEMPERATURE,
+        }
+      });
       
       // Get text response
       const textResponse = response.response.text();
-
-      logger.debug(`Gemini response: ${textResponse}`);
-
-      result += textResponse;
       
-      logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
-
+      // Add this response to our accumulated result
+      accumulatedResult += textResponse;
+      
+      // Log debugging info
+      logger.debug(`Response finish reason: ${response.response.candidates?.[0]?.finishReason}`);
+      
       // Check if response was truncated due to token limits
       const finishReason = response.response.candidates?.[0]?.finishReason;
       
-      logger.debug(`Finish reason: ${finishReason}`);
-
       if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
         logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
         
-        // Simply append the result to the userPrompt and continue
-        userPrompt += textResponse;
+        // Add the model's response to the conversation and ask it to continue
+        conversation.push({ role: 'model', parts: [{ text: textResponse }] });
+        conversation.push({ 
+          role: 'user', 
+          parts: [{ 
+            text: "Your response was cut off due to token limits. Please continue from where you left off. Remember to focus on producing valid JSON that can be merged with your previous output." 
+          }]
+        });
+        
         iterations++;
       } else {
         // Either we finished successfully or reached our iteration limit
@@ -276,7 +285,7 @@ async function generateTimeline(
     // Try to parse the result as JSON
     try {
       // Some cleanup to ensure we have valid JSON
-      let jsonString = result.trim();
+      let jsonString = accumulatedResult.trim();
       
       // If the response starts with markdown code block indicators, strip them
       if (jsonString.startsWith("```json")) {
@@ -284,6 +293,9 @@ async function generateTimeline(
       } else if (jsonString.startsWith("```")) {
         jsonString = jsonString.replace(/```\n/, "").replace(/\n```$/, "");
       }
+      
+      // Log the JSON string for debugging
+      logger.debug(`Attempting to parse JSON: ${jsonString.substring(0, 100)}...`);
       
       // Attempt to parse the JSON
       const data = JSON.parse(jsonString);
@@ -303,7 +315,7 @@ async function generateTimeline(
       return processedTimeline.events.length > 0 ? processedTimeline : null;
     } catch (jsonError) {
       logger.error("Failed to parse JSON from response", jsonError);
-      logger.error("Raw response:", result);
+      logger.error("Raw response:", accumulatedResult);
       return null;
     }
   } catch (error) {
