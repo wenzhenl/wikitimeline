@@ -1,5 +1,3 @@
-import { DEFAULT_LANGUAGE } from "@/app/constants";
-
 export const WIKI_EVENTS_EXTRACTION_PROMPT = `
 You are an event extractor that identifies chronological events from Wikipedia content.
 Your task is to extract events with specific dates from the provided Wikipedia article.
