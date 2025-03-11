@@ -308,98 +308,99 @@ function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUN
 async function generateTimeline(
   pageName: string, 
   wikiContent: string,
-  wikiSummary: string,
   genAI: GoogleGenerativeAI,
   language: string = DEFAULT_LANGUAGE,
 ): Promise<Timeline | null> {
-  // Split content into chunks
-  const contentChunks = splitContentIntoChunks(wikiContent);
-  logger.info(`Processing ${contentChunks.length} chunks for ${pageName}`);
-  
-  // Process all chunks in parallel
-  const chunkResults = await Promise.all(
-    contentChunks.map((chunk, index) => 
-      processChunk(pageName, chunk, wikiSummary, index, contentChunks.length, genAI, language)
-    )
-  );
-  
-  // Collect all events and metadata
-  let allEvents: TimelineEvent[] = [];
-  let title = pageName;
-  let birthDate: string | undefined;
-  let deathDate: string | undefined;
-  let totalInputTokens = 0;
-  let totalOutputTokens = 0;
-  
-  // Track token usage and events per chunk for logging
-  const tokensPerChunk: { input: number, output: number }[] = [];
-  const eventsPerChunk: number[] = [];
-  
-  // Process each chunk result
-  chunkResults.forEach((result, index) => {
-    if (!result) {
-      logger.warn(`No result from chunk ${index + 1} for ${pageName}`);
-      tokensPerChunk.push({ input: 0, output: 0 });
-      eventsPerChunk.push(0);
-      return;
-    }
+  try {
+    logger.debug(`Generating timeline for ${pageName} (language: ${language})`);
     
-    // Add events from this chunk
-    allEvents = [...allEvents, ...result.events];
-    eventsPerChunk.push(result.events.length);
-    
-    // Add token usage
-    tokensPerChunk.push({
-      input: result.inputTokens || 0,
-      output: result.outputTokens || 0
+    // Create the Gemini model with the appropriate settings
+    const geminiModel = genAI.getGenerativeModel({
+      model: DEFAULT_MODEL,
+      safetySettings: SAFETY_SETTINGS,
+      generationConfig: {
+        maxOutputTokens: 8192, // Use maximum available tokens
+        temperature: TEMPERATURE,
+      },
     });
     
-    // Use title from the first chunk if available
-    if (index === 0 && result.title) {
-      title = result.title;
+    // Assume systemPrompt is a constant (we'll deal with it later)
+    const systemPrompt = "You are a timeline creator that extracts chronological events from Wikipedia content. Extract events in JSON format.";
+    
+    // Initialize the user prompt with the full Wikipedia content
+    let userPrompt = `
+      ${systemPrompt}
+      
+      Extract events with dates from the following content:
+      ${JSON.stringify(wikiContent)}
+    `;
+    
+    // Track our results through iterations
+    let result = "";
+    let iterations = 0;
+    const MAX_ITERATIONS = 3;
+    
+    while (iterations < MAX_ITERATIONS) {
+      // Call Gemini with the prompt
+      logger.debug(`Calling Gemini (iteration ${iterations + 1})`);
+      const response = await geminiModel.generateContent(userPrompt);
+      
+      // Get text response
+      const textResponse = response.response.text();
+      result += textResponse;
+      
+      // Check if response was truncated due to token limits
+      const finishReason = response.response.candidates?.[0]?.finishReason;
+      
+      if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
+        logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
+        
+        // Simply append the result to the userPrompt and continue
+        userPrompt += textResponse;
+        iterations++;
+      } else {
+        // Either we finished successfully or reached our iteration limit
+        break;
+      }
     }
     
-    if (result.birthDate && !birthDate) {
-      birthDate = result.birthDate;
+    // Try to parse the result as JSON
+    try {
+      // Some cleanup to ensure we have valid JSON
+      let jsonString = result.trim();
+      
+      // If the response starts with markdown code block indicators, strip them
+      if (jsonString.startsWith("```json")) {
+        jsonString = jsonString.replace(/```json\n/, "").replace(/\n```$/, "");
+      } else if (jsonString.startsWith("```")) {
+        jsonString = jsonString.replace(/```\n/, "").replace(/\n```$/, "");
+      }
+      
+      // Attempt to parse the JSON
+      const data = JSON.parse(jsonString);
+      const timelineData = data.timeline;
+      
+      // Build the timeline
+      const timeline: Timeline = {
+        title: timelineData.title || pageName,
+        events: timelineData.events || [],
+        birthDate: timelineData.birthDate,
+        deathDate: timelineData.deathDate,
+      };
+      
+      // Post-process the timeline
+      const processedTimeline = postProcessTimeline(timeline);
+      
+      return processedTimeline.events.length > 0 ? processedTimeline : null;
+    } catch (jsonError) {
+      logger.error("Failed to parse JSON from response", jsonError);
+      logger.error("Raw response:", result);
+      return null;
     }
-    
-    if (result.deathDate && !deathDate) {
-      deathDate = result.deathDate;
-    }
-    
-    // Add token usage
-    totalInputTokens += result.inputTokens || 0;
-    totalOutputTokens += result.outputTokens || 0;
-  });
-  
-  // Log detailed token usage
-  logger.debug(`Token usage by chunk: ${tokensPerChunk.map((tokens, i) => 
-    `Chunk ${i+1}: ${tokens.input} input, ${tokens.output} output`).join(', ')}`);
-  logger.info(`Total token usage for ${pageName}: ${totalInputTokens} input tokens, ${totalOutputTokens} output tokens, ${totalInputTokens + totalOutputTokens} total tokens`);
-  
-  // Log event counts
-  logger.info(`Events by chunk: ${eventsPerChunk.map((count, i) => `Chunk ${i+1}: ${count}`).join(', ')}`);
-  logger.info(`Total raw events extracted for ${pageName}: ${allEvents.length} (before deduplication)`);
-  
-  // If no events were found, return null
-  if (allEvents.length === 0) {
-    logger.warn(`No events found for ${pageName} across all chunks`);
+  } catch (error) {
+    logger.error(`Failed to generate timeline for ${pageName}:`, error);
     return null;
   }
-  
-  // Construct the final timeline
-  const timeline = {
-    title,
-    birthDate,
-    deathDate,
-    events: allEvents
-  };
-  
-  // Post-process the timeline (sorts, deduplicates, and adds ages)
-  const processedTimeline = postProcessTimeline(timeline);
-  logger.info(`Final timeline for ${pageName} has ${processedTimeline.events.length} unique events (after deduplication)`);
-  
-  return processedTimeline;
 }
 
 // Process an individual chunk of Wikipedia content
@@ -630,7 +631,6 @@ export async function GET(
               timeline = await generateTimeline(
                 pageInfo.pageName, 
                 wikiData.content,
-                wikiData.summary, 
                 genAI,
                 pageInfo.language
               );
