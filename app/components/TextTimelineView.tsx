@@ -104,20 +104,22 @@ export default function TextTimelineView({
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = timelineRefs.current.findIndex(
-              (ref) => ref === entry.target
-            );
-            if (index !== -1) {
+          const index = timelineRefs.current.findIndex(
+            (ref) => ref === entry.target
+          );
+          if (index !== -1) {
+            if (entry.isIntersecting) {
               setFocusedIndex(index);
+            } else if (focusedIndex === index) {
+              setFocusedIndex(null);
             }
           }
         });
       },
       {
         root: null,
-        rootMargin: "0px",
-        threshold: 0.5,
+        rootMargin: "-45% 0px -45% 0px",
+        threshold: 0,
       }
     );
 
@@ -125,12 +127,8 @@ export default function TextTimelineView({
       if (ref) observer.observe(ref);
     });
 
-    return () => {
-      timelineRefs.current.forEach((ref) => {
-        if (ref) observer.unobserve(ref);
-      });
-    };
-  }, [filteredTimeline.length]);
+    return () => observer.disconnect();
+  }, [filteredTimeline.length, focusedIndex]);
 
   // Get unique sources for combined view
   const uniqueSources = useMemo(() => {
@@ -252,6 +250,9 @@ export default function TextTimelineView({
 
       {/* Timeline with connected events and left-side time ticker */}
       <div className="relative mt-8">
+        {/* Continuous vertical line spanning the entire timeline */}
+        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-blue-800"></div>
+
         {filteredTimeline.map((event: TimelineEvent, index: number) => {
           const isNegativeYear = event.date.startsWith("-");
           const normalizedDate = isNegativeYear
@@ -277,16 +278,15 @@ export default function TextTimelineView({
           return (
             <div
               key={index}
-              className="flex mb-8 relative"
+              className="flex mb-8 relative group"
               ref={(el) => {
                 timelineRefs.current[index] = el;
               }}
             >
-              {/* Left side time ticker */}
+              {/* Left side time ticker with dot */}
               <div className="w-12 flex-shrink-0 relative mr-4">
-                <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-blue-200 dark:bg-blue-800"></div>
                 <div
-                  className={`absolute top-6 left-1/2 w-4 h-4 rounded-full -ml-2 z-10 shadow-md transition-all duration-300 ${
+                  className={`absolute top-[1.375rem] left-1/2 w-4 h-4 rounded-full -ml-2 z-10 shadow-md transition-all duration-300 ${
                     isFocused
                       ? `bg-blue-500 dark:bg-blue-400`
                       : `bg-white dark:bg-gray-800 border-2 border-blue-500 dark:border-blue-400`
@@ -296,7 +296,8 @@ export default function TextTimelineView({
 
               {/* Event card */}
               <div className="flex-grow relative">
-                <div className="absolute top-0 left-0 w-4 h-0.5 bg-blue-200 dark:bg-blue-800 -ml-4 mt-7"></div>
+                {/* Horizontal connector line from dot to card */}
+                <div className="absolute top-[1.375rem] left-0 w-4 h-0.5 bg-blue-200 dark:bg-blue-800 -ml-4"></div>
                 <div
                   className={`
                   rounded-lg p-5 shadow-md border transition-all duration-300
@@ -364,11 +365,10 @@ export default function TextTimelineView({
         {filteredTimeline.length > 0 && (
           <div className="flex relative">
             <div className="w-12 flex-shrink-0 relative mr-4">
-              <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-blue-200 dark:bg-blue-800 h-8"></div>
-              <div className="absolute top-8 left-1/2 w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-blue-500 dark:border-blue-400 -ml-2 z-10 shadow-md"></div>
+              <div className="absolute top-[1.375rem] left-1/2 w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-blue-500 dark:border-blue-400 -ml-2 z-10 shadow-md"></div>
             </div>
             <div className="flex-grow">
-              <div className="text-sm text-gray-500 dark:text-gray-400 pt-8 pl-2">
+              <div className="text-sm text-gray-500 dark:text-gray-400 pt-5 pl-2">
                 End of timeline
               </div>
             </div>
