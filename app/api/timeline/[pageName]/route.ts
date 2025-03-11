@@ -17,7 +17,7 @@ import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { TEMPERATURE } from "@/app/constants/gemini";
-import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
+import { WIKI_EVENTS_EXTRACTION_PROMPT, WIKI_METADATA_EXTRACTION_PROMPT } from "@/app/constants/gemini/systemPrompt";
 import { compareDates } from "@/app/utils/helper";
 
 // Initialize Redis
@@ -210,6 +210,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 async function generateTimeline(
   pageName: string, 
   wikiContent: string,
+  wikiSummary: string,
   genAI: GoogleGenerativeAI,
   language: string = DEFAULT_LANGUAGE,
 ): Promise<Timeline | null> {
@@ -220,68 +221,65 @@ async function generateTimeline(
     const geminiModel = genAI.getGenerativeModel({
       model: DEFAULT_MODEL,
       safetySettings: SAFETY_SETTINGS,
-      systemInstruction: SYSTEM_PROMPT,
       generationConfig: {
-        maxOutputTokens: 8192, // Use maximum available tokens
+        maxOutputTokens: 8192,
         temperature: TEMPERATURE,
       },
     });
     
-    // Track accumulated results and conversation
-    let accumulatedResult = "";
-    let iterations = 0;
-    const MAX_ITERATIONS = 3;
+    // Make two parallel API calls
+    const [events, metadata] = await Promise.all([
+      extractEventsFromWikiContent(geminiModel, wikiContent, pageName),
+      extractMetadataFromWikiSummary(geminiModel, wikiSummary, pageName)
+    ]);
     
-    let userPrompt = `      
-      Generate a timeline from the following content:
-      <wikipedia_content>
-      ${wikiContent}
-      </wikipedia_content>
-    `;
-    
-    while (iterations < MAX_ITERATIONS) {
-      // Call Gemini with the conversation history
-      logger.debug(`Calling Gemini (iteration ${iterations + 1}/${MAX_ITERATIONS})`);
-      
-      const response = await geminiModel.generateContent(userPrompt);
-      
-      // Get text response
-      const textResponse = response.response.text();
-      logger.debug(`Text response: ${textResponse.substring(0, 1000)}`);
-
-      // Add this response to our accumulated result
-      accumulatedResult += textResponse;
-            
-      // Check if response was truncated due to token limits
-      const finishReason = response.response.candidates?.[0]?.finishReason;
-      logger.debug(`Finish reason: ${finishReason}`);
-      
-      if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
-        logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
-        // Add a new prompt to the conversation
-        userPrompt += iterations === 0 ? `
-          Your output was cut off due to token limits. Please continue from where you left off, don't repeat events that are already generated in the previous response.
-          Remember to focus on producing valid JSON that can be merged with your previous output.
-          Here is the previous response:
-          ${textResponse}
-        ` : `
-          ${textResponse}
-        `;
-
-        iterations++;
-      } else {
-        // Either we finished successfully or reached our iteration limit
-        if (iterations === MAX_ITERATIONS - 1) {
-          throw new Error('Failed to generate timeline after ${MAX_ITERATIONS} iterations');
-        }
-        break;
-      }
+    if (!events || events.length === 0) {
+      logger.warn(`No events extracted for ${pageName}`);
+      return null;
     }
     
-    // Try to parse the result as JSON
+    // Build the timeline
+    const timeline: Timeline = {
+      title: metadata.title || pageName,
+      events: events,
+      birthDate: metadata.birthDate,
+      deathDate: metadata.deathDate,
+    };
+    
+    // Post-process the timeline
+    const processedTimeline = postProcessTimeline(timeline);
+    
+    return processedTimeline.events.length > 0 ? processedTimeline : null;
+  } catch (error) {
+    logger.error(`Failed to generate timeline for ${pageName}:`, error);
+    return null;
+  }
+}
+
+// Helper function to extract metadata from wiki summary
+async function extractMetadataFromWikiSummary(
+  model: any,
+  wikiSummary: string,
+  pageName: string
+): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
+  try {
+    // Create the prompt for metadata extraction
+    const userPrompt = `
+      ${WIKI_METADATA_EXTRACTION_PROMPT}
+      
+      Extract metadata from the following Wikipedia summary:
+      ${wikiSummary}
+    `;
+    
+    // Call Gemini to extract metadata
+    logger.debug(`Extracting metadata for ${pageName}`);
+    const response = await model.generateContent(userPrompt);
+    const textResponse = response.response.text();
+    
+    // Parse the JSON response
     try {
-      // Some cleanup to ensure we have valid JSON
-      let jsonString = accumulatedResult.trim();
+      // Clean up the response
+      let jsonString = textResponse.trim();
       
       // If the response starts with markdown code block indicators, strip them
       if (jsonString.startsWith("```json")) {
@@ -290,32 +288,145 @@ async function generateTimeline(
         jsonString = jsonString.replace(/```\n/, "").replace(/\n```$/, "");
       }
       
-      // Log the JSON string for debugging
-      logger.debug(`Attempting to parse JSON: ${jsonString.substring(0, 100)}...`);
-      
-      // Attempt to parse the JSON
-      const data = JSON.parse(jsonString);
-      const timelineData = data.timeline;
-      
-      // Build the timeline
-      const timeline: Timeline = {
-        title: timelineData.title || pageName,
-        events: timelineData.events || [],
-        birthDate: timelineData.birthDate,
-        deathDate: timelineData.deathDate,
+      // Parse the JSON
+      const metadata = JSON.parse(jsonString);
+      return {
+        title: metadata.title || pageName,
+        birthDate: metadata.birthDate,
+        deathDate: metadata.deathDate
       };
-      
-      // Post-process the timeline
-      const processedTimeline = postProcessTimeline(timeline);
-      
-      return processedTimeline.events.length > 0 ? processedTimeline : null;
     } catch (jsonError) {
-      logger.error("Failed to parse JSON from response", jsonError);
-      return null;
+      logger.error("Failed to parse metadata JSON", jsonError);
+      // Return default metadata
+      return {
+        title: pageName,
+        birthDate: undefined,
+        deathDate: undefined
+      };
     }
   } catch (error) {
-    logger.error(`Failed to generate timeline for ${pageName}:`, error);
-    return null;
+    logger.error(`Failed to extract metadata for ${pageName}:`, error);
+    // Return default metadata
+    return {
+      title: pageName,
+      birthDate: undefined,
+      deathDate: undefined
+    };
+  }
+}
+
+// Helper function to extract events from Wikipedia content
+async function extractEventsFromWikiContent(
+  model: any,
+  wikiContent: string,
+  pageName: string
+): Promise<TimelineEvent[]> {
+  // Track accumulated results
+  let accumulatedResult = "";
+  let iterations = 0;
+  const MAX_ITERATIONS = 3;
+  
+  // Initial prompt
+  let userPrompt = `
+    ${WIKI_EVENTS_EXTRACTION_PROMPT}
+    
+    Extract events from: ${pageName}
+    
+    ${wikiContent}
+  `;
+  
+  while (iterations < MAX_ITERATIONS) {
+    // Call Gemini with the prompt
+    logger.debug(`Extracting events (iteration ${iterations + 1}/${MAX_ITERATIONS})`);
+    
+    const response = await model.generateContent(userPrompt);
+    
+    // Get text response
+    const textResponse = response.response.text();
+    
+    // Add this response to our accumulated result
+    accumulatedResult += textResponse;
+    
+    // Check if response was truncated due to token limits
+    const finishReason = response.response.candidates?.[0]?.finishReason;
+    
+    if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
+      logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
+      
+      // Check if the last event is complete
+      const lines = accumulatedResult.split('\n');
+      const lastLine = lines[lines.length - 1];
+      
+      // If the last line doesn't have all 5 parts (headline|description|startDate|endDate|score),
+      // it's likely incomplete, so remove it
+      const parts = lastLine.split('|');
+      if (parts.length < 5) {
+        // Remove the last line
+        lines.pop();
+        accumulatedResult = lines.join('\n');
+        logger.debug("Removed incomplete last event");
+      }
+      
+      // Create a new prompt to continue
+      userPrompt = `
+        ${WIKI_EVENTS_EXTRACTION_PROMPT}
+        
+        You were extracting events but reached the token limit. Continue from where you left off.
+        Here are the events you've extracted so far:
+        
+        ${accumulatedResult}
+        
+        Continue extracting events from: ${pageName}
+      `;
+      
+      iterations++;
+    } else {
+      // Either we finished successfully or reached our iteration limit
+      break;
+    }
+  }
+  
+  // Parse the line-by-line format
+  try {
+    // Clean up the accumulated result
+    const cleanedResult = accumulatedResult.trim();
+    
+    // Check if no events were found
+    if (cleanedResult === "NO_EVENTS_FOUND") {
+      logger.info(`No events found for ${pageName}`);
+      return [];
+    }
+    
+    // Split by lines and parse each line
+    const eventLines = cleanedResult.split('\n').filter(line => line.trim() !== '');
+    
+    // Parse each line into an event object
+    const events = eventLines.map(line => {
+      const parts = line.split('|').map(part => part.trim());
+      
+      // Ensure we have all 5 parts
+      if (parts.length < 5) {
+        logger.warn(`Incomplete event line: ${line}`);
+        return null;
+      }
+      
+      const [headline, description, startDate, endDate, score] = parts;
+      
+      return {
+        headline,
+        description,
+        startDate,
+        endDate: endDate === 'null' ? undefined : endDate,
+        score: parseInt(score, 10) || 50 // Default to 50 if parsing fails
+      };
+    }).filter(event => event !== null) as TimelineEvent[];
+    
+    logger.info(`Extracted ${events.length} events from ${pageName}`);
+    return events;
+  } catch (error) {
+    logger.error("Failed to parse events from line-by-line format", error);
+    logger.error("Raw response:", accumulatedResult);
+    return [];
   }
 }
 
@@ -457,6 +568,7 @@ export async function GET(
               timeline = await generateTimeline(
                 pageInfo.pageName, 
                 wikiData.content,
+                wikiData.summary,
                 genAI,
                 pageInfo.language
               );
