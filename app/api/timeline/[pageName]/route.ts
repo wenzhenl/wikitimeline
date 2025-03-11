@@ -17,7 +17,7 @@ import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
 import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
-import { MAX_CHUNK_SIZE, TEMPERATURE } from "@/app/constants/gemini";
+import { TEMPERATURE } from "@/app/constants/gemini";
 import { getSystemInstruction } from "@/app/constants/gemini/systemPrompt";
 import { compareDates } from "@/app/utils/helper";
 
@@ -207,103 +207,6 @@ function postProcessTimeline(timeline: Timeline): Timeline {
   };
 }
 
-// Improved function to split content into chunks with better token estimation
-function splitContentIntoChunks(content: string, maxChunkSize: number = MAX_CHUNK_SIZE): string[] {
-  if (!content || content.length === 0) {
-    return [''];
-  }
-  
-  // If content is small enough, return it as a single chunk
-  if (content.length < maxChunkSize) {
-    return [content];
-  }
-  
-  const chunks: string[] = [];
-  let startPos = 0;
-  
-  // Calculate approximate token count for logging
-  const estimateTokens = (text: string): number => Math.round(text.length / 3); // ~3 chars per token
-  
-  while (startPos < content.length) {
-    // Calculate end position for this chunk
-    let endPos = Math.min(startPos + maxChunkSize, content.length);
-    
-    // Try to find a paragraph break near the end position
-    const paragraphBreak = content.lastIndexOf('\n\n', endPos);
-    if (paragraphBreak > startPos && paragraphBreak > endPos - 1500) {
-      endPos = paragraphBreak + 2; // Include the newlines
-    } else {
-      // If no paragraph break, try to find a sentence end
-      const sentenceBreak = content.lastIndexOf('. ', endPos);
-      if (sentenceBreak > startPos && sentenceBreak > endPos - 600) {
-        endPos = sentenceBreak + 2; // Include the period and space
-      }
-    }
-    
-    // Add the chunk
-    const chunk = content.substring(startPos, endPos);
-    chunks.push(chunk);
-    
-    // Log individual chunk size for debugging
-    const chunkTokens = estimateTokens(chunk);
-    logger.debug(`Created chunk ${chunks.length}: ${chunk.length} chars, ~${chunkTokens} tokens`);
-    
-    startPos = endPos;
-  }
-  
-  // Log chunk information
-  const avgChunkSize = Math.round(content.length / chunks.length);
-  const estimatedTokens = Math.round(avgChunkSize / 3); // Rough estimate: ~3 chars per token
-  logger.info(`Split content into ${chunks.length} chunks (avg size: ${avgChunkSize} chars, ~${estimatedTokens} tokens per chunk)`);
-  
-  // Check if chunks are too small and need to be merged
-  if (chunks.length > 1) {
-    const smallChunkThreshold = maxChunkSize / 3; // Consider chunks smaller than 1/3 of max size as "small"
-    
-    // Find small chunks that could be merged
-    const mergedChunks: string[] = [];
-    let currentMergedChunk = chunks[0];
-    let currentMergedSize = chunks[0].length;
-    
-    for (let i = 1; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      
-      // If this chunk is small or the merged result would still be under max size
-      if (chunk.length < smallChunkThreshold || (currentMergedSize + chunk.length) < maxChunkSize) {
-        // Merge with previous chunk
-        currentMergedChunk += chunk;
-        currentMergedSize += chunk.length;
-        logger.debug(`Merged chunk ${i+1} into previous chunk (new size: ${currentMergedSize} chars, ~${estimateTokens(currentMergedChunk)} tokens)`);
-      } else {
-        // Save the current merged chunk and start a new one
-        mergedChunks.push(currentMergedChunk);
-        currentMergedChunk = chunk;
-        currentMergedSize = chunk.length;
-      }
-    }
-    
-    // Add the last merged chunk
-    mergedChunks.push(currentMergedChunk);
-    
-    // If we actually merged any chunks, update the chunks array and log
-    if (mergedChunks.length < chunks.length) {
-      chunks.length = 0; // Clear the array
-      chunks.push(...mergedChunks); // Add the merged chunks
-      
-      const newAvgSize = Math.round(content.length / chunks.length);
-      const newEstTokens = Math.round(newAvgSize / 3);
-      logger.info(`After merging small chunks: ${chunks.length} chunks (avg size: ${newAvgSize} chars, ~${newEstTokens} tokens per chunk)`);
-      
-      // Log individual chunk sizes after merging
-      chunks.forEach((chunk, idx) => {
-        logger.debug(`Final chunk ${idx+1}: ${chunk.length} chars, ~${estimateTokens(chunk)} tokens`);
-      });
-    }
-  }
-  
-  return chunks;
-}
-
 // Modified function to generate timeline using parallel chunk processing
 async function generateTimeline(
   pageName: string, 
@@ -399,96 +302,6 @@ async function generateTimeline(
     }
   } catch (error) {
     logger.error(`Failed to generate timeline for ${pageName}:`, error);
-    return null;
-  }
-}
-
-// Process an individual chunk of Wikipedia content
-async function processChunk(
-  pageName: string,
-  chunkContent: string,
-  wikiSummary: string,
-  chunkIndex: number,
-  totalChunks: number,
-  genAI: GoogleGenerativeAI,
-  language: string = DEFAULT_LANGUAGE
-): Promise<{
-  events: TimelineEvent[];
-  title?: string;
-  birthDate?: string;
-  deathDate?: string;
-  inputTokens?: number;
-  outputTokens?: number;
-} | null> {
-  try {
-    const isFirstChunk = chunkIndex === 0;
-    logger.debug(`Processing chunk ${chunkIndex + 1}/${totalChunks} for ${pageName} (${chunkContent.length} chars)`);
-
-    // Get system prompt tailored to this chunk with language consideration
-    const systemInstruction = getSystemInstruction(isFirstChunk, language);
-
-    // Create Gemini model with the appropriate settings
-    const geminiModel = genAI.getGenerativeModel({ 
-      model: DEFAULT_MODEL,
-      generationConfig: {
-        temperature: TEMPERATURE,
-        responseMimeType: "application/json",
-        responseSchema: TIMELINE_SCHEMA,
-      },
-      safetySettings: SAFETY_SETTINGS,
-      systemInstruction: systemInstruction
-
-    });
-    
- 
-    
-    // Combine summary with chunk content
-    const contentWithSummary = `SUMMARY: ${wikiSummary}\n\nCHUNK CONTENT (${chunkIndex + 1}/${totalChunks}): ${chunkContent}`;
-    
-    // Create user prompt
-    const userPrompt = `
-      Create a timeline for ${JSON.stringify(pageName.trim())}.
-      Extract events with dates from the following content:
-      ${JSON.stringify(contentWithSummary)}
-    `;
-    
-    // Track approximate token usage
-    const inputContent = systemInstruction + userPrompt;
-    const inputTokens = Math.round(inputContent.length / 3); // Approximate token count
-
-    // Call Gemini with system instruction
-    const result = await geminiModel.generateContent(userPrompt);
-    
-    const response = result.response;
-    
-    // Log token usage
-    const usageMetadata = response.usageMetadata;
-    const outputTokens = usageMetadata?.candidatesTokenCount || 0;
-    
-    logger.debug(`Chunk ${chunkIndex + 1} token usage: ${inputTokens} input tokens, ${outputTokens} output tokens`);
-    
-    // Check if response was truncated
-    const wasMaxTokensReached = response.candidates?.[0]?.finishReason === 'MAX_TOKENS';
-    if (wasMaxTokensReached) {
-      logger.error(`MAX_TOKENS reached in chunk ${chunkIndex + 1}, attempting to repair truncated JSON`);
-      throw new Error(`MAX_TOKENS reached in chunk ${chunkIndex + 1}`);
-    }
-    
-    // Extract the timeline data
-    const data = JSON.parse(response.text());
-    const fragment = data.timeline;
-    
-    // Return events and metadata from this chunk
-    return {
-      events: fragment.events || [],
-      title: fragment.title,
-      birthDate: fragment.birthDate,
-      deathDate: fragment.deathDate,
-      inputTokens,
-      outputTokens
-    };
-  } catch (error) {
-    logger.error(`Error processing chunk ${chunkIndex + 1}/${totalChunks}:`, error);
     return null;
   }
 }
