@@ -285,7 +285,7 @@ async function extractMetadataFromWikiSummary(
     
     // Track token usage if available
     logger.debug("Token usage for extracting metadata:");
-    logger.debug(JSON.stringify(response.response.candidates?.[0]?.usageMetadata, null, 2));
+    logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
     
     // Parse the JSON response
     try {
@@ -361,7 +361,7 @@ async function extractEventsFromWikiContent(
 
     // Track token usage if available
     logger.debug("Token usage for extracting events, iteration " + (iterations + 1) + ":");
-    logger.debug(JSON.stringify(response.response.candidates?.[0]?.usageMetadata, null, 2));
+    logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
     
     // Check if the last line of textResponse is complete
     const lines = textResponse.split('\n');
