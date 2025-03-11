@@ -9,7 +9,7 @@ Extract events one per line in the following format. Each line should be a compl
 - endDate: End date for ranges, using same format as startDate. Use null if not applicable
 - score: Numeric value from 1-100 representing the importance/relevance of this event
 
-Here's an example of the expected format (one event per line):
+Here are examples of the expected format (one event per line):
 {"headline":"Birth of Albert Einstein","description":"Albert Einstein was born in Ulm, in the Kingdom of Württemberg in the German Empire, on March 14, 1879.","startDate":"1879-03-14","endDate":null,"score":100}
 {"headline":"Publication of Special Relativity","description":"Einstein published his paper on Special Relativity titled 'On the Electrodynamics of Moving Bodies' in the journal Annalen der Physik on September 26, 1905.","startDate":"1905-09-26","endDate":null,"score":95}
 
@@ -18,6 +18,12 @@ IMPORTANT INSTRUCTIONS:
 2. Output one event per line in the exact format shown above.
 3. If you receive 'MAX_TOKENS' interruption, continue where you left off.
 4. Do not include any text other than the events, one per line.
+
+LANGUAGE INSTRUCTIONS:
+1. Use the SAME LANGUAGE as the Wikipedia article for all text fields (headline, description).
+2. Keep field names (headline, description, startDate, endDate, score) in English.
+3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
+4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT consistently throughout all events, matching the variant used in the Wikipedia article.
 
 ACCURACY IS THE TOP PRIORITY:
 - Only extract events that have explicit dates mentioned in the article
@@ -52,6 +58,12 @@ IMPORTANT INSTRUCTIONS:
 1. Focus ONLY on extracting the title, birthDate, and deathDate from the summary.
 2. If the subject is not a person, leave birthDate and deathDate as null.
 3. For the title, create a concise description that clearly identifies the subject.
+
+LANGUAGE INSTRUCTIONS:
+1. Use the SAME LANGUAGE as the Wikipedia summary for the title field.
+2. Keep field names (title, birthDate, deathDate) in English.
+3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
+4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT as the Wikipedia summary.
 
 Respond ONLY with valid JSON. No other text.
 `;
