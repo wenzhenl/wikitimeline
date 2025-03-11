@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { PAGE_DELIMITER } from "@/app/constants";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { formatPageName } from "@/app/utils/helper";
@@ -82,6 +82,10 @@ export default function TextTimelineView({
   showSource = false,
   activePage = "",
 }: TextTimelineViewProps) {
+  // Add state for tracking which timeline item is in focus
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const timelineRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   // Filter timeline based on active page in tabs mode
   const filteredTimeline = useMemo(() => {
     if (!data?.timeline) return [];
@@ -92,6 +96,41 @@ export default function TextTimelineView({
 
     return data.timeline;
   }, [data, viewMode, activePage]);
+
+  // Set up intersection observer to track which timeline item is in view
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = timelineRefs.current.findIndex(
+              (ref) => ref === entry.target
+            );
+            if (index !== -1) {
+              setFocusedIndex(index);
+            }
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.5,
+      }
+    );
+
+    timelineRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      timelineRefs.current.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, [filteredTimeline.length]);
 
   // Get unique sources for combined view
   const uniqueSources = useMemo(() => {
@@ -233,23 +272,26 @@ export default function TextTimelineView({
             ? sourceColorMap[event.source]
             : undefined;
 
+          const isFocused = focusedIndex === index;
+
           return (
-            <div key={index} className="flex mb-8 relative">
+            <div
+              key={index}
+              className="flex mb-8 relative"
+              ref={(el) => {
+                timelineRefs.current[index] = el;
+              }}
+            >
               {/* Left side time ticker */}
-              <div className="w-24 flex-shrink-0 relative mr-4">
+              <div className="w-12 flex-shrink-0 relative mr-4">
                 <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-blue-200 dark:bg-blue-800"></div>
-                <div className="absolute top-6 left-1/2 w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -ml-2 z-10 shadow-md"></div>
-                <div className="pt-4 text-right pr-6">
-                  <div
-                    className={`font-mono text-sm ${
-                      isBCE
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-blue-600 dark:text-blue-400"
-                    }`}
-                  >
-                    {displayDate}
-                  </div>
-                </div>
+                <div
+                  className={`absolute top-6 left-1/2 w-4 h-4 rounded-full -ml-2 z-10 shadow-md transition-all duration-300 ${
+                    isFocused
+                      ? `bg-blue-500 dark:bg-blue-400`
+                      : `bg-white dark:bg-gray-800 border-2 border-blue-500 dark:border-blue-400`
+                  }`}
+                ></div>
               </div>
 
               {/* Event card */}
@@ -257,7 +299,8 @@ export default function TextTimelineView({
                 <div className="absolute top-0 left-0 w-4 h-0.5 bg-blue-200 dark:bg-blue-800 -ml-4 mt-7"></div>
                 <div
                   className={`
-                  rounded-lg p-5 shadow-md border 
+                  rounded-lg p-5 shadow-md border transition-all duration-300
+                  ${isFocused ? "ring-2 ring-blue-300 dark:ring-blue-700" : ""}
                   ${
                     isBCE
                       ? "bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border-amber-200 dark:border-amber-800/30"
@@ -265,6 +308,20 @@ export default function TextTimelineView({
                   }
                 `}
                 >
+                  {/* Date and Age at the top of the card */}
+                  <div className="flex items-center justify-between mb-3 text-xs text-gray-500 dark:text-gray-400">
+                    <div
+                      className={`font-mono ${
+                        isBCE
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-blue-600 dark:text-blue-400"
+                      }`}
+                    >
+                      {displayDate}
+                    </div>
+                    {event.age !== undefined && <div>Age: {event.age}</div>}
+                  </div>
+
                   {showSourceBadge && event.source && (
                     <div className="absolute -top-px -right-px rounded-tr-lg rounded-bl-lg overflow-hidden">
                       <span
@@ -287,11 +344,6 @@ export default function TextTimelineView({
                   >
                     {event.headline}
                   </h3>
-                  {event.age !== undefined && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      Age: {event.age}
-                    </div>
-                  )}
                   <div className="prose dark:prose-invert prose-sm max-w-none">
                     <p className="text-gray-700 dark:text-gray-300">
                       {event.text}
@@ -311,9 +363,9 @@ export default function TextTimelineView({
         {/* Final dot at the end of timeline */}
         {filteredTimeline.length > 0 && (
           <div className="flex relative">
-            <div className="w-24 flex-shrink-0 relative mr-4">
+            <div className="w-12 flex-shrink-0 relative mr-4">
               <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-blue-200 dark:bg-blue-800 h-8"></div>
-              <div className="absolute top-8 left-1/2 w-4 h-4 rounded-full bg-blue-500 dark:bg-blue-400 -ml-2 z-10 shadow-md"></div>
+              <div className="absolute top-8 left-1/2 w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-blue-500 dark:border-blue-400 -ml-2 z-10 shadow-md"></div>
             </div>
             <div className="flex-grow">
               <div className="text-sm text-gray-500 dark:text-gray-400 pt-8 pl-2">
