@@ -15,7 +15,6 @@ import {
 } from "@/app/constants";
 import { unstable_cache } from 'next/cache';
 import { SITE_CONFIG } from "@/app/config/site";
-import { TIMELINE_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { TEMPERATURE } from "@/app/constants/gemini";
 import { SYSTEM_PROMPT } from "@/app/constants/gemini/systemPrompt";
@@ -221,11 +220,10 @@ async function generateTimeline(
     const geminiModel = genAI.getGenerativeModel({
       model: DEFAULT_MODEL,
       safetySettings: SAFETY_SETTINGS,
+      systemInstruction: SYSTEM_PROMPT,
       generationConfig: {
         maxOutputTokens: 8192, // Use maximum available tokens
         temperature: TEMPERATURE,
-        responseMimeType: "application/json",
-        responseSchema: TIMELINE_SCHEMA,
       },
     });
     
