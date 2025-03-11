@@ -344,11 +344,15 @@ async function extractEventsFromWikiContent(
   
   // Initial prompt
   let userPrompt = `
-    ${WIKI_EVENTS_EXTRACTION_PROMPT}
+    <instructions>
+      ${WIKI_EVENTS_EXTRACTION_PROMPT}
+    </instructions>
     
     Extract events from: ${pageName}
     
+    <wikipedia_content>
     ${wikiContent}
+    </wikipedia_content>
   `;
   
   while (iterations < MAX_ITERATIONS) {
@@ -394,16 +398,25 @@ async function extractEventsFromWikiContent(
     if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
       logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
       
-      // Create a new prompt to continue
+      // Create a new prompt to continue, including the original wiki content
       userPrompt = `
-        ${WIKI_EVENTS_EXTRACTION_PROMPT}
+        <instructions>
+          ${WIKI_EVENTS_EXTRACTION_PROMPT}
+        </instructions>
         
+        Extract events from: ${pageName}
+        
+        <wikipedia_content>
+        ${wikiContent}
+        </wikipedia_content>
+
         You were extracting events but reached the token limit. Continue from where you left off.
         Here are the events you've extracted so far:
-        
+        <events>
         ${accumulatedResult}
+        </events>
         
-        Continue extracting events from: ${pageName}
+        Continue extracting events from: ${pageName}, but only extract events that are not already in the <events> tag.
       `;
       
       iterations++;
