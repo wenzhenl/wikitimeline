@@ -1,22 +1,16 @@
 import { SchemaType } from "@google/generative-ai";
 
 export const WIKI_EVENTS_SCHEMA = {
-  type: SchemaType.OBJECT,
+  type: SchemaType.ARRAY,
+  items: {
+    type: SchemaType.OBJECT,
     properties: {
-      events: {
-        type: SchemaType.ARRAY,
-        items: {
-          type: SchemaType.OBJECT,
-          properties: {
-            headline: { type: SchemaType.STRING },
-            description: { type: SchemaType.STRING },
-            startDate: { type: SchemaType.STRING },
-            endDate: { type: SchemaType.STRING },
-            score: { type: SchemaType.INTEGER }
-          },
-          required: ["headline", "description", "startDate", "score"]
-        }
-      }
+      headline: { type: SchemaType.STRING },
+      description: { type: SchemaType.STRING },
+      startDate: { type: SchemaType.STRING },
+      endDate: { type: SchemaType.STRING },
+      score: { type: SchemaType.INTEGER }
     },
-    required: ["events"]
-  };
+    required: ["headline", "description", "startDate", "score"]
+  }
+};
