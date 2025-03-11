@@ -227,11 +227,18 @@ async function generateTimeline(
       },
     });
     
+    const startTime = Date.now();
+    
     // Make two parallel API calls
     const [events, metadata] = await Promise.all([
       extractEventsFromWikiContent(geminiModel, wikiContent, pageName),
       extractMetadataFromWikiSummary(geminiModel, wikiSummary, pageName)
     ]);
+    
+    const endTime = Date.now();
+    const processingTime = (endTime - startTime) / 1000; // in seconds
+    
+    logger.info(`Timeline generation for ${pageName} completed in ${processingTime.toFixed(2)} seconds`);
     
     if (!events || events.length === 0) {
       logger.warn(`No events extracted for ${pageName}`);
@@ -275,6 +282,14 @@ async function extractMetadataFromWikiSummary(
     logger.debug(`Extracting metadata for ${pageName}`);
     const response = await model.generateContent(userPrompt);
     const textResponse = response.response.text();
+    
+    // Track token usage if available
+    if (response.response.candidates?.[0]?.usageMetadata) {
+      const promptTokens = response.response.candidates[0].usageMetadata.promptTokenCount || 0;
+      const completionTokens = response.response.candidates[0].usageMetadata.candidatesTokenCount || 0;
+      const totalTokens = promptTokens + completionTokens;
+      logger.info(`Metadata extraction token usage: ${promptTokens} prompt + ${completionTokens} completion = ${totalTokens} tokens`);
+    }
     
     // Parse the JSON response
     try {
@@ -325,6 +340,7 @@ async function extractEventsFromWikiContent(
   let accumulatedResult = "";
   let iterations = 0;
   const MAX_ITERATIONS = 3;
+  let totalTokensUsed = 0;
   
   // Initial prompt
   let userPrompt = `
@@ -342,7 +358,32 @@ async function extractEventsFromWikiContent(
     const response = await model.generateContent(userPrompt);
     
     // Get text response
-    const textResponse = response.response.text();
+    let textResponse = response.response.text();
+    
+    // Track token usage if available
+    if (response.response.candidates?.[0]?.usageMetadata) {
+      const promptTokens = response.response.candidates[0].usageMetadata.promptTokenCount || 0;
+      const completionTokens = response.response.candidates[0].usageMetadata.candidatesTokenCount || 0;
+      const iterationTokens = promptTokens + completionTokens;
+      totalTokensUsed += iterationTokens;
+      logger.info(`Iteration ${iterations + 1} token usage: ${promptTokens} prompt + ${completionTokens} completion = ${iterationTokens} tokens`);
+    }
+    
+    // Check if the last line of textResponse is complete
+    const lines = textResponse.split('\n');
+    const lastLine = lines[lines.length - 1].trim();
+    
+    // If the last line doesn't look like a complete JSON object, remove it
+    if (lastLine && (!lastLine.endsWith('}') || !lastLine.startsWith('{'))) {
+      logger.debug("Removed incomplete last line from response");
+      lines.pop();
+      textResponse = lines.join('\n');
+    }
+    
+    // Ensure textResponse ends with a line break
+    if (!textResponse.endsWith('\n')) {
+      textResponse += '\n';
+    }
     
     // Add this response to our accumulated result
     accumulatedResult += textResponse;
@@ -352,17 +393,6 @@ async function extractEventsFromWikiContent(
     
     if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
       logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
-      
-      // Check if the last line is a complete JSON object
-      const lines = accumulatedResult.split('\n');
-      const lastLine = lines[lines.length - 1].trim();
-      
-      // If the last line doesn't look like a complete JSON object, remove it
-      if (!lastLine.endsWith('}') || !lastLine.startsWith('{')) {
-        lines.pop();
-        accumulatedResult = lines.join('\n');
-        logger.debug("Removed incomplete last event");
-      }
       
       // Create a new prompt to continue
       userPrompt = `
@@ -382,6 +412,9 @@ async function extractEventsFromWikiContent(
       break;
     }
   }
+  
+  // Log total token usage
+  logger.info(`Total tokens used for extracting events: ${totalTokensUsed}`);
   
   // Parse the JSON lines
   try {
