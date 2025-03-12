@@ -108,13 +108,16 @@ export default function TimelineControls({
         {/* Speed Dial Options */}
         <div className="flex flex-col items-center">
           {speedDialOpen && (
-            <div className="bg-indigo-500 dark:bg-indigo-600 rounded-t-[24px] shadow-lg w-12 animate-expand-in origin-bottom flex flex-col items-center gap-3 pt-3 pb-6">
+            <div className="backdrop-blur-md bg-gradient-to-b from-blue-400/20 to-purple-400/20 dark:from-blue-500/20 dark:to-purple-500/20 rounded-t-[24px] shadow-lg w-12 animate-expand-in origin-bottom flex flex-col items-center gap-6 pt-3 pb-12 relative overflow-hidden">
+              {/* Shimmer effect overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+
               {/* Filter Option */}
               <button
                 onClick={() => openModal("filter")}
-                className="flex items-center justify-center bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group w-10 h-10"
+                className="relative flex items-center justify-center bg-white/80 dark:bg-gray-800/80 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-all group w-10 h-10 backdrop-blur-sm"
               >
-                <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <span className="absolute right-[4.5rem] bg-gray-800/90 dark:bg-gray-700/90 backdrop-blur-sm text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   Filter Events
                 </span>
                 <svg
@@ -135,9 +138,9 @@ export default function TimelineControls({
               {/* Edit Pages Option */}
               <button
                 onClick={() => openModal("pages")}
-                className="flex items-center justify-center bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group w-10 h-10"
+                className="relative flex items-center justify-center bg-white/80 dark:bg-gray-800/80 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-white dark:hover:bg-gray-800 transition-all group w-10 h-10 backdrop-blur-sm"
               >
-                <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <span className="absolute right-[4.5rem] bg-gray-800/90 dark:bg-gray-700/90 backdrop-blur-sm text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   Edit Pages
                 </span>
                 <svg
@@ -162,8 +165,8 @@ export default function TimelineControls({
             onClick={() => setSpeedDialOpen(!speedDialOpen)}
             className={`flex items-center justify-center rounded-full shadow-lg transition-all w-12 h-12 ${
               speedDialOpen
-                ? "bg-blue-500 text-white rotate-45 -mt-6"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
+                ? "bg-gradient-to-r from-blue-500/90 to-purple-500/90 backdrop-blur-sm text-white rotate-45 -mt-6"
+                : "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
             }`}
           >
             <svg
@@ -267,6 +270,21 @@ export default function TimelineControls({
           </div>
         </div>
       )}
+
+      {/* Add the shimmer animation */}
+      <style jsx global>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+      `}</style>
     </>
   );
 }
