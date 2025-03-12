@@ -38,7 +38,6 @@ const MyTimelineComponent = ({
 
   useEffect(() => {
     if (typeof window !== "undefined" && timelineRef.current) {
-
       import("@knight-lab/timelinejs").then(({ Timeline }) => {
         if (timelineInstance && timelineRef.current) {
           timelineRef.current.innerHTML = "";
@@ -180,16 +179,22 @@ const MyTimelineComponent = ({
             });
           }
 
-          // Attach to the timeline container as well
+          // Add event listener to the timeline container but check if the event target is within the timenav area
           if (timelineRef.current) {
             timelineRef.current.addEventListener(
               "wheel",
               (e: Event) => {
-                // Only handle horizontal scrolls at this level
                 const wheelEvent = e as ExtendedWheelEvent;
+
+                // Check if the event target is within the timenav area
+                const target = wheelEvent.target as HTMLElement;
+                const isInTimenavArea = target.closest(".tl-timenav") !== null;
+
+                // Only handle horizontal scrolls when in the timenav area
                 if (
-                  wheelEvent.shiftKey ||
-                  Math.abs(wheelEvent.deltaX) > Math.abs(wheelEvent.deltaY)
+                  isInTimenavArea &&
+                  (wheelEvent.shiftKey ||
+                    Math.abs(wheelEvent.deltaX) > Math.abs(wheelEvent.deltaY))
                 ) {
                   handleFirefoxScroll(e);
                 }
