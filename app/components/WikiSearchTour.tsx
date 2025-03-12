@@ -8,11 +8,11 @@ import { STATUS } from "react-joyride";
 // Dynamically import Joyride with no SSR
 const Joyride = dynamic(() => import("react-joyride"), { ssr: false });
 
-interface OnboardingTourProps {
+interface WikiSearchTourProps {
   isSearchReady: boolean;
 }
 
-export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
+export default function WikiSearchTour({ isSearchReady }: WikiSearchTourProps) {
   const [runTour, setRunTour] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -20,11 +20,12 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
   const steps: Step[] = [
     {
       target: ".wiki-search-container",
-      content:
-        "Welcome to WikiTimeline! Let's take a quick tour to help you get started.",
+      content: "Let's take a quick tour to help you get started.",
       placement: "center",
       disableBeacon: true,
       title: "Welcome to WikiTimeline",
+      disableScrolling: true,
+      spotlightClicks: false,
     },
     {
       target: ".wiki-search-input",
@@ -32,24 +33,18 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
         "Search for Wikipedia articles by title or paste Wikipedia URLs directly here. You can add multiple articles to create a comprehensive timeline.",
       disableBeacon: true,
       title: "Search or Paste URLs",
+      disableScrolling: true,
+      spotlightClicks: false,
+      placement: "bottom",
     },
     {
       target: ".wiki-language-selector",
       content:
         "Select different languages to search in various Wikipedia editions. You can mix articles from different languages in your timeline!",
       title: "Multiple Languages",
-    },
-    {
-      target: ".wiki-selected-pages",
-      content:
-        "Your selected articles will appear here. You can add multiple articles to compare events across different topics.",
-      title: "Selected Articles",
-    },
-    {
-      target: ".wiki-generate-button",
-      content:
-        "Once you've selected your articles, click here to generate your timeline!",
-      title: "Generate Timeline",
+      disableScrolling: true,
+      spotlightClicks: false,
+      placement: "bottom-end",
     },
   ];
 
@@ -64,14 +59,16 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
     if (!isSearchReady || !isMounted) return;
 
     // Check if user has seen the tour before
-    const hasSeenTour = localStorage.getItem("wikitimeline_tour_completed");
+    const hasSeenTour = localStorage.getItem(
+      "wikitimeline_wiki_search_tour_completed"
+    );
 
     // Only show tour for first-time visitors
     if (!hasSeenTour) {
-      // Small delay to ensure DOM elements are fully rendered
+      // Longer delay to ensure DOM elements are fully rendered and stable
       const timer = setTimeout(() => {
         setRunTour(true);
-      }, 1000);
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
@@ -83,7 +80,7 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
 
     // Save to localStorage when tour is finished or skipped
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      localStorage.setItem("wikitimeline_tour_completed", "true");
+      localStorage.setItem("wikitimeline_wiki_search_tour_completed", "true");
     }
 
     // For debugging
@@ -102,9 +99,11 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
       continuous={true}
       showSkipButton={true}
       showProgress={true}
-      scrollToFirstStep={true}
-      spotlightClicks={false}
+      scrollToFirstStep={false}
       disableOverlayClose={true}
+      disableScrolling={true}
+      scrollOffset={0}
+      spotlightClicks={false}
       styles={{
         options: {
           primaryColor: "#3b82f6",
@@ -112,12 +111,14 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
           arrowColor: "#ffffff",
           textColor: "#333333",
           zIndex: 1000,
+          overlayColor: "rgba(0, 0, 0, 0.5)",
         },
         spotlight: {
-          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          backgroundColor: "transparent",
         },
         tooltipContainer: {
           textAlign: "left",
+          maxWidth: "450px",
         },
         buttonNext: {
           backgroundColor: "#3b82f6",
@@ -125,6 +126,9 @@ export default function OnboardingTour({ isSearchReady }: OnboardingTourProps) {
         buttonBack: {
           color: "#3b82f6",
         },
+      }}
+      floaterProps={{
+        disableAnimation: true,
       }}
       locale={{
         last: "Finish",

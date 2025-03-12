@@ -4,7 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WikiSearch from "@/app/components/WikiSearch";
 import LanguageSettings from "@/app/components/LanguageSettings";
-import OnboardingTour from "@/app/components/OnboardingTour";
+import WikiSearchTour from "@/app/components/WikiSearchTour";
 import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
 import { isMobile } from "@/app/utils/deviceDetection";
 
@@ -73,7 +73,7 @@ export function ClientSearchWrapper() {
   return (
     <>
       {/* Onboarding Tour */}
-      <OnboardingTour isSearchReady={isSearchReady} />
+      <WikiSearchTour isSearchReady={isSearchReady} />
 
       <div
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8 wiki-search-container"
