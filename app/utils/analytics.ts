@@ -20,6 +20,12 @@ export const ANALYTICS_ACTIONS = {
   LANGUAGE_CHANGE: "language_change",
   GENERATE_TIMELINE: "generate_timeline",
   SELECT_RESULT: "select_result",
+  // Timeline customization actions
+  CHANGE_FONT: "change_font",
+  CHANGE_COLOR_SCHEME: "change_color_scheme",
+  CHANGE_POSITION: "change_position",
+  CHANGE_HEIGHT: "change_height",
+  OPEN_CUSTOMIZER: "open_customizer",
 } as const;
 
 export const trackEvent = (

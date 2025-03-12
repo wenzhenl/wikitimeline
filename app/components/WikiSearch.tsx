@@ -6,7 +6,6 @@ import {
   COMMON_LANGUAGES,
   DEFAULT_ENABLED_LANGUAGES,
   STORAGE_KEY_ENABLED_LANGUAGES,
-  LanguageOption,
 } from "@/app/constants/languageSettings";
 import {
   trackEvent,

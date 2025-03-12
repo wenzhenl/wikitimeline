@@ -3,6 +3,11 @@
 import { AVAILABLE_FONTS } from "@/app/constants/fonts";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { useState, useEffect } from "react";
+import {
+  trackEvent,
+  ANALYTICS_CATEGORIES,
+  ANALYTICS_ACTIONS,
+} from "@/app/utils/analytics";
 
 type ColorSchemeId = (typeof COLOR_SCHEMES)[number]["id"];
 type FontId = (typeof AVAILABLE_FONTS)[number]["value"];
@@ -50,6 +55,11 @@ export default function TimelineCustomizer({
     setSelectedFont(newFont as FontId);
     if (typeof window !== "undefined") {
       localStorage.setItem("timeline-font", newFont);
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.CHANGE_FONT,
+        newFont
+      );
     }
   };
 
@@ -57,6 +67,11 @@ export default function TimelineCustomizer({
     setSelectedColorScheme(value);
     if (typeof window !== "undefined") {
       localStorage.setItem("timeline-color-scheme", value);
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.CHANGE_COLOR_SCHEME,
+        value
+      );
     }
   };
 
@@ -64,6 +79,11 @@ export default function TimelineCustomizer({
     setSelectedTimenavPosition(position);
     if (typeof window !== "undefined") {
       localStorage.setItem("timeline-timenav-position", position);
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.CHANGE_POSITION,
+        position
+      );
     }
   };
 
@@ -76,8 +96,24 @@ export default function TimelineCustomizer({
     setTimenavHeightPercentage(sliderValue);
     if (typeof window !== "undefined") {
       localStorage.setItem("timeline-timenav-height", sliderValue.toString());
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.CHANGE_HEIGHT,
+        sliderValue.toString()
+      );
     }
   };
+
+  // Add tracking when settings modal is opened
+  useEffect(() => {
+    if (isSettingsOpen && !isMobileButton) {
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.OPEN_CUSTOMIZER,
+        "settings_modal"
+      );
+    }
+  }, [isSettingsOpen, isMobileButton]);
 
   // For mobile menu button, we just want a button without the modal
   if (isMobileButton) {
