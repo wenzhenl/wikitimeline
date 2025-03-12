@@ -28,8 +28,6 @@ interface TimelineControlsProps {
   }; // Current date range filter values
   onTopEventsCountChange?: (count: number | null) => void; // Callback for top events filter
   currentTopEventsCount?: number | null; // Current top events count
-  speedDialOpen: boolean; // Whether the speed dial is open
-  setSpeedDialOpen: (open: boolean) => void; // Set speed dial open state
 }
 
 export default function TimelineControls({
@@ -45,9 +43,8 @@ export default function TimelineControls({
   currentDateRange = { startEventId: null, endEventId: null },
   onTopEventsCountChange,
   currentTopEventsCount = null,
-  speedDialOpen,
-  setSpeedDialOpen,
 }: TimelineControlsProps) {
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const speedDialRef = useRef<HTMLDivElement>(null);
 
   // Close speed dial when clicking outside
@@ -68,7 +65,7 @@ export default function TimelineControls({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [speedDialOpen, setSpeedDialOpen]);
+  }, [speedDialOpen]);
 
   const openModal = (type: "pages" | "filter") => {
     setActiveModal?.(type);
@@ -96,7 +93,6 @@ export default function TimelineControls({
               <button
                 onClick={() => openModal("filter")}
                 className="flex items-center justify-center bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group w-10 h-10"
-                data-tour="filter-button"
               >
                 <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   Filter Events
@@ -120,7 +116,6 @@ export default function TimelineControls({
               <button
                 onClick={() => openModal("pages")}
                 className="flex items-center justify-center bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group w-10 h-10"
-                data-tour="edit-pages-button"
               >
                 <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   Edit Pages
@@ -145,7 +140,7 @@ export default function TimelineControls({
           {/* Main Speed Dial Button */}
           <button
             onClick={() => setSpeedDialOpen(!speedDialOpen)}
-            className={`flex items-center justify-center rounded-full shadow-lg transition-all w-12 h-12 speed-dial-button ${
+            className={`flex items-center justify-center rounded-full shadow-lg transition-all w-12 h-12 ${
               speedDialOpen
                 ? "bg-blue-500 text-white rotate-45 -mt-6"
                 : "bg-blue-500 hover:bg-blue-600 text-white"
