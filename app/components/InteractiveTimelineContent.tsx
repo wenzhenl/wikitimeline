@@ -78,7 +78,6 @@ export default function InteractiveTimelineContent({
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
-  const [hasSeenSwipeTip, setHasSeenSwipeTip] = useState(false);
   const timelineContainerRef = useRef<HTMLDivElement>(null);
   const [isControlsExpanded, setIsControlsExpanded] = useState(false);
   const [activeControlsModal, setActiveControlsModal] = useState<
@@ -472,24 +471,6 @@ export default function InteractiveTimelineContent({
     return () => document.removeEventListener("click", handleClickOutside);
   }, [isOptionsOpen]);
 
-  useEffect(() => {
-    const tipSeen = safeGetItem("timeline-swipe-tip-seen");
-    if (tipSeen) {
-      setHasSeenSwipeTip(true);
-    } else {
-      const handleNavigation = () => {
-        safeSetItem("timeline-swipe-tip-seen", "true");
-        setHasSeenSwipeTip(true);
-      };
-      document.addEventListener("keydown", handleNavigation);
-      document.addEventListener("touchend", handleNavigation);
-      return () => {
-        document.removeEventListener("keydown", handleNavigation);
-        document.removeEventListener("touchend", handleNavigation);
-      };
-    }
-  }, []);
-
   // Handle date range change
   const handleDateRangeChange = (
     startEventId: string | null,
@@ -823,14 +804,10 @@ export default function InteractiveTimelineContent({
           font-weight: 500 !important;
           opacity: 0.9 !important;
         }
-        ${hasSeenSwipeTip
-          ? `
         .tl-loading-icon,
         .tl-message-full {
           display: none !important;
         }
-        `
-          : ""}
       `}</style>
     </div>
   );
