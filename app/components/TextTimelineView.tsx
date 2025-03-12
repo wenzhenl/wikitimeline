@@ -115,7 +115,131 @@ export default function TextTimelineView({
     : [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Continuous vertical line for the entire timeline */}
+      <div
+        className="absolute left-[1.45rem] w-0.5 bg-blue-200/50 dark:bg-blue-800/30"
+        style={{
+          top: "1.375rem", // Align with first dot
+          height: `calc(100% - 3.5rem)`, // Span from first to last dot
+        }}
+      ></div>
+
+      {filteredTimeline.map((event: TimelineEvent, index: number) => {
+        const isNegativeYear = event.date.startsWith("-");
+        const normalizedDate = isNegativeYear
+          ? event.date.slice(1)
+          : event.date;
+        const dateParts = normalizedDate.split("-");
+        const year = parseInt(dateParts[0]) * (isNegativeYear ? -1 : 1);
+
+        const sourceColors = event.source
+          ? sourceColorMap.get(event.source)
+          : null;
+
+        const showSourceBadge = showSource && event.source;
+        const isBCE = isNegativeYear;
+        const isFocused = false;
+
+        // Check if this is the first event of its source group
+        const isFirstInGroup =
+          index === 0 || event.source !== filteredTimeline[index - 1].source;
+
+        // Check if this is the last event of its source group
+        const isLastInGroup =
+          index === filteredTimeline.length - 1 ||
+          event.source !== filteredTimeline[index + 1].source;
+
+        // Format the display date
+        const displayDate = needsCosmologicalScale
+          ? formatCosmologicalDate(year)
+          : `${Math.abs(year)}${isNegativeYear ? " BCE" : ""}${
+              dateParts[1]
+                ? ` ${new Date(2000, parseInt(dateParts[1]) - 1).toLocaleString(
+                    "default",
+                    { month: "short" }
+                  )}`
+                : ""
+            }${dateParts[2] ? ` ${parseInt(dateParts[2])}` : ""}`;
+
+        return (
+          <div key={index} className="flex mb-8 relative group">
+            {/* Left side time ticker with dot */}
+            <div className="w-10 flex-shrink-0 relative mr-2">
+              {/* Dot */}
+              <div
+                className={`absolute top-[1.375rem] left-1/2 w-4 h-4 rounded-full -ml-2 z-10 shadow-sm transition-all duration-300 ${
+                  isFocused
+                    ? "bg-blue-500 dark:bg-blue-400"
+                    : "bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-800"
+                }`}
+              ></div>
+            </div>
+
+            {/* Event card */}
+            <div className="flex-grow relative">
+              {/* Horizontal connector line from dot to card */}
+              <div className="absolute top-[1.875rem] left-[-1.75rem] w-[1.75rem] h-0.5 bg-blue-200 dark:bg-blue-800"></div>
+
+              <div
+                className={`relative ${
+                  showSourceBadge ? "pt-6" : "pt-4"
+                } pb-6 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700`}
+              >
+                {/* Source badge in top-left */}
+                {showSourceBadge && event.source && (
+                  <div className="absolute -top-2 left-0 z-10">
+                    <div
+                      className="px-2 py-1 text-xs font-medium rounded-md shadow-sm"
+                      style={{
+                        backgroundColor: sourceColors?.color || "#f3f4f6",
+                        color: sourceColors?.textColor || "#4b5563",
+                      }}
+                    >
+                      {formatPageName(event.source || "").formattedName}
+                    </div>
+                  </div>
+                )}
+
+                {/* Date and Age at the top of the card */}
+                <div className="flex items-center justify-between mb-3 text-xs text-gray-600 dark:text-gray-300">
+                  <div
+                    className={`font-mono ${
+                      isBCE
+                        ? "text-amber-700 dark:text-amber-300"
+                        : "text-blue-700 dark:text-blue-300"
+                    }`}
+                  >
+                    {displayDate}
+                  </div>
+                  {event.age !== undefined && <div>Age: {event.age}</div>}
+                </div>
+
+                <h3
+                  className={`text-lg font-semibold mb-2 ${
+                    isBCE
+                      ? "text-black dark:text-white"
+                      : "text-black dark:text-white"
+                  }`}
+                >
+                  {event.headline}
+                </h3>
+                <div className="prose dark:prose-invert prose-sm max-w-none">
+                  <p className="text-gray-700 dark:text-gray-100">
+                    {event.text}
+                  </p>
+                </div>
+                {showSource && event.source && !showSourceBadge && (
+                  <div className="mt-3 text-xs text-gray-600 dark:text-gray-200">
+                    Source: {formatPageName(event.source).formattedName}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
       {data.titles && uniqueSources.length > 0 ? (
         <div className="mb-8">
           {viewMode === "combined" ? (
@@ -172,77 +296,6 @@ export default function TextTimelineView({
           dates and events in order.
         </p>
       )}
-
-      {filteredTimeline.map((event: TimelineEvent, index: number) => {
-        const isNegativeYear = event.date.startsWith("-");
-        const normalizedDate = isNegativeYear
-          ? event.date.slice(1)
-          : event.date;
-        const dateParts = normalizedDate.split("-");
-        const year = parseInt(dateParts[0]) * (isNegativeYear ? -1 : 1);
-
-        const sourceColors = event.source
-          ? sourceColorMap.get(event.source)
-          : null;
-
-        const showSourceBadge = showSource && event.source;
-
-        return (
-          <div
-            key={index}
-            className={`relative ${
-              showSourceBadge ? "pt-6" : "pt-4"
-            } pb-6 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700`}
-          >
-            {showSourceBadge && (
-              <div className="absolute -top-px -left-px rounded-tl-lg">
-                <span
-                  style={{
-                    backgroundColor: sourceColors?.color || "#f3f4f6",
-                    color: sourceColors?.textColor || "#4b5563",
-                  }}
-                  className="inline-block px-2 py-1 rounded-tl-lg text-xs"
-                >
-                  {formatPageName(event.source || "").formattedName}
-                </span>
-              </div>
-            )}
-            <div className={`${showSourceBadge ? "mt-4" : "mt-0"}`}>
-              <div className="text-sm mb-4">
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {needsCosmologicalScale ? (
-                    formatCosmologicalDate(year)
-                  ) : (
-                    <>
-                      {Math.abs(year)} {isNegativeYear ? "BCE" : ""}
-                      {dateParts[1] &&
-                        ` ${new Date(
-                          2000,
-                          parseInt(dateParts[1]) - 1
-                        ).toLocaleString("default", { month: "short" })}`}
-                      {dateParts[2] && ` ${parseInt(dateParts[2])}`}
-                    </>
-                  )}
-                </span>
-                {event.age !== undefined && (
-                  <>
-                    <span className="text-gray-400 dark:text-gray-500 mx-2">
-                      |
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Age {event.age}
-                    </span>
-                  </>
-                )}
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {event.headline}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300">{event.text}</p>
-            </div>
-          </div>
-        );
-      })}
 
       {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
         <div
