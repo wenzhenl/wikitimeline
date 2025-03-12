@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { TimelineJSEvent } from "@/app/types/timeline";
+import {
+  trackEvent,
+  ANALYTICS_CATEGORIES,
+  ANALYTICS_ACTIONS,
+} from "@/app/utils/analytics";
 
 interface TimelineFilterProps {
   events: TimelineJSEvent[];
@@ -142,6 +147,27 @@ export default function TimelineFilter({
 
   // Apply filters when the Apply Filters button is clicked
   const applyFilters = () => {
+    // Track date range filter if changed
+    if (
+      tempStartEventId !== currentDateRange.startEventId ||
+      tempEndEventId !== currentDateRange.endEventId
+    ) {
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.APPLY_DATE_FILTER,
+        `${tempStartEventId || "start"} to ${tempEndEventId || "end"}`
+      );
+    }
+
+    // Track top events filter if changed
+    if (tempTopEventsCount !== currentTopEventsCount) {
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.APPLY_TOP_EVENTS_FILTER,
+        tempTopEventsCount?.toString() || "all"
+      );
+    }
+
     onDateRangeChange(tempStartEventId, tempEndEventId);
     onTopEventsCountChange(tempTopEventsCount);
     onClose();
@@ -149,6 +175,13 @@ export default function TimelineFilter({
 
   // Reset all filters to default values
   const resetAllFilters = () => {
+    if (hasFiltersApplied) {
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.RESET_FILTERS
+      );
+    }
+
     setTempStartEventId(null);
     setTempEndEventId(null);
     setTempTopEventsCount(null);

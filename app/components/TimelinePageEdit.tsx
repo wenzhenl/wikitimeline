@@ -2,6 +2,11 @@ import WikiSearch from "@/app/components/WikiSearch";
 import { useState, useEffect } from "react";
 import LanguageSettings from "@/app/components/LanguageSettings";
 import logger from "@/app/utils/logger";
+import {
+  trackEvent,
+  ANALYTICS_CATEGORIES,
+  ANALYTICS_ACTIONS,
+} from "@/app/utils/analytics";
 
 interface SelectedPage {
   title: string;
@@ -93,15 +98,13 @@ export default function TimelinePageEdit({
       return page;
     });
 
-    // Log the previous and new page count
+    // Track page changes
     const addedCount = processedPages.length - selectedPages.length;
     if (addedCount > 0) {
-      // Pages were added, log the new pages
-      const addedPages = processedPages.slice(selectedPages.length);
-      logger.debug(
-        `TimelinePageEdit: Added ${addedCount} pages: ${JSON.stringify(
-          addedPages.map((p) => ({ title: p.title, language: p.language }))
-        )}`
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.EDIT_PAGES,
+        `added_${addedCount}_pages`
       );
     }
 
@@ -109,6 +112,13 @@ export default function TimelinePageEdit({
   };
 
   const handleUpdateTimeline = () => {
+    // Track timeline update with page count
+    trackEvent(
+      ANALYTICS_CATEGORIES.TIMELINE,
+      ANALYTICS_ACTIONS.UPDATE_PAGES,
+      `total_pages_${fixedPages.length}`
+    );
+
     onRefresh();
     onClose();
   };

@@ -2,6 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { TimelineJSEvent } from "@/app/types/timeline";
 import TimelineFilter from "@/app/components/TimelineFilter";
 import TimelinePageEdit from "@/app/components/TimelinePageEdit";
+import {
+  trackEvent,
+  ANALYTICS_CATEGORIES,
+  ANALYTICS_ACTIONS,
+} from "@/app/utils/analytics";
 
 interface SelectedPage {
   title: string;
@@ -47,6 +52,16 @@ export default function TimelineControls({
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const speedDialRef = useRef<HTMLDivElement>(null);
 
+  // Track when speed dial is opened
+  useEffect(() => {
+    if (speedDialOpen) {
+      trackEvent(
+        ANALYTICS_CATEGORIES.TIMELINE,
+        ANALYTICS_ACTIONS.OPEN_CONTROLS
+      );
+    }
+  }, [speedDialOpen]);
+
   // Close speed dial when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,6 +86,11 @@ export default function TimelineControls({
     setActiveModal?.(type);
     setSpeedDialOpen(false);
     onExpandedChange(true);
+
+    // Track which modal is opened
+    if (type === "pages") {
+      trackEvent(ANALYTICS_CATEGORIES.TIMELINE, ANALYTICS_ACTIONS.EDIT_PAGES);
+    }
   };
 
   const closeModal = () => {

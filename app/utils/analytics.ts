@@ -26,6 +26,14 @@ export const ANALYTICS_ACTIONS = {
   CHANGE_POSITION: "change_position",
   CHANGE_HEIGHT: "change_height",
   OPEN_CUSTOMIZER: "open_customizer",
+  // Timeline controls actions
+  OPEN_CONTROLS: "open_controls",
+  EDIT_PAGES: "edit_pages",
+  UPDATE_PAGES: "update_pages",
+  // Timeline filter actions
+  APPLY_DATE_FILTER: "apply_date_filter",
+  APPLY_TOP_EVENTS_FILTER: "apply_top_events_filter",
+  RESET_FILTERS: "reset_filters",
 } as const;
 
 export const trackEvent = (
