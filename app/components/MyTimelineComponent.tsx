@@ -72,14 +72,6 @@ const MyTimelineComponent = ({
 
         // Wait for timeline to fully initialize and render
         setTimeout(() => {
-          // Fix horizontal scrolling in Firefox by patching the _onMouseScroll method
-          const isFirefox =
-            navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
-
-          if (!isFirefox) {
-            return;
-          }
-
           // Get the TimeNav component
           const timelineApi = timeline as any;
           if (!timelineApi._timenav) {
@@ -87,30 +79,16 @@ const MyTimelineComponent = ({
             return;
           }
 
-          // Based on the actual TimeNav._onMouseScroll implementation
-          // This replicates the exact behavior of the original method but adds Firefox support
-          const handleFirefoxScroll = (e: Event) => {
+          // Universal scroll handler for all browsers
+          // Supports horizontal scroll, shift+scroll, and regular vertical scroll in timenav area
+          const handleUniversalScroll = (e: Event) => {
             const wheelEvent = e as ExtendedWheelEvent;
-
-            // Skip vertical scrolling (when not using shift)
-            // Only process horizontal scrolls or shift+wheel for side scrolling
-            const isHorizontalScroll =
-              wheelEvent.shiftKey ||
-              Math.abs(wheelEvent.deltaX) > Math.abs(wheelEvent.deltaY);
-
-            if (!isHorizontalScroll) {
-              return; // Let normal vertical scrolling work
-            }
-
-            // Prevent default browser behavior for this event
-            e.preventDefault();
-            e.stopPropagation();
 
             // Get TimeNav component
             const timenav = timelineApi._timenav;
             const slider = timenav._el.slider;
 
-            // Calculate delta using the same approach as TimeNav._onMouseScroll
+            // Calculate delta based on the scroll type
             let delta = 0;
 
             // First priority: use deltaX for native horizontal scrolling
@@ -121,8 +99,21 @@ const MyTimelineComponent = ({
             else if (wheelEvent.shiftKey && Math.abs(wheelEvent.deltaY) > 0) {
               delta = wheelEvent.deltaY * -1; // Invert for natural scrolling
             }
+            // Third priority: use regular vertical scroll in timenav area
+            else if (Math.abs(wheelEvent.deltaY) > 0) {
+              delta = wheelEvent.deltaY * -1; // Invert for natural scrolling
+            }
 
-            // Apply a multiplier to match the sensitivity in other browsers
+            // If no meaningful scroll detected, exit
+            if (delta === 0) {
+              return;
+            }
+
+            // Prevent default browser behavior for this event
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Apply a multiplier to match the sensitivity
             delta = delta / 3;
 
             // Calculate new position
@@ -130,7 +121,7 @@ const MyTimelineComponent = ({
               slider.style.left.replace("px", "") || "0"
             );
 
-            // Calculate scroll boundaries - identical to TimeNav code
+            // Calculate scroll boundaries
             const timescale = timenav.timescale;
             const constraint = {
               right: -(timescale.getPixelWidth() - timenav.options.width / 2),
@@ -140,7 +131,7 @@ const MyTimelineComponent = ({
             // Calculate the new position
             let scrollTo = currentLeft + delta;
 
-            // Apply constraints - identical to TimeNav code
+            // Apply constraints
             if (scrollTo > constraint.left) {
               scrollTo = constraint.left;
             } else if (scrollTo < constraint.right) {
@@ -163,10 +154,15 @@ const MyTimelineComponent = ({
             return false;
           };
 
-          // Attach our handler to the TimeNav container
+          // Check if an element is within the timenav area
+          const isInTimenavArea = (element: HTMLElement): boolean => {
+            return element.closest(".tl-timenav") !== null;
+          };
+
+          // Attach scroll handler to timenav elements
           const timenavContainer = document.querySelector(".tl-timenav");
           if (timenavContainer) {
-            timenavContainer.addEventListener("wheel", handleFirefoxScroll, {
+            timenavContainer.addEventListener("wheel", handleUniversalScroll, {
               passive: false,
             });
           }
@@ -174,7 +170,7 @@ const MyTimelineComponent = ({
           // Also attach to the slider for redundancy
           const slider = document.querySelector(".tl-timenav-slider");
           if (slider) {
-            slider.addEventListener("wheel", handleFirefoxScroll, {
+            slider.addEventListener("wheel", handleUniversalScroll, {
               passive: false,
             });
           }
@@ -184,19 +180,11 @@ const MyTimelineComponent = ({
             timelineRef.current.addEventListener(
               "wheel",
               (e: Event) => {
-                const wheelEvent = e as ExtendedWheelEvent;
+                const target = e.target as HTMLElement;
 
-                // Check if the event target is within the timenav area
-                const target = wheelEvent.target as HTMLElement;
-                const isInTimenavArea = target.closest(".tl-timenav") !== null;
-
-                // Only handle horizontal scrolls when in the timenav area
-                if (
-                  isInTimenavArea &&
-                  (wheelEvent.shiftKey ||
-                    Math.abs(wheelEvent.deltaX) > Math.abs(wheelEvent.deltaY))
-                ) {
-                  handleFirefoxScroll(e);
+                // Only handle scrolls when in the timenav area
+                if (isInTimenavArea(target)) {
+                  handleUniversalScroll(e);
                 }
               },
               { passive: false }
