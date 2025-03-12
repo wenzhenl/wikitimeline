@@ -29,9 +29,20 @@ const config: Config = {
             transform: "translate(0px, 0px) scale(1)",
           },
         },
+        "expand-in": {
+          "0%": {
+            transform: "scaleY(0)",
+            opacity: "0"
+          },
+          "100%": {
+            transform: "scaleY(1)",
+            opacity: "1"
+          }
+        }
       },
       animation: {
         blob: "blob 7s infinite",
+        "expand-in": "expand-in 0.2s ease-out forwards"
       },
     },
   },
