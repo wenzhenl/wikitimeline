@@ -83,7 +83,7 @@ export default function TimelineControls({
       {/* Speed Dial Floating Action Button */}
       <div
         ref={speedDialRef}
-        className="absolute right-4 bottom-4 z-40 flex flex-col items-end"
+        className="absolute right-4 bottom-4 z-40 flex flex-col items-end timeline-controls-tour"
       >
         {/* Speed Dial Options */}
         <div className="flex flex-col items-center">

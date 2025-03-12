@@ -109,7 +109,7 @@ export default function TimelineCustomizer({
       {/* Button to open the customizer */}
       <button
         onClick={() => setIsSettingsOpen(true)}
-        className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+        className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap timeline-customizer-tour"
       >
         <svg
           className="w-4 h-4 mr-2"

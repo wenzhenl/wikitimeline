@@ -21,6 +21,7 @@ import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
 import logger from "@/app/utils/logger";
 import NavigationHeader from "@/app/components/NavigationHeader";
+import InteractiveTimelineTour from "@/app/components/InteractiveTimelineTour";
 
 interface SelectedPage {
   title: string;
@@ -724,6 +725,9 @@ export default function InteractiveTimelineContent({
           )}
         </div>
       </NavigationHeader>
+
+      {/* Add the InteractiveTimelineTour component */}
+      <InteractiveTimelineTour isTimelineReady={isTimelineInitialized} />
 
       <main
         className="flex-1 flex justify-center px-4 py-6"
