@@ -12,9 +12,36 @@ interface WikiSearchTourProps {
   isSearchReady: boolean;
 }
 
+// Function to detect if the user agent is a bot/crawler
+const isBot = () => {
+  if (typeof window === "undefined") return true; // SSR check
+
+  const botPatterns = [
+    "bot",
+    "spider",
+    "crawler",
+    "googlebot",
+    "bingbot",
+    "slurp",
+    "duckduckbot",
+    "baiduspider",
+    "yandexbot",
+    "facebookexternalhit",
+    "sogou",
+    "ia_archiver",
+    "alexa",
+    "aol",
+    "twitterbot",
+  ];
+
+  const userAgent = navigator.userAgent.toLowerCase();
+  return botPatterns.some((pattern) => userAgent.includes(pattern));
+};
+
 export default function WikiSearchTour({ isSearchReady }: WikiSearchTourProps) {
   const [runTour, setRunTour] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isRealUser, setIsRealUser] = useState(false);
 
   // Define tour steps
   const steps: Step[] = [
@@ -48,15 +75,16 @@ export default function WikiSearchTour({ isSearchReady }: WikiSearchTourProps) {
     },
   ];
 
-  // Set mounted state
+  // Set mounted state and check if real user
   useEffect(() => {
     setIsMounted(true);
+    setIsRealUser(!isBot());
   }, []);
 
   // Check if this is the user's first visit
   useEffect(() => {
-    // Wait for search component to be ready and component to be mounted
-    if (!isSearchReady || !isMounted) return;
+    // Only proceed if it's a real user, component is mounted, and search is ready
+    if (!isRealUser || !isSearchReady || !isMounted) return;
 
     // Check if user has seen the tour before
     const hasSeenTour = localStorage.getItem(
@@ -72,7 +100,7 @@ export default function WikiSearchTour({ isSearchReady }: WikiSearchTourProps) {
 
       return () => clearTimeout(timer);
     }
-  }, [isSearchReady, isMounted]);
+  }, [isSearchReady, isMounted, isRealUser]);
 
   // Handle tour completion
   const handleJoyrideCallback = (data: CallBackProps) => {
@@ -89,8 +117,8 @@ export default function WikiSearchTour({ isSearchReady }: WikiSearchTourProps) {
     }
   };
 
-  // Only render Joyride on client side
-  if (!isMounted) return null;
+  // Don't render anything for bots or during SSR
+  if (!isMounted || !isRealUser) return null;
 
   return (
     <Joyride
