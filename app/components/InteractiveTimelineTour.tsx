@@ -92,6 +92,15 @@ export default function InteractiveTimelineTour({
       spotlightClicks: false,
       placement: "bottom",
     },
+    {
+      target: ".reader-view-button",
+      content:
+        "Click this button to view your timeline in a reader view. This is great for reading on a mobile device.",
+      title: "Reader View",
+      disableScrolling: true,
+      spotlightClicks: false,
+      placement: "bottom",
+    },
   ];
 
   // Set mounted state and check if real user
