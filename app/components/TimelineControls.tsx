@@ -83,69 +83,67 @@ export default function TimelineControls({
       {/* Speed Dial Floating Action Button */}
       <div
         ref={speedDialRef}
-        className="absolute right-4 bottom-4 z-40 flex flex-col items-end gap-3"
+        className="absolute right-4 bottom-4 z-40 flex flex-col items-end"
       >
         {/* Speed Dial Options */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col items-center">
           {speedDialOpen && (
-            <div className="bg-gray-100/95 dark:bg-gray-800/95 p-3 rounded-2xl shadow-lg backdrop-blur-sm w-12 animate-expand-in origin-bottom">
-              <div className="flex flex-col gap-3">
-                {/* Filter Option */}
-                <button
-                  onClick={() => openModal("filter")}
-                  className="flex items-center justify-center bg-gray-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-full p-3 shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-all group w-12 h-12"
+            <div className="bg-indigo-600 dark:bg-indigo-700 rounded-t-[24px] shadow-lg w-12 animate-expand-in origin-bottom flex flex-col items-center gap-3 pt-3 pb-6">
+              {/* Filter Option */}
+              <button
+                onClick={() => openModal("filter")}
+                className="flex items-center justify-center bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group w-10 h-10"
+              >
+                <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Filter Events
+                </span>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Filter Events
-                  </span>
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                    />
-                  </svg>
-                </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                  />
+                </svg>
+              </button>
 
-                {/* Edit Pages Option */}
-                <button
-                  onClick={() => openModal("pages")}
-                  className="flex items-center justify-center bg-gray-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-full p-3 shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-all group w-12 h-12"
+              {/* Edit Pages Option */}
+              <button
+                onClick={() => openModal("pages")}
+                className="flex items-center justify-center bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-full p-3 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all group w-10 h-10"
+              >
+                <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Edit Pages
+                </span>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <span className="absolute right-[4.5rem] bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    Edit Pages
-                  </span>
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
-              </div>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
             </div>
           )}
 
           {/* Main Speed Dial Button */}
           <button
             onClick={() => setSpeedDialOpen(!speedDialOpen)}
-            className={`flex items-center justify-center rounded-full shadow-md transition-all w-12 h-12 ${
+            className={`flex items-center justify-center rounded-full shadow-lg transition-all w-12 h-12 ${
               speedDialOpen
-                ? "bg-blue-500 hover:bg-blue-600 text-white rotate-45"
-                : "bg-blue-500 hover:bg-blue-600 text-white"
+                ? "bg-indigo-600 dark:bg-indigo-700 text-white rotate-45 -mt-6"
+                : "bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white"
             }`}
           >
             <svg
