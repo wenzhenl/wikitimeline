@@ -30,6 +30,7 @@
     "postcss-loader": "^8.1.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-joyride": "^2.9.3",
     "react-share": "^5.1.1",
     "style-loader": "^4.0.0",
     "unbzip2-stream": "^1.4.3",
