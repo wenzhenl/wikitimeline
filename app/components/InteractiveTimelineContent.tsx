@@ -11,6 +11,8 @@ import TimelineControls from "@/app/components/TimelineControls";
 import TimelineCustomizer from "@/app/components/TimelineCustomizer";
 import ReportIssueButton from "@/app/components/ReportIssueButton";
 import SkippedPagesModal from "@/app/components/SkippedPagesModal";
+import TimelineTour from "@/app/components/TimelineTour";
+import TimelineControlsTour from "@/app/components/TimelineControlsTour";
 import { useRouter } from "next/navigation";
 import {
   TimelineAPIResponse,
@@ -95,6 +97,8 @@ export default function InteractiveTimelineContent({
   const [originalTimelineJSTimeline, setOriginalTimelineJSTimeline] =
     useState<TimelineJSTimeline | null>(null);
   const [isTimelineInitialized, setIsTimelineInitialized] = useState(false);
+  const [speedDialOpen, setSpeedDialOpen] = useState(false);
+  const speedDialRef = useRef<HTMLDivElement>(null);
 
   // Initialize selected pages from URL
   useEffect(() => {
@@ -570,6 +574,32 @@ export default function InteractiveTimelineContent({
         minHeight: "100vh",
       }}
     >
+      {/* Add TimelineTour component */}
+      {timelineJSTimeline && (
+        <>
+          <TimelineTour
+            isTimelineInitialized={isTimelineInitialized}
+            onSpeedDialClick={() => {
+              setSpeedDialOpen(true);
+              setActiveControlsModal("pages");
+              setIsControlsExpanded(true);
+            }}
+          />
+          <TimelineControlsTour
+            isTimelineInitialized={isTimelineInitialized}
+            onSpeedDialClick={() => setSpeedDialOpen(true)}
+            onEditPagesClick={() => {
+              setActiveControlsModal("pages");
+              setIsControlsExpanded(true);
+            }}
+            onFilterClick={() => {
+              setActiveControlsModal("filter");
+              setIsControlsExpanded(true);
+            }}
+          />
+        </>
+      )}
+
       <NavigationHeader zIndex="z-[10001]">
         {/* Desktop Navigation */}
         <div className="hidden md:flex justify-between items-center w-full">
@@ -778,6 +808,8 @@ export default function InteractiveTimelineContent({
                 currentDateRange={dateRangeFilter}
                 onTopEventsCountChange={handleTopEventsCountChange}
                 currentTopEventsCount={topEventsCount}
+                speedDialOpen={speedDialOpen}
+                setSpeedDialOpen={setSpeedDialOpen}
               />
             </div>
           )}
