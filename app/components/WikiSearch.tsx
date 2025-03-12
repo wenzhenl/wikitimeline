@@ -8,6 +8,11 @@ import {
   STORAGE_KEY_ENABLED_LANGUAGES,
   LanguageOption,
 } from "@/app/constants/languageSettings";
+import {
+  trackEvent,
+  ANALYTICS_CATEGORIES,
+  ANALYTICS_ACTIONS,
+} from "@/app/utils/analytics";
 
 // Add storage key for last used language
 const STORAGE_KEY_LAST_LANGUAGE = "wikitimeline_last_language";
@@ -183,6 +188,13 @@ export default function WikiSearch({
 
     setIsLoading(true);
 
+    // Track search query
+    trackEvent(
+      ANALYTICS_CATEGORIES.SEARCH,
+      ANALYTICS_ACTIONS.SEARCH_QUERY,
+      query
+    );
+
     try {
       // Check if query contains a language prefix (e.g., "zh:胡")
       let languageToUse = selectedLanguage;
@@ -319,6 +331,13 @@ export default function WikiSearch({
     if (value.includes("wikipedia.org") || value.includes("/wiki/")) {
       const wikiTitle = extractWikiTitle(value);
       if (wikiTitle) {
+        // Track URL paste
+        trackEvent(
+          ANALYTICS_CATEGORIES.SEARCH,
+          ANALYTICS_ACTIONS.URL_PASTE,
+          wikiTitle.title
+        );
+
         // If it's a valid Wikipedia URL, add it directly
         const newPage = {
           title: wikiTitle.title,
@@ -348,6 +367,12 @@ export default function WikiSearch({
         enabledLanguages.includes(langPrefix) &&
         langPrefix !== selectedLanguage
       ) {
+        // Track language change via prefix
+        trackEvent(
+          ANALYTICS_CATEGORIES.LANGUAGE,
+          ANALYTICS_ACTIONS.LANGUAGE_CHANGE,
+          `prefix_${langPrefix}`
+        );
         setSelectedLanguage(langPrefix);
         return true;
       }
@@ -356,6 +381,13 @@ export default function WikiSearch({
   };
 
   const handleResultClick = (result: SearchResult) => {
+    // Track result selection
+    trackEvent(
+      ANALYTICS_CATEGORIES.SEARCH,
+      ANALYTICS_ACTIONS.SELECT_RESULT,
+      result.title
+    );
+
     // Add the selected result to the list of selected pages
     const newPage = {
       title: result.title,
@@ -406,6 +438,13 @@ export default function WikiSearch({
     if (!showResults || searchResults.length === 0) {
       if (e.key === "Enter") {
         e.preventDefault();
+        // Track timeline generation via enter key
+        trackEvent(
+          ANALYTICS_CATEGORIES.TIMELINE,
+          ANALYTICS_ACTIONS.GENERATE_TIMELINE,
+          "enter_key",
+          selectedPages.length
+        );
         onSubmit();
       }
       return;
@@ -535,6 +574,12 @@ export default function WikiSearch({
                     // Reset to the previously selected language
                     setTimeout(() => (e.target.value = selectedLanguage), 0);
                   } else {
+                    // Track language change via dropdown
+                    trackEvent(
+                      ANALYTICS_CATEGORIES.LANGUAGE,
+                      ANALYTICS_ACTIONS.LANGUAGE_CHANGE,
+                      `dropdown_${value}`
+                    );
                     setSelectedLanguage(value);
                   }
                 }}
