@@ -88,7 +88,7 @@ export default function TimelineControls({
         {/* Speed Dial Options */}
         <div className="flex flex-col items-center">
           {speedDialOpen && (
-            <div className="bg-indigo-600 dark:bg-indigo-700 rounded-t-[24px] shadow-lg w-12 animate-expand-in origin-bottom flex flex-col items-center gap-3 pt-3 pb-6">
+            <div className="bg-indigo-500 dark:bg-indigo-600 rounded-t-[24px] shadow-lg w-12 animate-expand-in origin-bottom flex flex-col items-center gap-3 pt-3 pb-6">
               {/* Filter Option */}
               <button
                 onClick={() => openModal("filter")}
@@ -142,8 +142,8 @@ export default function TimelineControls({
             onClick={() => setSpeedDialOpen(!speedDialOpen)}
             className={`flex items-center justify-center rounded-full shadow-lg transition-all w-12 h-12 ${
               speedDialOpen
-                ? "bg-indigo-600 dark:bg-indigo-700 text-white rotate-45 -mt-6"
-                : "bg-indigo-600 dark:bg-indigo-700 hover:bg-indigo-700 dark:hover:bg-indigo-800 text-white"
+                ? "bg-blue-500 text-white rotate-45 -mt-6"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
             }`}
           >
             <svg
