@@ -46,6 +46,8 @@ interface WikiSearchProps {
   className?: string;
   autoFocus?: boolean;
   onSettingsClick?: () => void;
+  inputClassName?: string;
+  languageSelectorClassName?: string;
 }
 
 export default function WikiSearch({
@@ -56,6 +58,8 @@ export default function WikiSearch({
   className,
   autoFocus = true,
   onSettingsClick,
+  inputClassName,
+  languageSelectorClassName,
 }: WikiSearchProps) {
   const [inputValue, setInputValue] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("");
@@ -460,7 +464,7 @@ export default function WikiSearch({
   return (
     <div className={`w-full ${className || ""}`}>
       {/* Selected pages display */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-2 mb-3" data-tour="selected-pages">
         {selectedPages.map((page, index) => (
           <div
             key={index}
@@ -499,7 +503,7 @@ export default function WikiSearch({
       <div className="flex">
         <div className="flex-grow relative" ref={searchContainerRef}>
           {/* Input wrapper with integrated language selector */}
-          <div className="relative flex w-full">
+          <div className="relative flex w-full" data-tour="search-input">
             <input
               ref={searchInputRef}
               type="text"
@@ -508,12 +512,19 @@ export default function WikiSearch({
               onKeyDown={handleKeyDown}
               onFocus={() => inputValue.trim() && setShowResults(true)}
               placeholder={placeholder || defaultPlaceholder}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-white pr-20"
+              className={`w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-white pr-20 ${
+                inputClassName || ""
+              }`}
               autoFocus={autoFocus}
             />
 
             {/* Language selector positioned inside the input */}
-            <div className="absolute right-1 top-1/2 -translate-y-1/2">
+            <div
+              className={`absolute right-1 top-1/2 -translate-y-1/2 ${
+                languageSelectorClassName || ""
+              }`}
+              data-tour="language-selector"
+            >
               <select
                 value={selectedLanguage}
                 onChange={(e) => {
@@ -552,7 +563,10 @@ export default function WikiSearch({
 
           {/* Search Results Dropdown - full width to match input+dropdown */}
           {showResults && inputValue.trim() && (
-            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden">
+            <div
+              className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden"
+              data-tour="search-results"
+            >
               {isLoading ? (
                 <div className="p-4 text-center text-gray-500 dark:text-gray-400">
                   Loading results...

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WikiSearch from "@/app/components/WikiSearch";
 import LanguageSettings from "@/app/components/LanguageSettings";
+import OnboardingTour from "@/app/components/OnboardingTour";
 import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
 import { isMobile } from "@/app/utils/deviceDetection";
 
@@ -17,7 +18,13 @@ export function ClientSearchWrapper() {
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [error, setError] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSearchReady, setIsSearchReady] = useState(false);
   const router = useRouter();
+
+  // Set search ready after component mounts
+  useEffect(() => {
+    setIsSearchReady(true);
+  }, []);
 
   const handleSubmit = async (e?: FormEvent) => {
     if (e) e.preventDefault();
@@ -64,64 +71,72 @@ export function ClientSearchWrapper() {
   const openLanguageSettings = () => setIsSettingsOpen(true);
 
   return (
-    <div
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8"
-      style={{
-        padding: "1.5rem", // matches p-6
-        marginBottom: "2rem", // matches mb-8
-        width: "100%",
-        borderRadius: "1rem", // matches rounded-2xl
-      }}
-    >
-      {/* Remove the header div and integrate language settings directly with WikiSearch */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4"
+    <>
+      {/* Onboarding Tour */}
+      <OnboardingTour isSearchReady={isSearchReady} />
+
+      <div
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 mb-8 wiki-search-container"
         style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem", // matches space-y-4
+          padding: "1.5rem",
+          marginBottom: "2rem",
           width: "100%",
+          borderRadius: "1rem",
         }}
       >
-        <WikiSearch
-          selectedPages={selectedPages}
-          onPagesChange={setSelectedPages}
-          onSubmit={handleSubmit}
-          placeholder="Search or paste Wikipedia URLs (e.g. 'Albert Einstein' or 'wikipedia.org/wiki/World_War_II')..."
-          className="flex-1"
-          onSettingsClick={openLanguageSettings}
-        />
-        <button
-          type="submit"
-          className="w-full py-3 px-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
-          style={{
-            width: "100%",
-            padding: "0.75rem 1.5rem", // matches py-3 px-6
-            borderRadius: "0.5rem", // matches rounded-lg
-          }}
-        >
-          Generate Timeline
-        </button>
-      </form>
-      {error && (
         <div
-          className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg"
+          className="space-y-4"
           style={{
-            marginTop: "1rem", // matches mt-4
-            padding: "0.75rem", // matches p-3
-            borderRadius: "0.5rem", // matches rounded-lg
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            width: "100%",
           }}
         >
-          {error}
+          <div className="wiki-selected-pages">
+            <WikiSearch
+              selectedPages={selectedPages}
+              onPagesChange={setSelectedPages}
+              onSubmit={handleSubmit}
+              placeholder="Search or paste Wikipedia URLs (e.g. 'Albert Einstein' or 'wikipedia.org/wiki/World_War_II')..."
+              className="flex-1"
+              onSettingsClick={openLanguageSettings}
+              inputClassName="wiki-search-input"
+              languageSelectorClassName="wiki-language-selector"
+            />
+          </div>
+          <button
+            onClick={handleSubmit}
+            type="button"
+            className="w-full py-3 px-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:opacity-90 transition-opacity font-medium wiki-generate-button"
+            style={{
+              width: "100%",
+              padding: "0.75rem 1.5rem",
+              borderRadius: "0.5rem",
+            }}
+          >
+            Generate Timeline
+          </button>
         </div>
-      )}
+        {error && (
+          <div
+            className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg"
+            style={{
+              marginTop: "1rem",
+              padding: "0.75rem",
+              borderRadius: "0.5rem",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
-      {/* Language Settings Modal */}
-      <LanguageSettings
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
-    </div>
+        {/* Language Settings Modal */}
+        <LanguageSettings
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+        />
+      </div>
+    </>
   );
 }
