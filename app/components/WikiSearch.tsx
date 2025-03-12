@@ -9,6 +9,9 @@ import {
   LanguageOption,
 } from "@/app/constants/languageSettings";
 
+// Add storage key for last used language
+const STORAGE_KEY_LAST_LANGUAGE = "wikitimeline_last_language";
+
 // Constants for search configuration
 const MAX_AUTOCOMPLETE_RESULTS = 20;
 const MAX_SEARCH_RESULTS_TO_DISPLAY = 20;
@@ -72,27 +75,39 @@ export default function WikiSearch({
   const defaultPlaceholder =
     "Search or paste Wikipedia URLs (e.g., Albert Einstein, fr:Marie Curie)";
 
-  // Load enabled languages from localStorage on mount
+  // Load enabled languages and last used language from localStorage on mount
   useEffect(() => {
-    const loadEnabledLanguages = () => {
+    const loadLanguageSettings = () => {
       try {
+        // Load enabled languages
         const storedLanguages = localStorage.getItem(
           STORAGE_KEY_ENABLED_LANGUAGES
         );
+        let parsedLanguages = DEFAULT_ENABLED_LANGUAGES;
+
         if (storedLanguages) {
-          const parsedLanguages = JSON.parse(storedLanguages);
-          if (Array.isArray(parsedLanguages) && parsedLanguages.length > 0) {
-            setEnabledLanguages(parsedLanguages);
-            setSelectedLanguage(parsedLanguages[0]);
-            return;
+          const tempParsedLanguages = JSON.parse(storedLanguages);
+          if (
+            Array.isArray(tempParsedLanguages) &&
+            tempParsedLanguages.length > 0
+          ) {
+            parsedLanguages = tempParsedLanguages;
           }
         }
-        // Fallback to default if storage is empty or invalid
-        setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
-        setSelectedLanguage(DEFAULT_ENABLED_LANGUAGES[0]);
+        setEnabledLanguages(parsedLanguages);
+
+        // Load last used language
+        const lastUsedLanguage = localStorage.getItem(
+          STORAGE_KEY_LAST_LANGUAGE
+        );
+        if (lastUsedLanguage && parsedLanguages.includes(lastUsedLanguage)) {
+          setSelectedLanguage(lastUsedLanguage);
+        } else {
+          setSelectedLanguage(parsedLanguages[0]);
+        }
       } catch (error) {
         logger.error(
-          "Error loading enabled languages from localStorage:",
+          "Error loading language settings from localStorage:",
           error
         );
         setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
@@ -100,18 +115,28 @@ export default function WikiSearch({
       }
     };
 
-    loadEnabledLanguages();
+    loadLanguageSettings();
 
     // Add event listener for storage changes (for cross-tab sync)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY_ENABLED_LANGUAGES) {
-        loadEnabledLanguages();
+      if (
+        e.key === STORAGE_KEY_ENABLED_LANGUAGES ||
+        e.key === STORAGE_KEY_LAST_LANGUAGE
+      ) {
+        loadLanguageSettings();
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  // Update last used language in localStorage when language changes
+  useEffect(() => {
+    if (selectedLanguage) {
+      localStorage.setItem(STORAGE_KEY_LAST_LANGUAGE, selectedLanguage);
+    }
+  }, [selectedLanguage]);
 
   // Function to extract wiki title and language from URL
   const extractWikiTitle = (
