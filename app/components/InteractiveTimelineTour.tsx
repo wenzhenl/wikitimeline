@@ -12,10 +12,15 @@ interface InteractiveTimelineTourProps {
   isTimelineReady: boolean;
 }
 
+// Function to detect if device is mobile
+const isMobileDevice = () => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth <= 768;
+};
+
 // Function to detect if the user agent is a bot/crawler
 const isBot = () => {
-  if (typeof window === "undefined") return true; // SSR check
-
+  if (typeof window === "undefined") return true;
   const botPatterns = [
     "bot",
     "spider",
@@ -33,7 +38,6 @@ const isBot = () => {
     "aol",
     "twitterbot",
   ];
-
   const userAgent = navigator.userAgent.toLowerCase();
   return botPatterns.some((pattern) => userAgent.includes(pattern));
 };
@@ -44,15 +48,37 @@ export default function InteractiveTimelineTour({
   const [runTour, setRunTour] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isRealUser, setIsRealUser] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Update mobile state on mount and window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Define tour steps
   const steps: Step[] = [
+    {
+      target: "body",
+      content: isMobile
+        ? "Swipe left or right to browse through events."
+        : "Use your mouse wheel or arrow keys to browse through events.",
+      placement: "center",
+      disableBeacon: true,
+      title: "Welcome to your timeline!",
+      disableScrolling: true,
+      spotlightClicks: false,
+    },
     {
       target: ".timeline-controls-tour",
       content:
         "Click this button to access timeline controls. You can edit pages in your timeline or filter events based on date range and importance.",
       placement: "left",
-      disableBeacon: true,
       title: "Timeline Controls",
       disableScrolling: true,
       spotlightClicks: false,
@@ -74,9 +100,8 @@ export default function InteractiveTimelineTour({
     setIsRealUser(!isBot());
   }, []);
 
-  // Check if this is the user's first visit
+  // Start tour when timeline is ready
   useEffect(() => {
-    // Only proceed if it's a real user, component is mounted, and timeline is ready
     if (!isRealUser || !isTimelineReady || !isMounted) return;
 
     // Check if user has seen the tour before
@@ -86,7 +111,7 @@ export default function InteractiveTimelineTour({
 
     // Only show tour for first-time visitors
     if (!hasSeenTour) {
-      // Add delay to ensure DOM elements are fully rendered and stable
+      // Add delay to ensure DOM elements are fully rendered
       const timer = setTimeout(() => {
         setRunTour(true);
       }, 2000);
@@ -99,14 +124,8 @@ export default function InteractiveTimelineTour({
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
 
-    // Save to localStorage when tour is finished or skipped
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       localStorage.setItem("wikitimeline_interactive_tour_completed", "true");
-    }
-
-    // For debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log("Interactive Timeline Tour status:", status);
     }
   };
 
@@ -152,7 +171,7 @@ export default function InteractiveTimelineTour({
         disableAnimation: true,
       }}
       locale={{
-        last: "Got it!",
+        last: "Finish",
         skip: "Skip tour",
       }}
       callback={handleJoyrideCallback}
