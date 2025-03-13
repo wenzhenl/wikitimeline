@@ -1,0 +1,503 @@
+[
+  {
+    lang: 'ab',
+    title: 'Еинштеин, Алберт',
+    url: 'https://ab.wikipedia.org/wiki/%D0%95%D0%B8%D0%BD%D1%88%D1%82%D0%B5%D0%B8%D0%BD,_%D0%90%D0%BB%D0%B1%D0%B5%D1%80%D1%82'
+  },
+  {
+    lang: 'af',
+    title: 'Albert Einstein',
+    url: 'https://af.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'als',
+    title: 'Albert Einstein',
+    url: 'https://als.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'am',
+    title: 'አልበርት አይንስታይን',
+    url: 'https://am.wikipedia.org/wiki/%E1%8A%A0%E1%88%8D%E1%89%A0%E1%88%AD%E1%89%B5_%E1%8A%A0%E1%8B%AD%E1%8A%95%E1%88%B5%E1%89%B3%E1%8B%AD%E1%8A%95'
+  },
+  {
+    lang: 'an',
+    title: 'Albert Einstein',
+    url: 'https://an.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ang',
+    title: 'Albert Einstein',
+    url: 'https://ang.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'anp',
+    title: 'ऐल्बर्ट आइनस्टाइन',
+    url: 'https://anp.wikipedia.org/wiki/%E0%A4%90%E0%A4%B2%E0%A5%8D%E0%A4%AC%E0%A4%B0%E0%A5%8D%E0%A4%9F_%E0%A4%86%E0%A4%87%E0%A4%A8%E0%A4%B8%E0%A5%8D%E0%A4%9F%E0%A4%BE%E0%A4%87%E0%A4%A8'
+  },
+  {
+    lang: 'ar',
+    title: 'ألبرت أينشتاين',
+    url: 'https://ar.wikipedia.org/wiki/%D8%A3%D9%84%D8%A8%D8%B1%D8%AA_%D8%A3%D9%8A%D9%86%D8%B4%D8%AA%D8%A7%D9%8A%D9%86'
+  },
+  {
+    lang: 'ary',
+    title: 'ألبيرط أينشطاين',
+    url: 'https://ary.wikipedia.org/wiki/%D8%A3%D9%84%D8%A8%D9%8A%D8%B1%D8%B7_%D8%A3%D9%8A%D9%86%D8%B4%D8%B7%D8%A7%D9%8A%D9%86'
+  },
+  {
+    lang: 'arz',
+    title: 'البرت اينشتاين',
+    url: 'https://arz.wikipedia.org/wiki/%D8%A7%D9%84%D8%A8%D8%B1%D8%AA_%D8%A7%D9%8A%D9%86%D8%B4%D8%AA%D8%A7%D9%8A%D9%86'
+  },
+  {
+    lang: 'as',
+    title: 'এলবাৰ্ট আইনষ্টাইন',
+    url: 'https://as.wikipedia.org/wiki/%E0%A6%8F%E0%A6%B2%E0%A6%AC%E0%A6%BE%E0%A7%B0%E0%A7%8D%E0%A6%9F_%E0%A6%86%E0%A6%87%E0%A6%A8%E0%A6%B7%E0%A7%8D%E0%A6%9F%E0%A6%BE%E0%A6%87%E0%A6%A8'
+  },
+  {
+    lang: 'ast',
+    title: 'Albert Einstein',
+    url: 'https://ast.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'awa',
+    title: 'अल्बर्ट आइंस्टीन',
+    url: 'https://awa.wikipedia.org/wiki/%E0%A4%85%E0%A4%B2%E0%A5%8D%E0%A4%AC%E0%A4%B0%E0%A5%8D%E0%A4%9F_%E0%A4%86%E0%A4%87%E0%A4%82%E0%A4%B8%E0%A5%8D%E0%A4%9F%E0%A5%80%E0%A4%A8'
+  },
+  {
+    lang: 'ay',
+    title: 'Albert Einstein',
+    url: 'https://ay.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'az',
+    title: 'Albert Eynşteyn',
+    url: 'https://az.wikipedia.org/wiki/Albert_Eyn%C5%9Fteyn'
+  },
+  {
+    lang: 'azb',
+    title: 'آلبرت آینشتاین',
+    url: 'https://azb.wikipedia.org/wiki/%D8%A2%D9%84%D8%A8%D8%B1%D8%AA_%D8%A2%DB%8C%D9%86%D8%B4%D8%AA%D8%A7%DB%8C%D9%86'
+  },
+  {
+    lang: 'ba',
+    title: 'Альберт Эйнштейн',
+    url: 'https://ba.wikipedia.org/wiki/%D0%90%D0%BB%D1%8C%D0%B1%D0%B5%D1%80%D1%82_%D0%AD%D0%B9%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD'
+  },
+  {
+    lang: 'ban',
+    title: 'Albert Einstein',
+    url: 'https://ban.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'bat-smg',
+    title: 'Alberts Einšteins',
+    url: 'https://bat-smg.wikipedia.org/wiki/Alberts_Ein%C5%A1teins'
+  },
+  {
+    lang: 'bcl',
+    title: 'Albert Einstein',
+    url: 'https://bcl.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'be',
+    title: 'Альберт Эйнштэйн',
+    url: 'https://be.wikipedia.org/wiki/%D0%90%D0%BB%D1%8C%D0%B1%D0%B5%D1%80%D1%82_%D0%AD%D0%B9%D0%BD%D1%88%D1%82%D1%8D%D0%B9%D0%BD'
+  },
+  {
+    lang: 'be-x-old',
+    title: 'Альбэрт Айнштайн',
+    url: 'https://be-tarask.wikipedia.org/wiki/%D0%90%D0%BB%D1%8C%D0%B1%D1%8D%D1%80%D1%82_%D0%90%D0%B9%D0%BD%D1%88%D1%82%D0%B0%D0%B9%D0%BD'
+  },
+  {
+    lang: 'bew',
+    title: 'Albet Énstén',
+    url: 'https://bew.wikipedia.org/wiki/Albet_%C3%89nst%C3%A9n'
+  },
+  {
+    lang: 'bg',
+    title: 'Алберт Айнщайн',
+    url: 'https://bg.wikipedia.org/wiki/%D0%90%D0%BB%D0%B1%D0%B5%D1%80%D1%82_%D0%90%D0%B9%D0%BD%D1%89%D0%B0%D0%B9%D0%BD'
+  },
+  {
+    lang: 'bh',
+    title: 'अल्बर्ट आइंस्टीन',
+    url: 'https://bh.wikipedia.org/wiki/%E0%A4%85%E0%A4%B2%E0%A5%8D%E0%A4%AC%E0%A4%B0%E0%A5%8D%E0%A4%9F_%E0%A4%86%E0%A4%87%E0%A4%82%E0%A4%B8%E0%A5%8D%E0%A4%9F%E0%A5%80%E0%A4%A8'
+  },
+  {
+    lang: 'bm',
+    title: 'Albert Einstein',
+    url: 'https://bm.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'bn',
+    title: 'আলবার্ট আইনস্টাইন',
+    url: 'https://bn.wikipedia.org/wiki/%E0%A6%86%E0%A6%B2%E0%A6%AC%E0%A6%BE%E0%A6%B0%E0%A7%8D%E0%A6%9F_%E0%A6%86%E0%A6%87%E0%A6%A8%E0%A6%B8%E0%A7%8D%E0%A6%9F%E0%A6%BE%E0%A6%87%E0%A6%A8'
+  },
+  {
+    lang: 'bo',
+    title: 'ཨར་པོ་ཐེ་ཨའེ་དབྱིན་སི་ཐེན།',
+    url: 'https://bo.wikipedia.org/wiki/%E0%BD%A8%E0%BD%A2%E0%BC%8B%E0%BD%94%E0%BD%BC%E0%BC%8B%E0%BD%90%E0%BD%BA%E0%BC%8B%E0%BD%A8%E0%BD%A0%E0%BD%BA%E0%BC%8B%E0%BD%91%E0%BD%96%E0%BE%B1%E0%BD%B2%E0%BD%93%E0%BC%8B%E0%BD%A6%E0%BD%B2%E0%BC%8B%E0%BD%90%E0%BD%BA%E0%BD%93%E0%BC%8D'
+  },
+  {
+    lang: 'bpy',
+    title: 'আলবার্ট আইনস্টাইন',
+    url: 'https://bpy.wikipedia.org/wiki/%E0%A6%86%E0%A6%B2%E0%A6%AC%E0%A6%BE%E0%A6%B0%E0%A7%8D%E0%A6%9F_%E0%A6%86%E0%A6%87%E0%A6%A8%E0%A6%B8%E0%A7%8D%E0%A6%9F%E0%A6%BE%E0%A6%87%E0%A6%A8'
+  },
+  {
+    lang: 'br',
+    title: 'Albert Einstein',
+    url: 'https://br.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'bs',
+    title: 'Albert Einstein',
+    url: 'https://bs.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'btm',
+    title: 'Albert Einstein',
+    url: 'https://btm.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'bxr',
+    title: 'Альберт Айнштайн',
+    url: 'https://bxr.wikipedia.org/wiki/%D0%90%D0%BB%D1%8C%D0%B1%D0%B5%D1%80%D1%82_%D0%90%D0%B9%D0%BD%D1%88%D1%82%D0%B0%D0%B9%D0%BD'
+  },
+  {
+    lang: 'ca',
+    title: 'Albert Einstein',
+    url: 'https://ca.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'cbk-zam',
+    title: 'Albert Einstein',
+    url: 'https://cbk-zam.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'cdo',
+    title: 'Albert Einstein',
+    url: 'https://cdo.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ce',
+    title: 'Эйнштейн, Альберт',
+    url: 'https://ce.wikipedia.org/wiki/%D0%AD%D0%B9%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD,_%D0%90%D0%BB%D1%8C%D0%B1%D0%B5%D1%80%D1%82'
+  },
+  {
+    lang: 'ceb',
+    title: 'Albert Einstein',
+    url: 'https://ceb.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ckb',
+    title: 'ئەلبەرت ئاینشتاین',
+    url: 'https://ckb.wikipedia.org/wiki/%D8%A6%DB%95%D9%84%D8%A8%DB%95%D8%B1%D8%AA_%D8%A6%D8%A7%DB%8C%D9%86%D8%B4%D8%AA%D8%A7%DB%8C%D9%86'
+  },
+  {
+    lang: 'co',
+    title: 'Albert Einstein',
+    url: 'https://co.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'crh',
+    title: 'Albert Eynşteyn',
+    url: 'https://crh.wikipedia.org/wiki/Albert_Eyn%C5%9Fteyn'
+  },
+  {
+    lang: 'cs',
+    title: 'Albert Einstein',
+    url: 'https://cs.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'cv',
+    title: 'Эйнштейн, Альберт',
+    url: 'https://cv.wikipedia.org/wiki/%D0%AD%D0%B9%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD,_%D0%90%D0%BB%D1%8C%D0%B1%D0%B5%D1%80%D1%82'
+  },
+  {
+    lang: 'cy',
+    title: 'Albert Einstein',
+    url: 'https://cy.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'da',
+    title: 'Albert Einstein',
+    url: 'https://da.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'de',
+    title: 'Albert Einstein',
+    url: 'https://de.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'diq',
+    title: 'Albert Einstein',
+    url: 'https://diq.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'dtp',
+    title: 'Albert Einstein',
+    url: 'https://dtp.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'dty',
+    title: 'अल्बर्ट आइनस्टाइन',
+    url: 'https://dty.wikipedia.org/wiki/%E0%A4%85%E0%A4%B2%E0%A5%8D%E0%A4%AC%E0%A4%B0%E0%A5%8D%E0%A4%9F_%E0%A4%86%E0%A4%87%E0%A4%A8%E0%A4%B8%E0%A5%8D%E0%A4%9F%E0%A4%BE%E0%A4%87%E0%A4%A8'
+  },
+  {
+    lang: 'el',
+    title: 'Άλμπερτ Αϊνστάιν',
+    url: 'https://el.wikipedia.org/wiki/%CE%86%CE%BB%CE%BC%CF%80%CE%B5%CF%81%CF%84_%CE%91%CF%8A%CE%BD%CF%83%CF%84%CE%AC%CE%B9%CE%BD'
+  },
+  {
+    lang: 'eo',
+    title: 'Albert Einstein',
+    url: 'https://eo.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'es',
+    title: 'Albert Einstein',
+    url: 'https://es.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'et',
+    title: 'Albert Einstein',
+    url: 'https://et.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'eu',
+    title: 'Albert Einstein',
+    url: 'https://eu.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ext',
+    title: 'Albert Einstein',
+    url: 'https://ext.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'fa',
+    title: 'آلبرت اینشتین',
+    url: 'https://fa.wikipedia.org/wiki/%D8%A2%D9%84%D8%A8%D8%B1%D8%AA_%D8%A7%DB%8C%D9%86%D8%B4%D8%AA%DB%8C%D9%86'
+  },
+  {
+    lang: 'ff',
+    title: 'Albert Einstein',
+    url: 'https://ff.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'fi',
+    title: 'Albert Einstein',
+    url: 'https://fi.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'fiu-vro',
+    title: 'Einsteini Albert',
+    url: 'https://fiu-vro.wikipedia.org/wiki/Einsteini_Albert'
+  },
+  {
+    lang: 'fo',
+    title: 'Albert Einstein',
+    url: 'https://fo.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'fr',
+    title: 'Albert Einstein',
+    url: 'https://fr.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'frp',
+    title: 'Albert Einstein',
+    url: 'https://frp.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'frr',
+    title: 'Albert Einstein',
+    url: 'https://frr.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'fy',
+    title: 'Albert Einstein',
+    url: 'https://fy.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ga',
+    title: 'Albert Einstein',
+    url: 'https://ga.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gan',
+    title: '愛因斯坦',
+    url: 'https://gan.wikipedia.org/wiki/%E6%84%9B%E5%9B%A0%E6%96%AF%E5%9D%A6'
+  },
+  {
+    lang: 'gcr',
+    title: 'Albert Einstein',
+    url: 'https://gcr.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gd',
+    title: 'Albert Einstein',
+    url: 'https://gd.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gl',
+    title: 'Albert Einstein',
+    url: 'https://gl.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gn',
+    title: 'Albert Einstein',
+    url: 'https://gn.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gom',
+    title: 'Albert Einstein',
+    url: 'https://gom.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gor',
+    title: 'Albert Einstein',
+    url: 'https://gor.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'gu',
+    title: 'આલ્બર્ટ આઇન્સ્ટાઇન',
+    url: 'https://gu.wikipedia.org/wiki/%E0%AA%86%E0%AA%B2%E0%AB%8D%E0%AA%AC%E0%AA%B0%E0%AB%8D%E0%AA%9F_%E0%AA%86%E0%AA%87%E0%AA%A8%E0%AB%8D%E0%AA%B8%E0%AB%8D%E0%AA%9F%E0%AA%BE%E0%AA%87%E0%AA%A8'
+  },
+  {
+    lang: 'gv',
+    title: 'Albert Einstein',
+    url: 'https://gv.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ha',
+    title: 'Albert Einstein',
+    url: 'https://ha.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'hak',
+    title: 'Albert Einstein',
+    url: 'https://hak.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'haw',
+    title: 'Albert Einstein',
+    url: 'https://haw.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'he',
+    title: 'אלברט איינשטיין',
+    url: 'https://he.wikipedia.org/wiki/%D7%90%D7%9C%D7%91%D7%A8%D7%98_%D7%90%D7%99%D7%99%D7%A0%D7%A9%D7%98%D7%99%D7%99%D7%9F'
+  },
+  {
+    lang: 'hi',
+    title: 'अल्बर्ट आइंस्टीन',
+    url: 'https://hi.wikipedia.org/wiki/%E0%A4%85%E0%A4%B2%E0%A5%8D%E0%A4%AC%E0%A4%B0%E0%A5%8D%E0%A4%9F_%E0%A4%86%E0%A4%87%E0%A4%82%E0%A4%B8%E0%A5%8D%E0%A4%9F%E0%A5%80%E0%A4%A8'
+  },
+  {
+    lang: 'hif',
+    title: 'Albert Einstein',
+    url: 'https://hif.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'hr',
+    title: 'Albert Einstein',
+    url: 'https://hr.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'hsb',
+    title: 'Albert Einstein',
+    url: 'https://hsb.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ht',
+    title: 'Albert Einstein',
+    url: 'https://ht.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'hu',
+    title: 'Albert Einstein',
+    url: 'https://hu.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'hy',
+    title: 'Ալբերտ Այնշտայն',
+    url: 'https://hy.wikipedia.org/wiki/%D4%B1%D5%AC%D5%A2%D5%A5%D6%80%D5%BF_%D4%B1%D5%B5%D5%B6%D5%B7%D5%BF%D5%A1%D5%B5%D5%B6'
+  },
+  {
+    lang: 'hyw',
+    title: 'Ալպերթ Այնշթայն',
+    url: 'https://hyw.wikipedia.org/wiki/%D4%B1%D5%AC%D5%BA%D5%A5%D6%80%D5%A9_%D4%B1%D5%B5%D5%B6%D5%B7%D5%A9%D5%A1%D5%B5%D5%B6'
+  },
+  {
+    lang: 'ia',
+    title: 'Albert Einstein',
+    url: 'https://ia.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'id',
+    title: 'Albert Einstein',
+    url: 'https://id.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ie',
+    title: 'Albert Einstein',
+    url: 'https://ie.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ig',
+    title: 'Albert Einstein',
+    url: 'https://ig.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ilo',
+    title: 'Albert Einstein',
+    url: 'https://ilo.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'io',
+    title: 'Albert Einstein',
+    url: 'https://io.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'is',
+    title: 'Albert Einstein',
+    url: 'https://is.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'it',
+    title: 'Albert Einstein',
+    url: 'https://it.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ja',
+    title: 'アルベルト・アインシュタイン',
+    url: 'https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%AB%E3%83%99%E3%83%AB%E3%83%88%E3%83%BB%E3%82%A2%E3%82%A4%E3%83%B3%E3%82%B7%E3%83%A5%E3%82%BF%E3%82%A4%E3%83%B3'
+  },
+  {
+    lang: 'jam',
+    title: 'Alboert Ainstain',
+    url: 'https://jam.wikipedia.org/wiki/Alboert_Ainstain'
+  },
+  {
+    lang: 'jbo',
+    title: 'albert. ainctain',
+    url: 'https://jbo.wikipedia.org/wiki/albert._ainctain'
+  },
+  {
+    lang: 'jv',
+    title: 'Albert Einstein',
+    url: 'https://jv.wikipedia.org/wiki/Albert_Einstein'
+  },
+  {
+    lang: 'ka',
+    title: 'ალბერტ აინშტაინი',
+    url: 'https://ka.wikipedia.org/wiki/%E1%83%90%E1%83%9A%E1%83%91%E1%83%94%E1%83%A0%E1%83%A2_%E1%83%90%E1%83%98%E1%83%9C%E1%83%A8%E1%83%A2%E1%83%90%E1%83%98%E1%83%9C%E1%83%98'
+  },
+  {
+    lang: 'kaa',
+    title: 'Albert Einstein',
+    url: 'https://kaa.wikipedia.org/wiki/Albert_Einstein'
+  },
+  ... 127 more items
+]

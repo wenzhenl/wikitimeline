@@ -1,0 +1,33 @@
+{
+  nativeNameLang: 'de',
+  image: 'Albert Einstein 1947.jpg',
+  caption: 'Einstein in 1947',
+  birthDate: { date: 1879-03-14T07:52:58.000Z, age: 146 },
+  birthPlace: 'Ulm',
+  deathDate: { date: 1955-04-18T08:00:00.000Z, age: 76 },
+  deathPlace: 'Princeton, New Jersey',
+  children: [
+    'Lieserl Einstein',
+    'Hans Albert Einstein',
+    `Einstein family#Eduard "Tete" Einstein (Albert's second son)`
+  ],
+  family: 'Einstein family',
+  spouse: [
+    { who: 'Mileva Marić', married: '1903' },
+    { who: 'Elsa Löwenthal', married: '1919' }
+  ],
+  citizenship: 'collapsible list',
+  fields: 'Physics',
+  workplaces: 'collapsible list',
+  education: 'Indented plainlist',
+  doctoralAdvisor: 'Alfred Kleiner',
+  thesisTitle: 'lang',
+  thesisUrl: 'http://e-collection.library.ethz.ch/eserv/eth:30378/eth-30378-01.pdf',
+  thesisYear: '1905',
+  academicAdvisors: 'Heinrich Friedrich Weber',
+  knownFor: 'Indented plainlist',
+  awards: 'collapsible list',
+  module: 'Listen',
+  child: true,
+  signature: 'Albert Einstein signature 1934.svg'
+}
