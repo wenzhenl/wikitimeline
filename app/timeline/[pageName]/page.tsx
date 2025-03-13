@@ -14,7 +14,7 @@ async function getTimelineData(pageName: string) {
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
         },
-      }
+      },
     );
 
     logger.debug(`Response status: ${response.status}`);
@@ -50,7 +50,7 @@ export default async function TimelinePage({
       !initialData.results ||
       Object.keys(initialData.results).length === 0 ||
       Object.values(initialData.results).every(
-        (timeline) => !timeline?.timeline?.events?.length
+        (timeline) => !timeline?.timeline?.events?.length,
       )
     ) {
       notFound();

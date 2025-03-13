@@ -63,7 +63,7 @@ export default function InteractiveTimelineContent({
     useState<TimelineJSTimeline | null>(null);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
-    AVAILABLE_FONTS[0].value
+    AVAILABLE_FONTS[0].value,
   );
   const [selectedColorScheme, setSelectedColorScheme] =
     useState<ColorSchemeId>("default");
@@ -119,7 +119,7 @@ export default function InteractiveTimelineContent({
 
           // Parse language prefix if present (e.g., "zh:::PageName")
           const langPrefixMatch = decodedName.match(
-            new RegExp(`^([a-z]{2,3})${PAGE_NAME_SEPARATOR}(.*)`)
+            new RegExp(`^([a-z]{2,3})${PAGE_NAME_SEPARATOR}(.*)`),
           );
 
           if (langPrefixMatch) {
@@ -127,14 +127,14 @@ export default function InteractiveTimelineContent({
             const cleanName = actualName.replace(/_/g, " ");
 
             logger.debug(
-              `Parsed page with language prefix: ${langPrefix}${PAGE_NAME_SEPARATOR}${cleanName}`
+              `Parsed page with language prefix: ${langPrefix}${PAGE_NAME_SEPARATOR}${cleanName}`,
             );
 
             return {
               title: cleanName,
               link: `https://${langPrefix}.wikipedia.org/wiki/${actualName.replace(
                 / /g,
-                "_"
+                "_",
               )}`,
               language: langPrefix,
             };
@@ -145,7 +145,7 @@ export default function InteractiveTimelineContent({
             title: decodedName.replace(/_/g, " "),
             link: `https://en.wikipedia.org/wiki/${decodedName.replace(
               / /g,
-              "_"
+              "_",
             )}`,
             language: "en",
           };
@@ -158,7 +158,7 @@ export default function InteractiveTimelineContent({
             language: "en",
           };
         }
-      })
+      }),
     );
   }, [params.pageName]);
 
@@ -221,10 +221,10 @@ export default function InteractiveTimelineContent({
             resolve(
               formatTimelineEventsForInteractive(
                 initialData.results,
-                selectedColorScheme
-              )
+                selectedColorScheme,
+              ),
             ),
-          0
+          0,
         );
       });
 
@@ -253,7 +253,7 @@ export default function InteractiveTimelineContent({
     if (initialData.results) {
       const formatted = formatTimelineEventsForInteractive(
         initialData.results,
-        selectedColorScheme
+        selectedColorScheme,
       );
 
       // Update both the original and current timeline
@@ -304,7 +304,7 @@ export default function InteractiveTimelineContent({
 
       if (dateRangeFilter.startEventId) {
         const foundStartIndex = sortedEvents.findIndex(
-          (event) => event.unique_id === dateRangeFilter.startEventId
+          (event) => event.unique_id === dateRangeFilter.startEventId,
         );
         if (foundStartIndex !== -1) {
           startIndex = foundStartIndex;
@@ -313,7 +313,7 @@ export default function InteractiveTimelineContent({
 
       if (dateRangeFilter.endEventId) {
         const foundEndIndex = sortedEvents.findIndex(
-          (event) => event.unique_id === dateRangeFilter.endEventId
+          (event) => event.unique_id === dateRangeFilter.endEventId,
         );
         if (foundEndIndex !== -1) {
           endIndex = foundEndIndex;
@@ -357,19 +357,19 @@ export default function InteractiveTimelineContent({
 
       // Sort back to chronological order
       topEvents.sort(
-        (a, b) => sortedEvents.indexOf(a) - sortedEvents.indexOf(b)
+        (a, b) => sortedEvents.indexOf(a) - sortedEvents.indexOf(b),
       );
 
       finalFilteredEvents = topEvents;
 
       logger.debug(
-        `Applied importance filter: ${finalFilteredEvents.length} events after filtering by top ${topEventsCount}`
+        `Applied importance filter: ${finalFilteredEvents.length} events after filtering by top ${topEventsCount}`,
       );
     }
 
     // Check if the scale has changed due to filtering
     const needsCosmologicalScale = finalFilteredEvents.some((event) =>
-      requiresCosmologicalScale(event.start_date)
+      requiresCosmologicalScale(event.start_date),
     );
 
     // Update the timeline scale if needed
@@ -409,7 +409,7 @@ export default function InteractiveTimelineContent({
         const titleFromUrl = page.link.split("/wiki/").pop();
         if (titleFromUrl) {
           const cleanTitle = decodeURIComponent(
-            titleFromUrl.split("#")[0].split("?")[0]
+            titleFromUrl.split("#")[0].split("?")[0],
           );
 
           // Include language prefix for non-English pages
@@ -425,14 +425,14 @@ export default function InteractiveTimelineContent({
 
     if (pageNames.length > 0) {
       const newPath = `/timeline/${encodeURIComponent(
-        pageNames.join(PAGE_DELIMITER)
+        pageNames.join(PAGE_DELIMITER),
       )}`;
 
       logger.debug(`Refreshing timeline with path: ${newPath}`);
       logger.debug(
         `Selected pages: ${JSON.stringify(
-          selectedPages.map((p) => ({ title: p.title, language: p.language }))
-        )}`
+          selectedPages.map((p) => ({ title: p.title, language: p.language })),
+        )}`,
       );
 
       if (newPath !== `/timeline/${params.pageName}`) {
@@ -476,7 +476,7 @@ export default function InteractiveTimelineContent({
   // Handle date range change
   const handleDateRangeChange = (
     startEventId: string | null,
-    endEventId: string | null
+    endEventId: string | null,
   ) => {
     setDateRangeFilter({ startEventId, endEventId });
   };
@@ -599,15 +599,15 @@ export default function InteractiveTimelineContent({
               url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
               title={`Timeline of ${decodeURIComponent(params.pageName).replace(
                 /_/g,
-                " "
+                " ",
               )}`}
               description={`🚀 Explore the history of ${decodeURIComponent(
-                params.pageName
+                params.pageName,
               )
                 .replace(/_/g, " ")
                 .replace(
                   /,/g,
-                  ", "
+                  ", ",
                 )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
               customAction={{
                 label: "Copy Embed Code",
@@ -684,15 +684,15 @@ export default function InteractiveTimelineContent({
               <ShareButtons
                 url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
                 title={`Timeline of ${decodeURIComponent(
-                  params.pageName
+                  params.pageName,
                 ).replace(/_/g, " ")}`}
                 description={`🚀 Explore the history of ${decodeURIComponent(
-                  params.pageName
+                  params.pageName,
                 )
                   .replace(/_/g, " ")
                   .replace(
                     /,/g,
-                    ", "
+                    ", ",
                   )} through this interactive timeline! 📚 Powered by wiki-timeline.com`}
                 customAction={{
                   label: "Copy Embed Code",
