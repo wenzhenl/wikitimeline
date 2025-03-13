@@ -85,11 +85,11 @@ function calculateAge(birthDate: string, eventDate: string): number | null {
   // Handle negative years (BCE)
   const birthYear =
     parseInt(
-      birthDate.startsWith("-") ? birthDate.slice(1) : birthDate.split("-")[0],
+      birthDate.startsWith("-") ? birthDate.slice(1) : birthDate.split("-")[0]
     ) * (birthDate.startsWith("-") ? -1 : 1);
   const eventYear =
     parseInt(
-      eventDate.startsWith("-") ? eventDate.slice(1) : eventDate.split("-")[0],
+      eventDate.startsWith("-") ? eventDate.slice(1) : eventDate.split("-")[0]
     ) * (eventDate.startsWith("-") ? -1 : 1);
 
   if (isNaN(birthYear) || isNaN(eventYear)) return null;
@@ -147,13 +147,13 @@ function postProcessTimeline(timeline: Timeline): Timeline {
             parseInt(
               existingDate.startsWith("-")
                 ? existingDate.slice(1)
-                : existingDate.split("-")[0],
+                : existingDate.split("-")[0]
             ) * (existingDate.startsWith("-") ? -1 : 1);
           const currentYear =
             parseInt(
               currentDate.startsWith("-")
                 ? currentDate.slice(1)
-                : currentDate.split("-")[0],
+                : currentDate.split("-")[0]
             ) * (currentDate.startsWith("-") ? -1 : 1);
 
           if (Math.abs(existingYear - currentYear) <= 1) {
@@ -172,7 +172,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
             existingEvent.headline
               .toLowerCase()
               .split(/\s+/)
-              .filter((w) => w.length > 3),
+              .filter((w) => w.length > 3)
           );
           const currentWords = event.headline
             .toLowerCase()
@@ -181,7 +181,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 
           // If more than 50% of significant words match, consider it a duplicate
           const matchingWords = currentWords.filter((word) =>
-            existingWords.has(word),
+            existingWords.has(word)
           );
           if (
             matchingWords.length > 0 &&
@@ -236,7 +236,7 @@ async function generateTimeline(
   wikiContent: string,
   wikiSummary: string,
   genAI: GoogleGenerativeAI,
-  language: string = DEFAULT_LANGUAGE,
+  language: string = DEFAULT_LANGUAGE
 ): Promise<Timeline> {
   logger.debug(`Generating timeline for ${pageName} (language: ${language})`);
 
@@ -253,8 +253,8 @@ async function generateTimeline(
 
   logger.debug(
     `Timeline generation for ${pageName} completed in ${processingTime.toFixed(
-      2,
-    )} seconds`,
+      2
+    )} seconds`
   );
   // Build the timeline
   const timeline: Timeline = {
@@ -273,7 +273,7 @@ async function extractMetadataFromWikiSummary(
   genAI: GoogleGenerativeAI,
   wikiSummary: string,
   pageName: string,
-  language: string,
+  language: string
 ): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
   try {
     const model = genAI.getGenerativeModel({
@@ -285,7 +285,7 @@ async function extractMetadataFromWikiSummary(
       },
       systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT.replace(
         "#LANGUAGE#",
-        getLanguageName(language),
+        getLanguageName(language)
       ),
     });
 
@@ -348,7 +348,7 @@ async function extractEventsFromWikiContent(
   genAI: GoogleGenerativeAI,
   wikiContent: string,
   pageName: string,
-  language: string,
+  language: string
 ): Promise<TimelineEvent[]> {
   const model = genAI.getGenerativeModel({
     model: DEFAULT_MODEL,
@@ -361,7 +361,7 @@ async function extractEventsFromWikiContent(
     },
     systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace(
       "#LANGUAGE#",
-      getLanguageName(language),
+      getLanguageName(language)
     ),
   });
 
@@ -382,7 +382,7 @@ async function extractEventsFromWikiContent(
   while (iterations < MAX_ITERATIONS) {
     // Call Gemini with the prompt
     logger.debug(
-      `Extracting events (iteration ${iterations + 1}/${MAX_ITERATIONS})`,
+      `Extracting events (iteration ${iterations + 1}/${MAX_ITERATIONS})`
     );
 
     const response = await model.generateContent(userPrompt);
@@ -390,7 +390,7 @@ async function extractEventsFromWikiContent(
 
     // Track token usage if available
     logger.debug(
-      "Token usage for extracting events, iteration " + (iterations + 1) + ":",
+      "Token usage for extracting events, iteration " + (iterations + 1) + ":"
     );
     logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
 
@@ -435,7 +435,7 @@ async function extractEventsFromWikiContent(
 
     if (finishReason === "MAX_TOKENS" && iterations < MAX_ITERATIONS - 1) {
       logger.info(
-        `MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`,
+        `MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`
       );
 
       // Create a new prompt to continue
@@ -477,13 +477,13 @@ const getCachedWikiSummary = unstable_cache(
         pageUrl:
           summary.content_urls?.desktop?.page ||
           `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(
-            pageInfo.pageName,
+            pageInfo.pageName
           )}`,
       };
     } catch (error) {
       logger.warn(
         `Could not fetch wiki summary for ${pageInfo.language}:${pageInfo.pageName}, using fallback:`,
-        error,
+        error
       );
       return {
         canonicalTitle: pageInfo.pageName,
@@ -498,7 +498,7 @@ const getCachedWikiSummary = unstable_cache(
   {
     revalidate: 3600,
     tags: ["wiki-summary"],
-  },
+  }
 );
 
 // Initialize Gemini with appropriate key based on client type
@@ -513,13 +513,13 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
 
 // Helper function to fetch Wikipedia content
 async function fetchWikipediaContent(
-  pageInfo: PageInfo,
+  pageInfo: PageInfo
 ): Promise<{ content: string; summary: string }> {
   // Set wiki to the correct language
   wiki.setLang(pageInfo.language);
 
   logger.debug(
-    `Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`,
+    `Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`
   );
 
   const page = await wiki.page(pageInfo.pageName);
@@ -537,7 +537,7 @@ async function fetchWikipediaContent(
 // Update the GET handler with new error handling
 export async function GET(
   request: Request,
-  { params }: { params: { pageName: string } },
+  { params }: { params: { pageName: string } }
 ): Promise<Response> {
   const clientType = request.headers.get("x-internal-client-type");
 
@@ -559,8 +559,8 @@ export async function GET(
     logger.info(`Processing ${pageInfos.length} pages`);
     logger.debug(
       `Page info details: ${JSON.stringify(
-        pageInfos.map((p) => `${p.language}:${p.pageName}`),
-      )}`,
+        pageInfos.map((p) => `${p.language}:${p.pageName}`)
+      )}`
     );
 
     // Get canonical names first
@@ -569,7 +569,7 @@ export async function GET(
         const summary = await getCachedWikiSummary(pageInfo);
         if (summary.canonicalTitle !== pageInfo.pageName) {
           logger.info(
-            `Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${summary.canonicalTitle}`,
+            `Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${summary.canonicalTitle}`
           );
         }
 
@@ -577,7 +577,7 @@ export async function GET(
           ...pageInfo,
           pageName: summary.canonicalTitle,
         };
-      }),
+      })
     );
 
     const results: Record<string, TimelinePageResult> = {};
@@ -596,7 +596,7 @@ export async function GET(
 
             if (timeline) {
               logger.info(
-                `Using cached timeline for ${pageInfo.language}:${pageInfo.pageName}`,
+                `Using cached timeline for ${pageInfo.language}:${pageInfo.pageName}`
               );
             }
           }
@@ -604,7 +604,7 @@ export async function GET(
           // If not in cache, generate it
           if (!timeline) {
             logger.info(
-              `Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`,
+              `Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`
             );
 
             // Fetch Wikipedia content
@@ -640,12 +640,12 @@ export async function GET(
                 wikiData.content,
                 wikiData.summary,
                 genAI,
-                pageInfo.language,
+                pageInfo.language
               );
             } catch (error) {
               logger.error(
                 `Failed to generate timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
-                error,
+                error
               );
               results[pageInfo.original] = {
                 status: "error",
@@ -659,7 +659,7 @@ export async function GET(
 
             if (timeline) {
               logger.info(
-                `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`,
+                `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
               );
               try {
                 await redis.set(cacheKey, { timeline });
@@ -667,33 +667,33 @@ export async function GET(
                 // If the cache is full, log the error and continue
                 logger.error(
                   `Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
-                  error,
+                  error
                 );
               }
             }
+          }
 
-            // Get wiki summary for successful timeline
-            if (timeline && timeline.events.length > 0) {
-              const wikiSummary = await getCachedWikiSummary(pageInfo);
-              results[pageInfo.original] = {
-                status: "success",
-                timeline: {
-                  timeline,
-                  wikiSummary,
-                },
-              };
-            } else {
-              results[pageInfo.original] = {
-                status: "not_found",
-                message: "No dated events found in the content",
-              };
-            }
+          // Get wiki summary for successful timeline
+          if (timeline && timeline.events.length > 0) {
+            const wikiSummary = await getCachedWikiSummary(pageInfo);
+            results[pageInfo.original] = {
+              status: "success",
+              timeline: {
+                timeline,
+                wikiSummary,
+              },
+            };
+          } else {
+            results[pageInfo.original] = {
+              status: "not_found",
+              message: "No dated events found in the content",
+            };
           }
         } catch (error) {
           // Handle individual page errors gracefully
           logger.error(
             `Error processing ${pageInfo.language}:${pageInfo.pageName}:`,
-            error,
+            error
           );
 
           results[pageInfo.original] = {
@@ -702,17 +702,14 @@ export async function GET(
               error instanceof Error ? error.message : "Unknown error occurred",
           };
         }
-      }),
+      })
     );
 
     // Count pages by status
-    const statusCounts = Object.values(results).reduce(
-      (acc, result) => {
-        acc[result.status] = (acc[result.status] || 0) + 1;
-        return acc;
-      },
-      {} as Record<TimelinePageStatus, number>,
-    );
+    const statusCounts = Object.values(results).reduce((acc, result) => {
+      acc[result.status] = (acc[result.status] || 0) + 1;
+      return acc;
+    }, {} as Record<TimelinePageStatus, number>);
 
     // Determine response status
     if (statusCounts.success && statusCounts.success > 0) {
