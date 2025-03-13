@@ -13,7 +13,7 @@ async function getTimelineData(pageName: string) {
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
         },
-      },
+      }
     );
 
     if (!response.ok) {
@@ -21,11 +21,11 @@ async function getTimelineData(pageName: string) {
     }
 
     const data: TimelineAPIResponse = await response.json();
-    return data.timelines || {};
+    return data.results || {};
   } catch (error) {
     logger.error(
       `Failed to fetch timeline data for ${decodeURIComponent(pageName)}:`,
-      error,
+      error
     );
     return {};
   }

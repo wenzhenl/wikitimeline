@@ -17,7 +17,7 @@ async function getTimelineData(pageName: string) {
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
         },
-      },
+      }
     );
 
     if (!response.ok) {
@@ -33,24 +33,23 @@ async function getTimelineData(pageName: string) {
 
     // Transform and sort all data
     const transformedData = {
-      timeline: Object.entries(data.timelines)
+      timeline: Object.entries(data.results)
         .flatMap(([pageName, page]) =>
-          page.timeline.events.map((event) => ({
+          page.timeline!.events.map((event) => ({
             date: event.startDate,
             headline: event.headline,
             text: event.description,
             source: pageName,
             age: event.age,
-          })),
+          }))
         )
         .sort((a, b) => compareDates(a.date, b.date)),
       titles: Object.fromEntries(
-        Object.entries(data.timelines).map(([pageName, page]) => [
+        Object.entries(data.results).map(([pageName, page]) => [
           pageName,
-          page.timeline.title,
-        ]),
+          page.timeline!.title,
+        ])
       ),
-      errors: data.errors,
     };
 
     return transformedData;

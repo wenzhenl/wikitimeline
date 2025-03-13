@@ -14,8 +14,10 @@ async function getTimelineData(pageName: string) {
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
         },
-      },
+      }
     );
+
+    logger.debug(`Response status: ${response.status}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -45,10 +47,10 @@ export default async function TimelinePage({
     // Show 404 if no timeline data or empty timelines
     if (
       !initialData ||
-      !initialData.timelines ||
-      Object.keys(initialData.timelines).length === 0 ||
-      Object.values(initialData.timelines).every(
-        (timeline) => !timeline?.timeline?.events?.length,
+      !initialData.results ||
+      Object.keys(initialData.results).length === 0 ||
+      Object.values(initialData.results).every(
+        (timeline) => !timeline?.timeline?.events?.length
       )
     ) {
       notFound();
