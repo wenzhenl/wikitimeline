@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, TimelinePageResult, TimelineSystemError } from '@/app/types/timeline';
+import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, TimelinePageResult, TimelineSystemError, TimelinePageStatus } from '@/app/types/timeline';
 import { 
   PAGE_DELIMITER, 
   PAGE_NAME_SEPARATOR,
@@ -561,7 +561,6 @@ export async function GET(
                 status: 'not_found',
                 message: 'Page does not exist in Wikipedia'
               };
-              successfulPages++;
               return;
             }
 
@@ -589,13 +588,13 @@ export async function GET(
                 wikiSummary
               }
             };
+            successfulPages++;
           } else {
             results[pageInfo.original] = {
               status: 'not_found',
               message: 'No dated events found in the content'
             };
           }
-          successfulPages++;
 
         } catch (error) {
           // Handle individual page errors gracefully
@@ -605,16 +604,53 @@ export async function GET(
             status: 'error',
             message: error instanceof Error ? error.message : 'Unknown error occurred'
           };
-          // Don't increment successfulPages for errors
         }
       })
     );
 
-    // Only return system error if no pages were processed successfully
-    if (successfulPages === 0) {
+    // Count pages by status
+    const statusCounts = Object.values(results).reduce((acc, result) => {
+      acc[result.status] = (acc[result.status] || 0) + 1;
+      return acc;
+    }, {} as Record<TimelinePageStatus, number>);
+
+    // Determine response status
+    if (statusCounts.success && statusCounts.success > 0) {
+      // At least one successful timeline, return 200
+      const response: TimelineAPIResponse = {
+        results,
+        metadata: {
+          totalPages: pageInfos.length,
+          successfulPages: statusCounts.success
+        }
+      };
+
+      return new Response(JSON.stringify(response), {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } else if (Object.keys(statusCounts).length === 1 && statusCounts.not_found) {
+      // All pages are not found, return 404
+      const response: TimelineAPIResponse = {
+        results,
+        metadata: {
+          totalPages: pageInfos.length,
+          successfulPages: 0
+        }
+      };
+
+      return new Response(JSON.stringify(response), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } else {
+      // Either all errors or mix of errors and not_found, return 500
       const systemError: TimelineSystemError = {
         error: 'system_error',
-        message: 'Failed to process any pages successfully'
+        message: 'Failed to generate any timelines successfully'
       };
 
       return new Response(JSON.stringify(systemError), {
@@ -624,21 +660,6 @@ export async function GET(
         }
       });
     }
-
-    // Create the successful response with partial results
-    const response: TimelineAPIResponse = {
-      results,
-      metadata: {
-        totalPages: pageInfos.length,
-        successfulPages
-      }
-    };
-
-    return new Response(JSON.stringify(response), {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
 
   } catch (error) {
     // Handle true system-level errors (API keys, Redis connection, etc.)
