@@ -4,7 +4,7 @@ export interface LanguageOption {
   name: string;
 }
 
-// All available languages for Wikipedia
+// All languages for Wikipedia with 1,000,000 articles or more
 export const COMMON_LANGUAGES: LanguageOption[] = [
   { code: "en", name: "English" },
   { code: "es", name: "Español" },
@@ -16,6 +16,16 @@ export const COMMON_LANGUAGES: LanguageOption[] = [
   { code: "ja", name: "日本語" },
   { code: "zh", name: "中文" },
   { code: "ar", name: "العربية" },
+  { code: "fa", name: "فارسی" },
+  { code: "arz", name: "مصرى" },
+  { code: "nl", name: "Nederlands" },
+  { code: "pl", name: "polski" },
+  { code: "ceb", name: "Cebuano" },
+  { code: "sv", name: "svenska" },
+  { code: "uk", name: "українська" },
+  { code: "vi", name: "Tiếng Việt" },
+  { code: "war", name: "Winaray" },
+
 ];
 
 // Default enabled language (just English)
