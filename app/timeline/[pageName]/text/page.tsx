@@ -16,7 +16,6 @@ async function getTimelineData(pageName: string) {
         cache: "no-store",
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
-          "x-api-version": "1", // Specify API version
         },
       }
     );

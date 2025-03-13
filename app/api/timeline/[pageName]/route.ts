@@ -5,11 +5,8 @@ import logger from '@/app/utils/logger';
 import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, WikiSummary } from '@/app/types/timeline';
 import { 
   PAGE_DELIMITER, 
-  DEFAULT_API_VERSION,
-  SUPPORTED_API_VERSIONS,
   PAGE_NAME_SEPARATOR,
   DEFAULT_LANGUAGE,
-  FORCE_REGENERATE_ON_VERSION_MISMATCH,
   DEFAULT_MODEL,
   DEFAULT_TIMELINE_VERSION
 } from "@/app/constants";
@@ -69,25 +66,8 @@ function parsePageName(rawName: string): PageInfo {
 }
 
 // Function to construct cache key
-function buildCacheKey(pageInfo: PageInfo, apiVersion: string = DEFAULT_API_VERSION): string {
-  // Validate the API version
-  const validatedVersion = validateApiVersion(apiVersion);
-  return `timeline|${validatedVersion}|${pageInfo.language}|${pageInfo.pageName}`;
-}
-
-// Function to validate and normalize API version
-function validateApiVersion(requestedVersion: string | null): string {
-  if (!requestedVersion) {
-    return DEFAULT_API_VERSION;
-  }
-  
-  if (SUPPORTED_API_VERSIONS.includes(requestedVersion)) {
-    return requestedVersion;
-  }
-  
-  // If unsupported version, fall back to default
-  logger.warn(`Unsupported API version requested: ${requestedVersion}, using default: ${DEFAULT_API_VERSION}`);
-  return DEFAULT_API_VERSION;
+function buildCacheKey(pageInfo: PageInfo): string {
+  return `timeline|${pageInfo.language}|${pageInfo.pageName}`;
 }
 
 function calculateAge(birthDate: string, eventDate: string): number | null {
@@ -509,14 +489,12 @@ async function fetchWikipediaContent(pageInfo: PageInfo): Promise<{content: stri
   }
 }
 
-// Update the GET handler to support language prefixes
+// Update the GET handler to remove API version
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   const clientType = request.headers.get('x-internal-client-type');
-  const requestedApiVersion = request.headers.get('x-api-version');
-  const apiVersion = validateApiVersion(requestedApiVersion);
   const genAI = getGeminiClient(clientType);
     
   try {
@@ -529,7 +507,7 @@ export async function GET(
     // Parse each page name to extract language and actual page name
     const pageInfos = rawPageNames.map(parsePageName);
     
-    logger.info(`Processing ${pageInfos.length} pages with API version ${apiVersion}`);
+    logger.info(`Processing ${pageInfos.length} pages`);
     logger.debug(`Page info details: ${JSON.stringify(pageInfos.map(p => `${p.language}:${p.pageName}`))}`);
     
     // Get canonical names first
@@ -554,7 +532,7 @@ export async function GET(
     await Promise.all(
       canonicalInfos.map(async (pageInfo) => {
         // Use the language and page name for the cache key
-        const cacheKey = buildCacheKey(pageInfo, apiVersion);
+        const cacheKey = buildCacheKey(pageInfo);
         
         // Try to get cached timeline
         let timeline: Timeline | null = null;
@@ -565,16 +543,12 @@ export async function GET(
             const cachedData = cached as NewTimelineFormat;
             timeline = cachedData.timeline;
             
-            // Check version match
-            if (timeline && timeline.version !== DEFAULT_TIMELINE_VERSION && FORCE_REGENERATE_ON_VERSION_MISMATCH) {
-              logger.info(`Cache version mismatch for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version} vs ${DEFAULT_TIMELINE_VERSION}), regenerating...`);
-              timeline = null;
-            } else if (timeline) {
-              logger.info(`Using cached timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.version})`);
+            if (timeline) {
+              logger.info(`Using cached timeline for ${pageInfo.language}:${pageInfo.pageName}`);
             }
           }
           
-          // If not in cache or version mismatch, generate it
+          // If not in cache, generate it
           if (!timeline) {
             logger.info(`Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`);
             
@@ -593,7 +567,7 @@ export async function GET(
               if (timeline) {
                 logger.warn(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
                 
-                // Cache with new format that includes the version
+                // Cache with new format
                 await redis.set(cacheKey, {
                   timeline
                 });
@@ -629,7 +603,6 @@ export async function GET(
     // Create the response
     const response: TimelineAPIResponse = {
       timelines,
-      apiVersion,
       errors: failedPages.length > 0 || noTimelinePages.length > 0 ? {
         message: "Some pages failed to generate timelines",
         failedPages,
@@ -642,8 +615,7 @@ export async function GET(
 
     return new Response(JSON.stringify(response), {
       headers: {
-        'Content-Type': 'application/json',
-        'X-API-Version': apiVersion
+        'Content-Type': 'application/json'
       }
     });
 
@@ -657,8 +629,7 @@ export async function GET(
       {
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
-          'X-API-Version': apiVersion
+          'Content-Type': 'application/json'
         }
       }
     );
