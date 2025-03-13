@@ -28,14 +28,8 @@ async function getTimelineData(pageName: string) {
     }
 
     const data = (await response.json()) as TimelineAPIResponse;
-    // Get API version from response header or from the response body
-    const apiVersion =
-      response.headers.get("x-api-version") || data.apiVersion || "1";
-    logger.debug(
-      `Fetched timeline data for ${decodeURIComponent(
-        pageName
-      )} (API v${apiVersion})`
-    );
+
+    logger.debug(`Fetched timeline data for ${decodeURIComponent(pageName)}`);
 
     // Transform and sort all data
     const transformedData = {

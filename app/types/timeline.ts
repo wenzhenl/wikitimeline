@@ -30,7 +30,6 @@ export interface TimelineWithWikiSummary {
 
 export interface TimelineAPIResponse {
   timelines: Record<string, TimelineWithWikiSummary>;
-  apiVersion?: string;
   errors?: {
     message: string;
     failedPages: string[];
