@@ -466,27 +466,22 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
 }
 
 // Helper function to fetch Wikipedia content
-async function fetchWikipediaContent(pageInfo: PageInfo): Promise<{content: string, summary: string} | null> {
-  try {
-    // Set wiki to the correct language
-    wiki.setLang(pageInfo.language);
-    
-    logger.debug(`Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`);
-    
-    const page = await wiki.page(pageInfo.pageName);
-    const [content, summary] = await Promise.all([
-      page.content(),
-      page.summary()
-    ]);
-    
-    return {
-      content,
-      summary: summary.extract
-    };
-  } catch (error) {
-    logger.error(`Error fetching Wikipedia content for ${pageInfo.language}:${pageInfo.pageName}:`, error);
-    return null;
-  }
+async function fetchWikipediaContent(pageInfo: PageInfo): Promise<{content: string, summary: string}> {
+  // Set wiki to the correct language
+  wiki.setLang(pageInfo.language);
+  
+  logger.debug(`Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`);
+  
+  const page = await wiki.page(pageInfo.pageName);
+  const [content, summary] = await Promise.all([
+    page.content(),
+    page.summary()
+  ]);
+  
+  return {
+    content,
+    summary: summary.extract
+  };
 }
 
 // Update the GET handler with new error handling
@@ -553,13 +548,22 @@ export async function GET(
             logger.info(`Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`);
             
             // Fetch Wikipedia content
-            const wikiData = await fetchWikipediaContent(pageInfo);
-            
-            if (!wikiData) {
-              results[pageInfo.original] = {
-                status: 'not_found',
-                message: 'Page does not exist in Wikipedia'
-              };
+            let wikiData;
+            try {
+              wikiData = await fetchWikipediaContent(pageInfo);
+            } catch (error) {
+              // Handle Wikipedia API errors
+              if (error instanceof Error && 'statusCode' in error && (error as any).statusCode === 404) {
+                results[pageInfo.original] = {
+                  status: 'not_found',
+                  message: 'Page does not exist in Wikipedia'
+                };
+              } else {
+                results[pageInfo.original] = {
+                  status: 'error',
+                  message: error instanceof Error ? error.message : 'Failed to fetch Wikipedia content'
+                };
+              }
               return;
             }
 
@@ -575,23 +579,23 @@ export async function GET(
               logger.info(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
               await redis.set(cacheKey, { timeline });
             }
-          }
 
-          // Get wiki summary for successful timeline
-          if (timeline && timeline.events.length > 0) {
-            const wikiSummary = await getCachedWikiSummary(pageInfo);
-            results[pageInfo.original] = {
-              status: 'success',
-              timeline: {
-                timeline,
-                wikiSummary
-              }
-            };
-          } else {
-            results[pageInfo.original] = {
-              status: 'not_found',
-              message: 'No dated events found in the content'
-            };
+            // Get wiki summary for successful timeline
+            if (timeline && timeline.events.length > 0) {
+              const wikiSummary = await getCachedWikiSummary(pageInfo);
+              results[pageInfo.original] = {
+                status: 'success',
+                timeline: {
+                  timeline,
+                  wikiSummary
+                }
+              };
+            } else {
+              results[pageInfo.original] = {
+                status: 'not_found',
+                message: 'No dated events found in the content'
+              };
+            }
           }
 
         } catch (error) {
