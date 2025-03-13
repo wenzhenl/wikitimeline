@@ -337,76 +337,66 @@ async function extractEventsFromWikiContent(
     logger.debug("Token usage for extracting events, iteration " + (iterations + 1) + ":");
     logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
     
-    try {
-      // Clean up the response text
-      let jsonText = textResponse.trim();
-      
-      // Remove markdown code block indicators if present
-      if (jsonText.startsWith("```json")) {
-        jsonText = jsonText.replace(/```json\n/, "").replace(/\n```$/, "");
-      } else if (jsonText.startsWith("```")) {
-        jsonText = jsonText.replace(/```\n/, "").replace(/\n```$/, "");
-      }
+    // Clean up the response text
+    let jsonText = textResponse.trim();
+    
+    // Remove markdown code block indicators if present
+    if (jsonText.startsWith("```json")) {
+      jsonText = jsonText.replace(/```json\n/, "").replace(/\n```$/, "");
+    } else if (jsonText.startsWith("```")) {
+      jsonText = jsonText.replace(/```\n/, "").replace(/\n```$/, "");
+    }
 
-      // Try to fix broken JSON
-      if (!jsonText.endsWith("]")) {
-        // Find the last complete event object
-        const lastCompleteEventIndex = jsonText.lastIndexOf("},");
-        if (lastCompleteEventIndex !== -1) {
-          // Keep everything up to and including the last complete event
-          jsonText = jsonText.substring(0, lastCompleteEventIndex + 1) + "]";
+    // Try to fix broken JSON
+    if (!jsonText.endsWith("]")) {
+      // Find the last complete event object
+      const lastCompleteEventIndex = jsonText.lastIndexOf("},");
+      if (lastCompleteEventIndex !== -1) {
+        // Keep everything up to and including the last complete event
+        jsonText = jsonText.substring(0, lastCompleteEventIndex + 1) + "]";
+      } else {
+        // If no complete event found with comma, try finding last complete event
+        const lastEventIndex = jsonText.lastIndexOf("}");
+        if (lastEventIndex !== -1) {
+          jsonText = jsonText.substring(0, lastEventIndex + 1) + "]";
         } else {
-          // If no complete event found with comma, try finding last complete event
-          const lastEventIndex = jsonText.lastIndexOf("}");
-          if (lastEventIndex !== -1) {
-            jsonText = jsonText.substring(0, lastEventIndex + 1) + "]";
-          } else {
-            throw new Error("No complete events found in response");
-          }
+          throw new Error("No complete events found in response");
         }
       }
+    }
 
-      // Parse the JSON array
-      const events = JSON.parse(jsonText) as TimelineEvent[];
+    // Parse the JSON array
+    const events = JSON.parse(jsonText) as TimelineEvent[];
+    
+    // Add valid events to accumulated list
+    if (Array.isArray(events)) {
+      accumulatedEvents = [...accumulatedEvents, ...events];
+    }
+
+    // Check if response was truncated due to token limits
+    const finishReason = response.response.candidates?.[0]?.finishReason;
+    
+    if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
+      logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
       
-      // Add valid events to accumulated list
-      if (Array.isArray(events)) {
-        accumulatedEvents = [...accumulatedEvents, ...events];
-      }
+      // Create a new prompt to continue
+      userPrompt = `
+        Extract events from: ${pageName}
+        
+        <wikipedia_content>
+        ${wikiContent}
+        </wikipedia_content>
 
-      // Check if response was truncated due to token limits
-      const finishReason = response.response.candidates?.[0]?.finishReason;
+        You were extracting events but reached the token limit. Continue from where you left off.
+        Here are the events you've extracted so far:
+        ${JSON.stringify(accumulatedEvents, null, 2)}
+        
+        Continue extracting events from: ${pageName}, but only extract events that are not already in the events list above.
+      `;
       
-      if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
-        logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
-        
-        // Create a new prompt to continue
-        userPrompt = `
-          Extract events from: ${pageName}
-          
-          <wikipedia_content>
-          ${wikiContent}
-          </wikipedia_content>
-
-          You were extracting events but reached the token limit. Continue from where you left off.
-          Here are the events you've extracted so far:
-          ${JSON.stringify(accumulatedEvents, null, 2)}
-          
-          Continue extracting events from: ${pageName}, but only extract events that are not already in the events list above.
-        `;
-        
-        iterations++;
-      } else {
-        // Either we finished successfully or reached our iteration limit
-        break;
-      }
-    } catch (error) {
-      logger.error("Failed to process events response:", error);
-      // If this is not the last iteration, continue to the next one
-      if (iterations < MAX_ITERATIONS - 1) {
-        iterations++;
-        continue;
-      }
+      iterations++;
+    } else {
+      // Either we finished successfully or reached our iteration limit
       break;
     }
   }
