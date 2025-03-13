@@ -19,4 +19,4 @@ export const AVAILABLE_FONTS = [
   { value: "rufina-sintony", label: "Rufina & Sintony" },
   { value: "ubuntu", label: "Ubuntu" },
   { value: "unicaone-vollkorn", label: "Unica One & Vollkorn" },
-] as const; 
+] as const;

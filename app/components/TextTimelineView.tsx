@@ -74,7 +74,7 @@ export default function TextTimelineView({
   // Assign colors to unique sources
   if (data?.timeline) {
     const uniqueSources = Array.from(
-      new Set(data.timeline.map((event) => event.source).filter(Boolean))
+      new Set(data.timeline.map((event) => event.source).filter(Boolean)),
     );
     uniqueSources.forEach((source, index) => {
       if (source) {
@@ -102,7 +102,7 @@ export default function TextTimelineView({
   // Check if any dates are outside human scale range
   const needsCosmologicalScale = filteredTimeline.some((event) => {
     const year = parseInt(
-      event.date.startsWith("-") ? event.date.slice(1) : event.date
+      event.date.startsWith("-") ? event.date.slice(1) : event.date,
     );
     return event.date.startsWith("-") ? year > 271821 : year > 275760;
   });
@@ -110,7 +110,7 @@ export default function TextTimelineView({
   // Get unique sources for titles
   const uniqueSources = data?.timeline
     ? Array.from(
-        new Set(data.timeline.map((event) => event.source).filter(Boolean))
+        new Set(data.timeline.map((event) => event.source).filter(Boolean)),
       )
     : [];
 
@@ -208,7 +208,7 @@ export default function TextTimelineView({
                 dateParts[1]
                   ? ` ${new Date(
                       2000,
-                      parseInt(dateParts[1]) - 1
+                      parseInt(dateParts[1]) - 1,
                     ).toLocaleString("default", { month: "short" })}`
                   : ""
               }${dateParts[2] ? ` ${parseInt(dateParts[2])}` : ""}`;

@@ -14,7 +14,7 @@ async function getTimelineData(pageName: string) {
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -48,7 +48,7 @@ export default async function TimelinePage({
       !initialData.timelines ||
       Object.keys(initialData.timelines).length === 0 ||
       Object.values(initialData.timelines).every(
-        (timeline) => !timeline?.timeline?.events?.length
+        (timeline) => !timeline?.timeline?.events?.length,
       )
     ) {
       notFound();

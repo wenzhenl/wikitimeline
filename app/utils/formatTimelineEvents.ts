@@ -15,23 +15,21 @@ function formatGroupName(name: string): string {
       name = name.substring(separatorIndex + PAGE_NAME_SEPARATOR.length);
     }
   }
-  
+
   // Continue with existing formatting
   return name
-    .replace(/_/g, ' ')
-    .split(' ')
-    .map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    )
-    .join(' ');
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 // Renamed from formatCosmologicalDate to formatDisplayDate
 function formatCosmologicalDate(year: number): string {
   const absYear = Math.abs(year);
-  
+
   // Format cosmological dates
-  let display = '';
+  let display = "";
   if (absYear >= 1_000_000_000) {
     display = `${(absYear / 1_000_000_000).toFixed(1)} billion`;
   } else if (absYear >= 1_000_000) {
@@ -39,8 +37,8 @@ function formatCosmologicalDate(year: number): string {
   } else {
     display = absYear.toLocaleString();
   }
-  
-  const suffix = year < 0 ? 'YEARS AGO' : 'YEARS IN THE FUTURE';
+
+  const suffix = year < 0 ? "YEARS AGO" : "YEARS IN THE FUTURE";
   return `<span style="font-weight: 700;">${display.toUpperCase()} ${suffix}</span>`;
 }
 
@@ -48,9 +46,9 @@ function formatLocalDate(date: TimelineJSDate): string {
   const { year, month, day } = date;
   const isNegativeYear = year < 0;
   const absYear = Math.abs(year);
-  
+
   let result = `${absYear} ${isNegativeYear ? "BCE" : ""}`;
-  
+
   if (month) {
     const dateObj = new Date(2000, month - 1, day || 1);
     result += ` ${dateObj.toLocaleString("default", { month: "short" })}`;
@@ -58,7 +56,7 @@ function formatLocalDate(date: TimelineJSDate): string {
       result += ` ${day}`;
     }
   }
-  
+
   return result.trim();
 }
 
@@ -66,12 +64,12 @@ function formatLocalDate(date: TimelineJSDate): string {
 function compareDates(a: TimelineJSDate, b: TimelineJSDate): number {
   // Compare years first (handle negative years correctly)
   if (a.year !== b.year) return a.year - b.year;
-  
+
   // If years are equal, compare months
   const aMonth = a.month || 0;
   const bMonth = b.month || 0;
   if (aMonth !== bMonth) return aMonth - bMonth;
-  
+
   // If months are equal, compare days
   const aDay = a.day || 0;
   const bDay = b.day || 0;
@@ -82,16 +80,16 @@ function compareDates(a: TimelineJSDate, b: TimelineJSDate): number {
 function requiresCosmologicalScale(date: TimelineJSDate): boolean {
   const absYear = Math.abs(date.year);
   const needsCosmological = date.year < 0 ? absYear > 271821 : absYear > 275760;
-  
+
   if (needsCosmological) {
-    logger.debug('Found date requiring cosmological scale:', { 
-      year: date.year, 
-      absYear, 
+    logger.debug("Found date requiring cosmological scale:", {
+      year: date.year,
+      absYear,
       isNegative: date.year < 0,
-      threshold: date.year < 0 ? 271821 : 275760
+      threshold: date.year < 0 ? 271821 : 275760,
     });
   }
-  
+
   return needsCosmological;
 }
 
@@ -107,7 +105,7 @@ function parseDate(dateStr: string): TimelineJSDate {
   const day = dateParts[2] ? parseInt(dateParts[2]) : undefined;
 
   return { year, month, day };
-} 
+}
 
 /**
  * Formats timeline events for interactive display
@@ -119,67 +117,82 @@ function parseDate(dateStr: string): TimelineJSDate {
  * @returns Formatted timeline with events, properly scaled and styled
  */
 export function formatTimelineEventsForInteractive(
-  timelines: Record<string, TimelineWithWikiSummary>, 
-  colorSchemeId = 'default'
+  timelines: Record<string, TimelineWithWikiSummary>,
+  colorSchemeId = "default",
 ): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
-  const colorScheme = COLOR_SCHEMES.find(scheme => scheme.id === colorSchemeId) || COLOR_SCHEMES[0];
+  const colorScheme =
+    COLOR_SCHEMES.find((scheme) => scheme.id === colorSchemeId) ||
+    COLOR_SCHEMES[0];
 
   // Get the first color from the scheme
   const firstGroupColors = colorScheme.colors[0];
 
   // Merge and format all events from all timelines
-  let formattedEvents = Object.entries(timelines).flatMap(([pageName, pageData], pageIndex) => {
-    // Only add group if there are multiple pages
-    const hasMultiplePages = Object.keys(timelines).length > 1;
-    
-    return pageData.timeline.events.map((event, eventIndex) => {
-      const startDate = parseDate(event.startDate);
-      
-      return {
-        original_event: event,
-        start_date: startDate,
-        ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
-        ...(pageData.wikiSummary?.thumbnail && {  // Only add media if thumbnail exists
-          media: {
-            thumbnail: pageData.wikiSummary.thumbnail
-          }
-        })
-      };
-    });
-  });
+  let formattedEvents = Object.entries(timelines).flatMap(
+    ([pageName, pageData], pageIndex) => {
+      // Only add group if there are multiple pages
+      const hasMultiplePages = Object.keys(timelines).length > 1;
+
+      return pageData.timeline.events.map((event, eventIndex) => {
+        const startDate = parseDate(event.startDate);
+
+        return {
+          original_event: event,
+          start_date: startDate,
+          ...(hasMultiplePages && { group: formatGroupName(pageName) }), // Conditionally add group
+          ...(pageData.wikiSummary?.thumbnail && {
+            // Only add media if thumbnail exists
+            media: {
+              thumbnail: pageData.wikiSummary.thumbnail,
+            },
+          }),
+        };
+      });
+    },
+  );
 
   // Sort all events chronologically by start date
   formattedEvents.sort((a, b) => compareDates(a.start_date, b.start_date));
 
   // Check if any dates in the FILTERED timeline events are outside human scale range
-  const needsCosmologicalScale = formattedEvents.some(event => 
-    requiresCosmologicalScale(event.start_date)
+  const needsCosmologicalScale = formattedEvents.some((event) =>
+    requiresCosmologicalScale(event.start_date),
   );
-  
-  logger.debug('Timeline formatting', {
+
+  logger.debug("Timeline formatting", {
     totalEvents: formattedEvents.length,
     needsCosmologicalScale,
-    oldestYear: formattedEvents.length > 0 ? Math.min(...formattedEvents.map(e => e.start_date.year)) : 'N/A',
-    newestYear: formattedEvents.length > 0 ? Math.max(...formattedEvents.map(e => e.start_date.year)) : 'N/A',
-    colorSchemeId
+    oldestYear:
+      formattedEvents.length > 0
+        ? Math.min(...formattedEvents.map((e) => e.start_date.year))
+        : "N/A",
+    newestYear:
+      formattedEvents.length > 0
+        ? Math.max(...formattedEvents.map((e) => e.start_date.year))
+        : "N/A",
+    colorSchemeId,
   });
 
   const isMultiplePages = Object.keys(timelines).length > 1;
-  const pageNames = Object.keys(timelines).map(name => formatGroupName(name));
+  const pageNames = Object.keys(timelines).map((name) => formatGroupName(name));
 
   return {
     title: {
       text: {
         headline: isMultiplePages
-          ? `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">${pageNames.join(' | ')}</span>`
+          ? `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">${pageNames.join(" | ")}</span>`
           : `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">${pageNames[0]}</span>`,
         text: isMultiplePages
-          ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines).map(t => t.timeline.title).join('<br/><br/>')}</span>`
-          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline.title}</span>`
+          ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(
+              timelines,
+            )
+              .map((t) => t.timeline.title)
+              .join("<br/><br/>")}</span>`
+          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline.title}</span>`,
       },
       background: {
-        color: firstGroupColors.color
+        color: firstGroupColors.color,
       },
       unique_id: "0",
     },
@@ -192,10 +205,13 @@ export function formatTimelineEventsForInteractive(
       }
       const groupIndex = groupIndices.get(groupKey)!;
       const colorIndex = groupIndex % Object.keys(colorScheme.colors).length;
-      const colors = colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
+      const colors =
+        colorScheme.colors[colorIndex as keyof typeof colorScheme.colors];
 
       // Determine if this specific event needs cosmological formatting
-      const eventNeedsCosmological = requiresCosmologicalScale(formattedEvent.start_date);
+      const eventNeedsCosmological = requiresCosmologicalScale(
+        formattedEvent.start_date,
+      );
 
       // Format the display date appropriately
       let displayDate;
@@ -205,7 +221,7 @@ export function formatTimelineEventsForInteractive(
       } else {
         // Use local date format for human-scale dates
         displayDate = formatLocalDate(formattedEvent.start_date);
-        
+
         // Add age if available - keep spaces around the pipe for display
         if (event.age !== undefined) {
           displayDate = `${displayDate.trim()} | Age ${event.age}`;
@@ -229,6 +245,6 @@ export function formatTimelineEventsForInteractive(
         score: event.score,
       };
     }),
-    ...(needsCosmologicalScale && { scale: 'cosmological' as const }),
+    ...(needsCosmologicalScale && { scale: "cosmological" as const }),
   };
 }

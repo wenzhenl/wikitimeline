@@ -1,4 +1,4 @@
-export const PAGE_DELIMITER = "|"; 
+export const PAGE_DELIMITER = "|";
 export const MIN_NUM_EVENTS_FOR_TIMELINE = 5;
 
 // Page name constants

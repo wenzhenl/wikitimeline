@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: 'media',
+  darkMode: "media",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -32,17 +32,17 @@ const config: Config = {
         "expand-in": {
           "0%": {
             transform: "scaleY(0)",
-            opacity: "0"
+            opacity: "0",
           },
           "100%": {
             transform: "scaleY(1)",
-            opacity: "1"
-          }
-        }
+            opacity: "1",
+          },
+        },
       },
       animation: {
         blob: "blob 7s infinite",
-        "expand-in": "expand-in 0.2s ease-out forwards"
+        "expand-in": "expand-in 0.2s ease-out forwards",
       },
     },
   },

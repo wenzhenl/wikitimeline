@@ -23,7 +23,7 @@ interface TimelineControlsProps {
   events?: TimelineJSEvent[]; // Timeline events for filtering
   onDateRangeChange?: (
     startEventId: string | null,
-    endEventId: string | null
+    endEventId: string | null,
   ) => void; // Callback for date range changes
   activeModal?: "pages" | "filter" | null; // The currently active modal
   setActiveModal?: (modal: "pages" | "filter" | null) => void; // Set the active modal
@@ -57,7 +57,7 @@ export default function TimelineControls({
     if (speedDialOpen) {
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
-        ANALYTICS_ACTIONS.OPEN_CONTROLS
+        ANALYTICS_ACTIONS.OPEN_CONTROLS,
       );
     }
   }, [speedDialOpen]);

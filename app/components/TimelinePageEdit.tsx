@@ -39,7 +39,7 @@ export default function TimelinePageEdit({
         try {
           const decodedTitle = decodeURIComponent(page.title);
           logger.debug(
-            `Decoded title from "${page.title}" to "${decodedTitle}"`
+            `Decoded title from "${page.title}" to "${decodedTitle}"`,
           );
           return { ...page, title: decodedTitle };
         } catch (e) {
@@ -58,22 +58,25 @@ export default function TimelinePageEdit({
     // Log the full details of the selected pages for debugging
     logger.debug(
       "TimelinePageEdit selected pages:",
-      JSON.stringify(selectedPages, null, 2)
+      JSON.stringify(selectedPages, null, 2),
     );
   }, [selectedPages]);
 
   // Add logging to track page changes
   useEffect(() => {
     // Log the languages of existing pages
-    const languageCounts = selectedPages.reduce((acc, page) => {
-      acc[page.language] = (acc[page.language] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const languageCounts = selectedPages.reduce(
+      (acc, page) => {
+        acc[page.language] = (acc[page.language] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     logger.debug(
       `TimelinePageEdit: Current pages by language: ${JSON.stringify(
-        languageCounts
-      )}`
+        languageCounts,
+      )}`,
     );
   }, [selectedPages]);
 
@@ -87,7 +90,7 @@ export default function TimelinePageEdit({
         try {
           const decodedTitle = decodeURIComponent(page.title);
           logger.debug(
-            `Decoded title from "${page.title}" to "${decodedTitle}"`
+            `Decoded title from "${page.title}" to "${decodedTitle}"`,
           );
           return { ...page, title: decodedTitle };
         } catch (e) {
@@ -104,7 +107,7 @@ export default function TimelinePageEdit({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.EDIT_PAGES,
-        `added_${addedCount}_pages`
+        `added_${addedCount}_pages`,
       );
     }
 
@@ -116,7 +119,7 @@ export default function TimelinePageEdit({
     trackEvent(
       ANALYTICS_CATEGORIES.TIMELINE,
       ANALYTICS_ACTIONS.UPDATE_PAGES,
-      `total_pages_${fixedPages.length}`
+      `total_pages_${fixedPages.length}`,
     );
 
     onRefresh();

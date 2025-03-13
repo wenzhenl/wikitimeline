@@ -121,7 +121,7 @@ export default function ShareButtons({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    description
+                    description,
                   )}&url=${encodeURIComponent(url)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -139,7 +139,7 @@ export default function ShareButtons({
 
                 <a
                   href={`https://reddit.com/submit?url=${encodeURIComponent(
-                    url
+                    url,
                   )}&title=${encodeURIComponent(title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -157,7 +157,7 @@ export default function ShareButtons({
 
                 <a
                   href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-                    url
+                    url,
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

@@ -1,20 +1,31 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import wiki from 'wikipedia';
-import { Redis } from '@upstash/redis';
-import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, TimelinePageResult, TimelineSystemError, TimelinePageStatus } from '@/app/types/timeline';
-import { 
-  PAGE_DELIMITER, 
+import wiki from "wikipedia";
+import { Redis } from "@upstash/redis";
+import logger from "@/app/utils/logger";
+import {
+  TimelineAPIResponse,
+  Timeline,
+  TimelineWithWikiSummary,
+  TimelineEvent,
+  TimelinePageResult,
+  TimelineSystemError,
+  TimelinePageStatus,
+} from "@/app/types/timeline";
+import {
+  PAGE_DELIMITER,
   PAGE_NAME_SEPARATOR,
   DEFAULT_LANGUAGE,
   DEFAULT_MODEL,
-  DEFAULT_TIMELINE_VERSION
+  DEFAULT_TIMELINE_VERSION,
 } from "@/app/constants";
-import { unstable_cache } from 'next/cache';
+import { unstable_cache } from "next/cache";
 import { SITE_CONFIG } from "@/app/config/site";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
 import { TEMPERATURE } from "@/app/constants/gemini";
-import { WIKI_EVENTS_EXTRACTION_PROMPT, WIKI_METADATA_EXTRACTION_PROMPT } from "@/app/constants/gemini/systemPrompt";
+import {
+  WIKI_EVENTS_EXTRACTION_PROMPT,
+  WIKI_METADATA_EXTRACTION_PROMPT,
+} from "@/app/constants/gemini/systemPrompt";
 import { compareDates, getLanguageName } from "@/app/utils/helper";
 import { WIKI_EVENTS_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 
@@ -24,7 +35,7 @@ const redis = Redis.fromEnv();
 // Initialize Wikipedia with User-Agent
 const userAgent = `WikiTimeline/1.0.0 (${SITE_CONFIG.DOMAIN}; ${SITE_CONFIG.CONTACT_EMAIL})`;
 wiki.setUserAgent(userAgent);
-logger.debug('Wikipedia User-Agent set:', userAgent);
+logger.debug("Wikipedia User-Agent set:", userAgent);
 
 // Add the NewTimelineFormat interface
 interface NewTimelineFormat {
@@ -41,27 +52,27 @@ interface PageInfo {
 // Parse a page name with optional language prefix
 function parsePageName(rawName: string): PageInfo {
   const trimmedName = rawName.trim();
-  
+
   // Check if there's a language prefix (e.g., "en:::Page_Name")
   const separator = PAGE_NAME_SEPARATOR;
   const separatorIndex = trimmedName.indexOf(separator);
-  
+
   if (separatorIndex > 0) {
     const language = trimmedName.substring(0, separatorIndex);
     const pageName = trimmedName.substring(separatorIndex + separator.length);
-    
+
     return {
       language,
       pageName,
-      original: trimmedName
+      original: trimmedName,
     };
   }
-  
+
   // No language specified or invalid language, use default
   return {
     language: DEFAULT_LANGUAGE,
     pageName: trimmedName,
-    original: trimmedName
+    original: trimmedName,
   };
 }
 
@@ -72,11 +83,17 @@ function buildCacheKey(pageInfo: PageInfo): string {
 
 function calculateAge(birthDate: string, eventDate: string): number | null {
   // Handle negative years (BCE)
-  const birthYear = parseInt(birthDate.startsWith('-') ? birthDate.slice(1) : birthDate.split('-')[0]) * (birthDate.startsWith('-') ? -1 : 1);
-  const eventYear = parseInt(eventDate.startsWith('-') ? eventDate.slice(1) : eventDate.split('-')[0]) * (eventDate.startsWith('-') ? -1 : 1);
-  
+  const birthYear =
+    parseInt(
+      birthDate.startsWith("-") ? birthDate.slice(1) : birthDate.split("-")[0],
+    ) * (birthDate.startsWith("-") ? -1 : 1);
+  const eventYear =
+    parseInt(
+      eventDate.startsWith("-") ? eventDate.slice(1) : eventDate.split("-")[0],
+    ) * (eventDate.startsWith("-") ? -1 : 1);
+
   if (isNaN(birthYear) || isNaN(eventYear)) return null;
-  
+
   return eventYear - birthYear;
 }
 
@@ -87,17 +104,17 @@ function postProcessTimeline(timeline: Timeline): Timeline {
       ...timeline,
       events: [],
       version: DEFAULT_TIMELINE_VERSION,
-      lastUpdatedAt: Date.now()
+      lastUpdatedAt: Date.now(),
     };
   }
 
   // Sort events by date using compareDates function to properly handle negative years
   const sortedEvents = [...timeline.events].sort((a, b) => {
-    const aDate = a.startDate || '';
-    const bDate = b.startDate || '';
+    const aDate = a.startDate || "";
+    const bDate = b.startDate || "";
     return compareDates(aDate, bDate);
   });
-  
+
   // Deduplicate events - more robust approach for events from multiple chunks
   const uniqueEvents: TimelineEvent[] = [];
   const seenHeadlines = new Set<string>();
@@ -109,12 +126,12 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 
     // Create a unique key combining date and headline
     const dateHeadlineKey = `${event.startDate}|${event.headline}`;
-    
+
     // Check for exact duplicates (same date and headline)
     if (seenDateHeadlinePairs.has(dateHeadlineKey)) {
       continue;
     }
-    
+
     // Check for similar headlines (fuzzy matching)
     let isDuplicate = false;
     if (seenHeadlines.has(event.headline)) {
@@ -124,11 +141,21 @@ function postProcessTimeline(timeline: Timeline): Timeline {
           // If dates are within 1 year, consider it a duplicate
           const existingDate = existingEvent.startDate;
           const currentDate = event.startDate;
-          
+
           // Use a simple year comparison for dates that might be BCE
-          const existingYear = parseInt(existingDate.startsWith('-') ? existingDate.slice(1) : existingDate.split('-')[0]) * (existingDate.startsWith('-') ? -1 : 1);
-          const currentYear = parseInt(currentDate.startsWith('-') ? currentDate.slice(1) : currentDate.split('-')[0]) * (currentDate.startsWith('-') ? -1 : 1);
-          
+          const existingYear =
+            parseInt(
+              existingDate.startsWith("-")
+                ? existingDate.slice(1)
+                : existingDate.split("-")[0],
+            ) * (existingDate.startsWith("-") ? -1 : 1);
+          const currentYear =
+            parseInt(
+              currentDate.startsWith("-")
+                ? currentDate.slice(1)
+                : currentDate.split("-")[0],
+            ) * (currentDate.startsWith("-") ? -1 : 1);
+
           if (Math.abs(existingYear - currentYear) <= 1) {
             isDuplicate = true;
             break;
@@ -141,19 +168,32 @@ function postProcessTimeline(timeline: Timeline): Timeline {
         // If dates are exactly the same, check for similar headlines
         if (existingEvent.startDate === event.startDate) {
           // Simple similarity check - if headlines share significant words
-          const existingWords = new Set(existingEvent.headline.toLowerCase().split(/\s+/).filter(w => w.length > 3));
-          const currentWords = event.headline.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-          
+          const existingWords = new Set(
+            existingEvent.headline
+              .toLowerCase()
+              .split(/\s+/)
+              .filter((w) => w.length > 3),
+          );
+          const currentWords = event.headline
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 3);
+
           // If more than 50% of significant words match, consider it a duplicate
-          const matchingWords = currentWords.filter(word => existingWords.has(word));
-          if (matchingWords.length > 0 && matchingWords.length / currentWords.length > 0.5) {
+          const matchingWords = currentWords.filter((word) =>
+            existingWords.has(word),
+          );
+          if (
+            matchingWords.length > 0 &&
+            matchingWords.length / currentWords.length > 0.5
+          ) {
             isDuplicate = true;
             break;
           }
         }
       }
     }
-    
+
     if (!isDuplicate) {
       uniqueEvents.push(event);
       seenHeadlines.add(event.headline);
@@ -163,11 +203,14 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 
   // Add age information for person timelines
   if (timeline.birthDate) {
-    uniqueEvents.forEach(event => {
+    uniqueEvents.forEach((event) => {
       // Only calculate age if event date is after birth date
       if (compareDates(event.startDate, timeline.birthDate!) >= 0) {
         // If death date exists, only calculate age if event date is before or equal to death date
-        if (!timeline.deathDate || compareDates(event.startDate, timeline.deathDate) <= 0) {
+        if (
+          !timeline.deathDate ||
+          compareDates(event.startDate, timeline.deathDate) <= 0
+        ) {
           const age = calculateAge(timeline.birthDate!, event.startDate);
           if (age !== null && age >= 0) {
             // Add age as a separate field
@@ -183,32 +226,36 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     ...timeline,
     events: uniqueEvents,
     version: DEFAULT_TIMELINE_VERSION,
-    lastUpdatedAt: Date.now()
+    lastUpdatedAt: Date.now(),
   };
 }
 
 // Modified function to generate timeline using parallel chunk processing
 async function generateTimeline(
-  pageName: string, 
+  pageName: string,
   wikiContent: string,
   wikiSummary: string,
   genAI: GoogleGenerativeAI,
   language: string = DEFAULT_LANGUAGE,
 ): Promise<Timeline> {
   logger.debug(`Generating timeline for ${pageName} (language: ${language})`);
-  
+
   const startTime = Date.now();
-  
+
   // Make two parallel API calls
   const [events, metadata] = await Promise.all([
     extractEventsFromWikiContent(genAI, wikiContent, pageName, language),
-    extractMetadataFromWikiSummary(genAI, wikiSummary, pageName, language)
+    extractMetadataFromWikiSummary(genAI, wikiSummary, pageName, language),
   ]);
-  
+
   const endTime = Date.now();
   const processingTime = (endTime - startTime) / 1000; // in seconds
-  
-  logger.debug(`Timeline generation for ${pageName} completed in ${processingTime.toFixed(2)} seconds`);
+
+  logger.debug(
+    `Timeline generation for ${pageName} completed in ${processingTime.toFixed(
+      2,
+    )} seconds`,
+  );
   // Build the timeline
   const timeline: Timeline = {
     title: metadata.title || pageName,
@@ -216,7 +263,7 @@ async function generateTimeline(
     birthDate: metadata.birthDate,
     deathDate: metadata.deathDate,
   };
-  
+
   // Post-process the timeline
   return postProcessTimeline(timeline);
 }
@@ -226,7 +273,7 @@ async function extractMetadataFromWikiSummary(
   genAI: GoogleGenerativeAI,
   wikiSummary: string,
   pageName: string,
-  language: string
+  language: string,
 ): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
   try {
     const model = genAI.getGenerativeModel({
@@ -236,7 +283,10 @@ async function extractMetadataFromWikiSummary(
         maxOutputTokens: 8192,
         temperature: TEMPERATURE,
       },
-      systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT.replace('#LANGUAGE#', getLanguageName(language))
+      systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT.replace(
+        "#LANGUAGE#",
+        getLanguageName(language),
+      ),
     });
 
     // Create the prompt for metadata extraction
@@ -244,34 +294,34 @@ async function extractMetadataFromWikiSummary(
       Extract metadata from the following Wikipedia summary:
       ${wikiSummary}
     `;
-    
+
     // Call Gemini to extract metadata
     logger.debug(`Extracting metadata for ${pageName}`);
     const response = await model.generateContent(userPrompt);
     const textResponse = response.response.text();
-    
+
     // Track token usage if available
     logger.debug("Token usage for extracting metadata:");
     logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
-    
+
     // Parse the JSON response
     try {
       // Clean up the response
       let jsonString = textResponse.trim();
-      
+
       // If the response starts with markdown code block indicators, strip them
       if (jsonString.startsWith("```json")) {
         jsonString = jsonString.replace(/```json\n/, "").replace(/\n```$/, "");
       } else if (jsonString.startsWith("```")) {
         jsonString = jsonString.replace(/```\n/, "").replace(/\n```$/, "");
       }
-      
+
       // Parse the JSON
       const metadata = JSON.parse(jsonString);
       return {
         title: metadata.title || pageName,
         birthDate: metadata.birthDate,
-        deathDate: metadata.deathDate
+        deathDate: metadata.deathDate,
       };
     } catch (jsonError) {
       logger.error("Failed to parse metadata JSON", jsonError);
@@ -279,7 +329,7 @@ async function extractMetadataFromWikiSummary(
       return {
         title: pageName,
         birthDate: undefined,
-        deathDate: undefined
+        deathDate: undefined,
       };
     }
   } catch (error) {
@@ -288,7 +338,7 @@ async function extractMetadataFromWikiSummary(
     return {
       title: pageName,
       birthDate: undefined,
-      deathDate: undefined
+      deathDate: undefined,
     };
   }
 }
@@ -298,7 +348,7 @@ async function extractEventsFromWikiContent(
   genAI: GoogleGenerativeAI,
   wikiContent: string,
   pageName: string,
-  language: string
+  language: string,
 ): Promise<TimelineEvent[]> {
   const model = genAI.getGenerativeModel({
     model: DEFAULT_MODEL,
@@ -307,16 +357,19 @@ async function extractEventsFromWikiContent(
       maxOutputTokens: 8192,
       temperature: TEMPERATURE,
       responseMimeType: "application/json",
-      responseSchema: WIKI_EVENTS_SCHEMA
+      responseSchema: WIKI_EVENTS_SCHEMA,
     },
-    systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace('#LANGUAGE#', getLanguageName(language))
+    systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace(
+      "#LANGUAGE#",
+      getLanguageName(language),
+    ),
   });
 
   // Track accumulated events
   let accumulatedEvents: TimelineEvent[] = [];
   let iterations = 0;
   const MAX_ITERATIONS = 3;
-  
+
   // Initial prompt
   let userPrompt = `
     Extract events from: ${pageName}
@@ -325,21 +378,25 @@ async function extractEventsFromWikiContent(
     ${wikiContent}
     </wikipedia_content>
   `;
-  
+
   while (iterations < MAX_ITERATIONS) {
     // Call Gemini with the prompt
-    logger.debug(`Extracting events (iteration ${iterations + 1}/${MAX_ITERATIONS})`);
-    
+    logger.debug(
+      `Extracting events (iteration ${iterations + 1}/${MAX_ITERATIONS})`,
+    );
+
     const response = await model.generateContent(userPrompt);
     let textResponse = response.response.text();
 
     // Track token usage if available
-    logger.debug("Token usage for extracting events, iteration " + (iterations + 1) + ":");
+    logger.debug(
+      "Token usage for extracting events, iteration " + (iterations + 1) + ":",
+    );
     logger.debug(JSON.stringify(response.response.usageMetadata, null, 2));
-    
+
     // Clean up the response text
     let jsonText = textResponse.trim();
-    
+
     // Remove markdown code block indicators if present
     if (jsonText.startsWith("```json")) {
       jsonText = jsonText.replace(/```json\n/, "").replace(/\n```$/, "");
@@ -367,7 +424,7 @@ async function extractEventsFromWikiContent(
 
     // Parse the JSON array
     const events = JSON.parse(jsonText) as TimelineEvent[];
-    
+
     // Add valid events to accumulated list
     if (Array.isArray(events)) {
       accumulatedEvents = [...accumulatedEvents, ...events];
@@ -375,10 +432,12 @@ async function extractEventsFromWikiContent(
 
     // Check if response was truncated due to token limits
     const finishReason = response.response.candidates?.[0]?.finishReason;
-    
-    if (finishReason === 'MAX_TOKENS' && iterations < MAX_ITERATIONS - 1) {
-      logger.info(`MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`);
-      
+
+    if (finishReason === "MAX_TOKENS" && iterations < MAX_ITERATIONS - 1) {
+      logger.info(
+        `MAX_TOKENS reached in iteration ${iterations + 1}, continuing...`,
+      );
+
       // Create a new prompt to continue
       userPrompt = `
         Extract events from: ${pageName}
@@ -393,14 +452,14 @@ async function extractEventsFromWikiContent(
         
         Continue extracting events from: ${pageName}, but only extract events that are not already in the events list above.
       `;
-      
+
       iterations++;
     } else {
       // Either we finished successfully or reached our iteration limit
       break;
     }
   }
-  
+
   return accumulatedEvents;
 }
 
@@ -410,95 +469,115 @@ const getCachedWikiSummary = unstable_cache(
     try {
       // Set the Wikipedia API to use the correct language
       wiki.setLang(pageInfo.language);
-      
+
       const summary = await wiki.summary(pageInfo.pageName);
       return {
         canonicalTitle: summary.titles.canonical,
         thumbnail: summary.thumbnail?.source,
-        pageUrl: summary.content_urls?.desktop?.page || `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`
+        pageUrl:
+          summary.content_urls?.desktop?.page ||
+          `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(
+            pageInfo.pageName,
+          )}`,
       };
     } catch (error) {
-      logger.warn(`Could not fetch wiki summary for ${pageInfo.language}:${pageInfo.pageName}, using fallback:`, error);
+      logger.warn(
+        `Could not fetch wiki summary for ${pageInfo.language}:${pageInfo.pageName}, using fallback:`,
+        error,
+      );
       return {
         canonicalTitle: pageInfo.pageName,
         thumbnail: undefined,
-        pageUrl: `https://${pageInfo.language}.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`
+        pageUrl: `https://${
+          pageInfo.language
+        }.wikipedia.org/wiki/${encodeURIComponent(pageInfo.pageName)}`,
       };
     }
   },
-  ['wiki-summary'],
+  ["wiki-summary"],
   {
     revalidate: 3600,
-    tags: ['wiki-summary']
-  }
+    tags: ["wiki-summary"],
+  },
 );
 
 // Initialize Gemini with appropriate key based on client type
 function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
-  const apiKey = clientType === 'cli' 
-    ? process.env.GEMINI_CLI_API_KEY 
-    : process.env.GEMINI_API_KEY;
-  
+  const apiKey =
+    clientType === "cli"
+      ? process.env.GEMINI_CLI_API_KEY
+      : process.env.GEMINI_API_KEY;
+
   return new GoogleGenerativeAI(apiKey!);
 }
 
 // Helper function to fetch Wikipedia content
-async function fetchWikipediaContent(pageInfo: PageInfo): Promise<{content: string, summary: string}> {
+async function fetchWikipediaContent(
+  pageInfo: PageInfo,
+): Promise<{ content: string; summary: string }> {
   // Set wiki to the correct language
   wiki.setLang(pageInfo.language);
-  
-  logger.debug(`Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`);
-  
+
+  logger.debug(
+    `Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`,
+  );
+
   const page = await wiki.page(pageInfo.pageName);
   const [content, summary] = await Promise.all([
     page.content(),
-    page.summary()
+    page.summary(),
   ]);
-  
+
   return {
     content,
-    summary: summary.extract
+    summary: summary.extract,
   };
 }
 
 // Update the GET handler with new error handling
 export async function GET(
   request: Request,
-  { params }: { params: { pageName: string } }
+  { params }: { params: { pageName: string } },
 ): Promise<Response> {
-  const clientType = request.headers.get('x-internal-client-type');
-  
+  const clientType = request.headers.get("x-internal-client-type");
+
   try {
     const genAI = getGeminiClient(clientType);
     if (!genAI) {
-      throw new Error('Failed to initialize Gemini client');
+      throw new Error("Failed to initialize Gemini client");
     }
 
     // First decode the URL parameters
     const rawPageNames = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
-      .map(name => name.trim())
+      .map((name) => name.trim())
       .filter(Boolean);
-      
+
     // Parse each page name to extract language and actual page name
     const pageInfos = rawPageNames.map(parsePageName);
-    
+
     logger.info(`Processing ${pageInfos.length} pages`);
-    logger.debug(`Page info details: ${JSON.stringify(pageInfos.map(p => `${p.language}:${p.pageName}`))}`);
-    
+    logger.debug(
+      `Page info details: ${JSON.stringify(
+        pageInfos.map((p) => `${p.language}:${p.pageName}`),
+      )}`,
+    );
+
     // Get canonical names first
     const canonicalInfos = await Promise.all(
       pageInfos.map(async (pageInfo) => {
         const summary = await getCachedWikiSummary(pageInfo);
         if (summary.canonicalTitle !== pageInfo.pageName) {
-          logger.info(`Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${summary.canonicalTitle}`);
+          logger.info(
+            `Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${summary.canonicalTitle}`,
+          );
         }
-        
+
         return {
           ...pageInfo,
-          pageName: summary.canonicalTitle
+          pageName: summary.canonicalTitle,
         };
-      })
+      }),
     );
 
     const results: Record<string, TimelinePageResult> = {};
@@ -507,38 +586,49 @@ export async function GET(
       canonicalInfos.map(async (pageInfo) => {
         const cacheKey = buildCacheKey(pageInfo);
         let timeline: Timeline | null = null;
-        
+
         try {
           // Try to get cached timeline
           const cached = await redis.get(cacheKey);
-          if (cached && typeof cached === 'object') {
+          if (cached && typeof cached === "object") {
             const cachedData = cached as NewTimelineFormat;
             timeline = cachedData.timeline;
-            
+
             if (timeline) {
-              logger.info(`Using cached timeline for ${pageInfo.language}:${pageInfo.pageName}`);
+              logger.info(
+                `Using cached timeline for ${pageInfo.language}:${pageInfo.pageName}`,
+              );
             }
           }
-          
+
           // If not in cache, generate it
           if (!timeline) {
-            logger.info(`Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`);
-            
+            logger.info(
+              `Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`,
+            );
+
             // Fetch Wikipedia content
             let wikiData;
             try {
               wikiData = await fetchWikipediaContent(pageInfo);
             } catch (error) {
               // Handle Wikipedia API errors
-              if (error instanceof Error && 'statusCode' in error && (error as any).statusCode === 404) {
+              if (
+                error instanceof Error &&
+                "statusCode" in error &&
+                (error as any).statusCode === 404
+              ) {
                 results[pageInfo.original] = {
-                  status: 'not_found',
-                  message: 'Page does not exist in Wikipedia'
+                  status: "not_found",
+                  message: "Page does not exist in Wikipedia",
                 };
               } else {
                 results[pageInfo.original] = {
-                  status: 'error',
-                  message: error instanceof Error ? error.message : 'Failed to fetch Wikipedia content'
+                  status: "error",
+                  message:
+                    error instanceof Error
+                      ? error.message
+                      : "Failed to fetch Wikipedia content",
                 };
               }
               return;
@@ -546,28 +636,39 @@ export async function GET(
 
             try {
               timeline = await generateTimeline(
-                pageInfo.pageName, 
+                pageInfo.pageName,
                 wikiData.content,
                 wikiData.summary,
                 genAI,
-                pageInfo.language
+                pageInfo.language,
               );
             } catch (error) {
-              logger.error(`Failed to generate timeline for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+              logger.error(
+                `Failed to generate timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
+                error,
+              );
               results[pageInfo.original] = {
-                status: 'error',
-                message: error instanceof Error ? error.message : 'Failed to generate timeline'
+                status: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to generate timeline",
               };
               return;
             }
-            
+
             if (timeline) {
-              logger.info(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
+              logger.info(
+                `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`,
+              );
               try {
                 await redis.set(cacheKey, { timeline });
               } catch (error) {
                 // If the cache is full, log the error and continue
-                logger.error(`Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+                logger.error(
+                  `Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
+                  error,
+                );
               }
             }
 
@@ -575,37 +676,43 @@ export async function GET(
             if (timeline && timeline.events.length > 0) {
               const wikiSummary = await getCachedWikiSummary(pageInfo);
               results[pageInfo.original] = {
-                status: 'success',
+                status: "success",
                 timeline: {
                   timeline,
-                  wikiSummary
-                }
+                  wikiSummary,
+                },
               };
             } else {
               results[pageInfo.original] = {
-                status: 'not_found',
-                message: 'No dated events found in the content'
+                status: "not_found",
+                message: "No dated events found in the content",
               };
             }
           }
-
         } catch (error) {
           // Handle individual page errors gracefully
-          logger.error(`Error processing ${pageInfo.language}:${pageInfo.pageName}:`, error);
-          
+          logger.error(
+            `Error processing ${pageInfo.language}:${pageInfo.pageName}:`,
+            error,
+          );
+
           results[pageInfo.original] = {
-            status: 'error',
-            message: error instanceof Error ? error.message : 'Unknown error occurred'
+            status: "error",
+            message:
+              error instanceof Error ? error.message : "Unknown error occurred",
           };
         }
-      })
+      }),
     );
 
     // Count pages by status
-    const statusCounts = Object.values(results).reduce((acc, result) => {
-      acc[result.status] = (acc[result.status] || 0) + 1;
-      return acc;
-    }, {} as Record<TimelinePageStatus, number>);
+    const statusCounts = Object.values(results).reduce(
+      (acc, result) => {
+        acc[result.status] = (acc[result.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<TimelinePageStatus, number>,
+    );
 
     // Determine response status
     if (statusCounts.success && statusCounts.success > 0) {
@@ -614,60 +721,65 @@ export async function GET(
         results,
         metadata: {
           totalPages: pageInfos.length,
-          successfulPages: statusCounts.success
-        }
+          successfulPages: statusCounts.success,
+        },
       };
 
       return new Response(JSON.stringify(response), {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-    } else if (Object.keys(statusCounts).length === 1 && statusCounts.not_found) {
+    } else if (
+      Object.keys(statusCounts).length === 1 &&
+      statusCounts.not_found
+    ) {
       // All pages are not found, return 404
       const response: TimelineAPIResponse = {
         results,
         metadata: {
           totalPages: pageInfos.length,
-          successfulPages: 0
-        }
+          successfulPages: 0,
+        },
       };
 
       return new Response(JSON.stringify(response), {
         status: 404,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
     } else {
       // Either all errors or mix of errors and not_found, return 500
       const systemError: TimelineSystemError = {
-        error: 'system_error',
-        message: 'Failed to generate any timelines successfully'
+        error: "system_error",
+        message: "Failed to generate any timelines successfully",
       };
 
       return new Response(JSON.stringify(systemError), {
         status: 500,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
     }
-
   } catch (error) {
     // Handle true system-level errors (API keys, Redis connection, etc.)
-    logger.error('System error in timeline API:', error);
-    
+    logger.error("System error in timeline API:", error);
+
     const systemError: TimelineSystemError = {
-      error: 'system_error',
-      message: error instanceof Error ? error.message : 'An unexpected system error occurred'
+      error: "system_error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "An unexpected system error occurred",
     };
 
     return new Response(JSON.stringify(systemError), {
       status: 500,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
   }
-} 
+}

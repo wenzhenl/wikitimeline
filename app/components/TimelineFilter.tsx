@@ -10,7 +10,7 @@ interface TimelineFilterProps {
   events: TimelineJSEvent[];
   onDateRangeChange: (
     startEventId: string | null,
-    endEventId: string | null
+    endEventId: string | null,
   ) => void;
   currentDateRange: {
     startEventId: string | null;
@@ -31,18 +31,18 @@ export default function TimelineFilter({
 }: TimelineFilterProps) {
   // Temporary filter state - only applied when user clicks "Apply Filters"
   const [tempStartEventId, setTempStartEventId] = useState<string | null>(
-    currentDateRange.startEventId
+    currentDateRange.startEventId,
   );
   const [tempEndEventId, setTempEndEventId] = useState<string | null>(
-    currentDateRange.endEventId
+    currentDateRange.endEventId,
   );
   const [tempTopEventsCount, setTempTopEventsCount] = useState<number | null>(
-    currentTopEventsCount
+    currentTopEventsCount,
   );
 
   // Calculate filtered events count based on current date range filter
   const [filteredEventsCount, setFilteredEventsCount] = useState<number>(
-    events.length
+    events.length,
   );
 
   // Sort events chronologically for consistent display in dropdowns
@@ -68,7 +68,7 @@ export default function TimelineFilter({
     // Get start index from date range filter
     if (tempStartEventId) {
       const foundStartIndex = events.findIndex(
-        (event) => event.unique_id === tempStartEventId
+        (event) => event.unique_id === tempStartEventId,
       );
       if (foundStartIndex !== -1) {
         startIndex = foundStartIndex;
@@ -78,7 +78,7 @@ export default function TimelineFilter({
     // Get end index from date range filter
     if (tempEndEventId) {
       const foundEndIndex = events.findIndex(
-        (event) => event.unique_id === tempEndEventId
+        (event) => event.unique_id === tempEndEventId,
       );
       if (foundEndIndex !== -1) {
         endIndex = foundEndIndex;
@@ -97,7 +97,7 @@ export default function TimelineFilter({
 
   // Update temporary start event ID, but don't apply filter yet
   const handleTempStartEventChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const newStartId = e.target.value || null;
     setTempStartEventId(newStartId);
@@ -105,10 +105,10 @@ export default function TimelineFilter({
     // If end date is before start date, reset end date
     if (newStartId && tempEndEventId) {
       const startIdx = events.findIndex(
-        (event) => event.unique_id === newStartId
+        (event) => event.unique_id === newStartId,
       );
       const endIdx = events.findIndex(
-        (event) => event.unique_id === tempEndEventId
+        (event) => event.unique_id === tempEndEventId,
       );
       if (startIdx > endIdx) {
         setTempEndEventId(null);
@@ -118,7 +118,7 @@ export default function TimelineFilter({
 
   // Update temporary end event ID, but don't apply filter yet
   const handleTempEndEventChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const newEndId = e.target.value || null;
     setTempEndEventId(newEndId);
@@ -126,7 +126,7 @@ export default function TimelineFilter({
 
   // Update the slider or input with slider value
   const handleTopEventsSliderChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const value = e.target.value;
     // When the value is the max value (all events), set to null (no filter)
@@ -155,7 +155,7 @@ export default function TimelineFilter({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.APPLY_DATE_FILTER,
-        `${tempStartEventId || "start"} to ${tempEndEventId || "end"}`
+        `${tempStartEventId || "start"} to ${tempEndEventId || "end"}`,
       );
     }
 
@@ -164,7 +164,7 @@ export default function TimelineFilter({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.APPLY_TOP_EVENTS_FILTER,
-        tempTopEventsCount?.toString() || "all"
+        tempTopEventsCount?.toString() || "all",
       );
     }
 
@@ -178,7 +178,7 @@ export default function TimelineFilter({
     if (hasFiltersApplied) {
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
-        ANALYTICS_ACTIONS.RESET_FILTERS
+        ANALYTICS_ACTIONS.RESET_FILTERS,
       );
     }
 
@@ -264,7 +264,7 @@ export default function TimelineFilter({
               <option key={`start-${event.unique_id}`} value={event.unique_id}>
                 {`[${formatEventDate(event)}] ${event.text.headline.replace(
                   /<[^>]*>?/gm,
-                  ""
+                  "",
                 )}`}
               </option>
             ))}
@@ -287,17 +287,17 @@ export default function TimelineFilter({
                 (event) =>
                   !tempStartEventId ||
                   sortedEvents.findIndex(
-                    (e) => e.unique_id === event.unique_id
+                    (e) => e.unique_id === event.unique_id,
                   ) >=
                     sortedEvents.findIndex(
-                      (e) => e.unique_id === tempStartEventId
-                    )
+                      (e) => e.unique_id === tempStartEventId,
+                    ),
               )
               .map((event) => (
                 <option key={`end-${event.unique_id}`} value={event.unique_id}>
                   {`[${formatEventDate(event)}] ${event.text.headline.replace(
                     /<[^>]*>?/gm,
-                    ""
+                    "",
                   )}`}
                 </option>
               ))}

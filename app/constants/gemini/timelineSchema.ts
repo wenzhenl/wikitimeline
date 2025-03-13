@@ -9,8 +9,8 @@ export const WIKI_EVENTS_SCHEMA = {
       description: { type: SchemaType.STRING },
       startDate: { type: SchemaType.STRING },
       endDate: { type: SchemaType.STRING },
-      score: { type: SchemaType.INTEGER }
+      score: { type: SchemaType.INTEGER },
     },
-    required: ["headline", "description", "startDate", "score"]
-  }
+    required: ["headline", "description", "startDate", "score"],
+  },
 };

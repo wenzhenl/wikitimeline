@@ -25,11 +25,11 @@ export const COMMON_LANGUAGES: LanguageOption[] = [
   { code: "uk", name: "українська" },
   { code: "vi", name: "Tiếng Việt" },
   { code: "war", name: "Winaray" },
-  { code: "ko", name: "한국어"},
+  { code: "ko", name: "한국어" },
 ];
 
 // Default enabled language (just English)
 export const DEFAULT_ENABLED_LANGUAGES = ["en"];
 
 // Local storage key for enabled languages
-export const STORAGE_KEY_ENABLED_LANGUAGES = "wikiTimeline_enabledLanguages"; 
+export const STORAGE_KEY_ENABLED_LANGUAGES = "wikiTimeline_enabledLanguages";

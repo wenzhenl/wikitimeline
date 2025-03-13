@@ -58,7 +58,7 @@ const MyTimelineComponent = ({
         const timeline = new Timeline(
           timelineRef.current!,
           { title: title, events: events, scale: scale },
-          options
+          options,
         );
 
         // Listen for the timeline's 'loaded' event to notify parent
@@ -118,7 +118,7 @@ const MyTimelineComponent = ({
 
             // Calculate new position
             const currentLeft = parseInt(
-              slider.style.left.replace("px", "") || "0"
+              slider.style.left.replace("px", "") || "0",
             );
 
             // Calculate scroll boundaries
@@ -187,7 +187,7 @@ const MyTimelineComponent = ({
                   handleUniversalScroll(e);
                 }
               },
-              { passive: false }
+              { passive: false },
             );
           }
         }, 1000); // Increased wait time for timeline to fully initialize

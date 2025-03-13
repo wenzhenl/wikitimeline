@@ -58,7 +58,7 @@ export default function TimelineCustomizer({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.CHANGE_FONT,
-        newFont
+        newFont,
       );
     }
   };
@@ -70,7 +70,7 @@ export default function TimelineCustomizer({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.CHANGE_COLOR_SCHEME,
-        value
+        value,
       );
     }
   };
@@ -82,7 +82,7 @@ export default function TimelineCustomizer({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.CHANGE_POSITION,
-        position
+        position,
       );
     }
   };
@@ -99,7 +99,7 @@ export default function TimelineCustomizer({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.CHANGE_HEIGHT,
-        sliderValue.toString()
+        sliderValue.toString(),
       );
     }
   };
@@ -110,7 +110,7 @@ export default function TimelineCustomizer({
       trackEvent(
         ANALYTICS_CATEGORIES.TIMELINE,
         ANALYTICS_ACTIONS.OPEN_CUSTOMIZER,
-        "settings_modal"
+        "settings_modal",
       );
     }
   }, [isSettingsOpen, isMobileButton]);

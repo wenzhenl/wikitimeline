@@ -28,12 +28,12 @@ export interface TimelineWithWikiSummary {
   wikiSummary: WikiSummary;
 }
 
-export type TimelinePageStatus = 'success' | 'not_found' | 'error';
+export type TimelinePageStatus = "success" | "not_found" | "error";
 
 export interface TimelinePageResult {
   status: TimelinePageStatus;
   timeline?: TimelineWithWikiSummary;
-  message?: string;  // Explains status: "Page does not exist", "No dated events found", or error message
+  message?: string; // Explains status: "Page does not exist", "No dated events found", or error message
 }
 
 export interface TimelineAPIResponse {
@@ -46,7 +46,7 @@ export interface TimelineAPIResponse {
 
 // System error response type
 export interface TimelineSystemError {
-  error: 'system_error';
+  error: "system_error";
   message: string;
 }
 
@@ -79,5 +79,5 @@ export interface TimelineJSEvent {
 export interface TimelineJSTimeline {
   events: TimelineJSEvent[];
   title?: TimelineJSEvent;
-  scale?: 'human' | 'cosmological';
+  scale?: "human" | "cosmological";
 }

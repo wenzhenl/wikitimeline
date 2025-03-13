@@ -115,7 +115,7 @@ export default function InteractiveTimelineTour({
 
     // Check if user has seen the tour before
     const hasSeenTour = localStorage.getItem(
-      "wikitimeline_interactive_tour_completed"
+      "wikitimeline_interactive_tour_completed",
     );
 
     // Only show tour for first-time visitors

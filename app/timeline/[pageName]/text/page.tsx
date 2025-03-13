@@ -17,7 +17,7 @@ async function getTimelineData(pageName: string) {
         headers: {
           "x-api-key": process.env.API_SECRET_KEY!,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -41,14 +41,14 @@ async function getTimelineData(pageName: string) {
             text: event.description,
             source: pageName,
             age: event.age,
-          }))
+          })),
         )
         .sort((a, b) => compareDates(a.date, b.date)),
       titles: Object.fromEntries(
         Object.entries(data.timelines).map(([pageName, page]) => [
           pageName,
           page.timeline.title,
-        ])
+        ]),
       ),
       errors: data.errors,
     };

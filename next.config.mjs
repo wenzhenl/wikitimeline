@@ -1,4 +1,4 @@
-import path from 'path';
+import path from "path";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,8 +9,15 @@ const nextConfig = {
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+          },
         ],
       },
     ];
@@ -19,12 +26,7 @@ const nextConfig = {
     if (!isServer) {
       config.module.rules.push({
         test: /\.(less|css)$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'postcss-loader',
-          'less-loader'
-        ]
+        use: ["style-loader", "css-loader", "postcss-loader", "less-loader"],
       });
     }
 
@@ -33,26 +35,26 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'upload.wikimedia.org',
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
       },
       {
-        protocol: 'https',
-        hostname: 'commons.wikimedia.org',
-      }
+        protocol: "https",
+        hostname: "commons.wikimedia.org",
+      },
     ],
   },
   async redirects() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         has: [
           {
-            type: 'host',
-            value: 'www.wiki-timeline.com',
+            type: "host",
+            value: "www.wiki-timeline.com",
           },
         ],
-        destination: 'https://wiki-timeline.com/:path*',
+        destination: "https://wiki-timeline.com/:path*",
         permanent: true,
       },
     ];
