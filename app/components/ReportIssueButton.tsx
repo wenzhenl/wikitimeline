@@ -20,7 +20,7 @@ export default function ReportIssueButton({
     const body = encodeURIComponent(
       `I found an issue with the timeline for: ${pageNames}\n\n` +
         `Timeline URL: ${timelineUrl}\n\n` +
-        `Issue description:\n`,
+        `Issue description:\n`
     );
 
     window.location.href = `mailto:${SITE_CONFIG.CONTACT_EMAIL}?subject=${subject}&body=${body}`;

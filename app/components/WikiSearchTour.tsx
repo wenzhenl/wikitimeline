@@ -88,7 +88,7 @@ export default function WikiSearchTour({ isSearchReady }: WikiSearchTourProps) {
 
     // Check if user has seen the tour before
     const hasSeenTour = localStorage.getItem(
-      "wikitimeline_wiki_search_tour_completed",
+      "wikitimeline_wiki_search_tour_completed"
     );
 
     // Only show tour for first-time visitors

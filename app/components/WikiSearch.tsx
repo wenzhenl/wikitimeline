@@ -68,7 +68,7 @@ export default function WikiSearch({
   const [inputValue, setInputValue] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [enabledLanguages, setEnabledLanguages] = useState<string[]>(
-    DEFAULT_ENABLED_LANGUAGES,
+    DEFAULT_ENABLED_LANGUAGES
   );
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -89,7 +89,7 @@ export default function WikiSearch({
       try {
         // Load enabled languages
         const storedLanguages = localStorage.getItem(
-          STORAGE_KEY_ENABLED_LANGUAGES,
+          STORAGE_KEY_ENABLED_LANGUAGES
         );
         let parsedLanguages = DEFAULT_ENABLED_LANGUAGES;
 
@@ -106,7 +106,7 @@ export default function WikiSearch({
 
         // Load last used language
         const lastUsedLanguage = localStorage.getItem(
-          STORAGE_KEY_LAST_LANGUAGE,
+          STORAGE_KEY_LAST_LANGUAGE
         );
         if (lastUsedLanguage && parsedLanguages.includes(lastUsedLanguage)) {
           setSelectedLanguage(lastUsedLanguage);
@@ -116,7 +116,7 @@ export default function WikiSearch({
       } catch (error) {
         logger.error(
           "Error loading language settings from localStorage:",
-          error,
+          error
         );
         setEnabledLanguages(DEFAULT_ENABLED_LANGUAGES);
         setSelectedLanguage(DEFAULT_ENABLED_LANGUAGES[0]);
@@ -148,7 +148,7 @@ export default function WikiSearch({
 
   // Function to extract wiki title and language from URL
   const extractWikiTitle = (
-    url: string,
+    url: string
   ): { title: string; language: string } | null => {
     // Try to parse the URL
     try {
@@ -166,7 +166,7 @@ export default function WikiSearch({
         if (wikiIndex >= 0 && wikiIndex < pathParts.length - 1) {
           return {
             title: decodeURIComponent(
-              pathParts[wikiIndex + 1].replace(/_/g, " "),
+              pathParts[wikiIndex + 1].replace(/_/g, " ")
             ),
             language: langCode,
           };
@@ -191,7 +191,7 @@ export default function WikiSearch({
     trackEvent(
       ANALYTICS_CATEGORIES.SEARCH,
       ANALYTICS_ACTIONS.SEARCH_QUERY,
-      query,
+      query
     );
 
     try {
@@ -210,7 +210,7 @@ export default function WikiSearch({
           // If language differs from dropdown, temporarily set it
           if (languageToUse !== selectedLanguage) {
             logger.debug(
-              `Using detected language: ${languageToUse} for search`,
+              `Using detected language: ${languageToUse} for search`
             );
           }
         }
@@ -249,7 +249,7 @@ export default function WikiSearch({
                   fullurl:
                     summary.content_urls?.desktop?.page ||
                     `https://${languageToUse}.wikipedia.org/wiki/${encodeURIComponent(
-                      title,
+                      title
                     )}`,
                   thumbnail: summary.thumbnail,
                   pageviews: 0,
@@ -263,14 +263,14 @@ export default function WikiSearch({
                   description: "",
                   pageid: 0,
                   fullurl: `https://${languageToUse}.wikipedia.org/wiki/${encodeURIComponent(
-                    title,
+                    title
                   )}`,
                   pageviews: 0,
                   language: languageToUse,
                   objectID: `${languageToUse}-${title}`,
                 };
               }
-            }),
+            })
         );
 
         setSearchResults(detailedResults.filter(Boolean));
@@ -307,7 +307,7 @@ export default function WikiSearch({
                   objectID: `${languageToUse}-${result.pageid}`,
                 };
               }
-            }),
+            })
         );
 
         setSearchResults(detailedResults);
@@ -334,7 +334,7 @@ export default function WikiSearch({
         trackEvent(
           ANALYTICS_CATEGORIES.SEARCH,
           ANALYTICS_ACTIONS.URL_PASTE,
-          wikiTitle.title,
+          wikiTitle.title
         );
 
         // If it's a valid Wikipedia URL, add it directly
@@ -370,7 +370,7 @@ export default function WikiSearch({
         trackEvent(
           ANALYTICS_CATEGORIES.LANGUAGE,
           ANALYTICS_ACTIONS.LANGUAGE_CHANGE,
-          `prefix_${langPrefix}`,
+          `prefix_${langPrefix}`
         );
         setSelectedLanguage(langPrefix);
         return true;
@@ -384,7 +384,7 @@ export default function WikiSearch({
     trackEvent(
       ANALYTICS_CATEGORIES.SEARCH,
       ANALYTICS_ACTIONS.SELECT_RESULT,
-      result.title,
+      result.title
     );
 
     // Add the selected result to the list of selected pages
@@ -442,7 +442,7 @@ export default function WikiSearch({
           ANALYTICS_CATEGORIES.TIMELINE,
           ANALYTICS_ACTIONS.GENERATE_TIMELINE,
           "enter_key",
-          selectedPages.length,
+          selectedPages.length
         );
         onSubmit();
       }
@@ -453,7 +453,7 @@ export default function WikiSearch({
       case "ArrowDown":
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < searchResults.length - 1 ? prev + 1 : prev,
+          prev < searchResults.length - 1 ? prev + 1 : prev
         );
         break;
       case "ArrowUp":
@@ -577,7 +577,7 @@ export default function WikiSearch({
                     trackEvent(
                       ANALYTICS_CATEGORIES.LANGUAGE,
                       ANALYTICS_ACTIONS.LANGUAGE_CHANGE,
-                      `dropdown_${value}`,
+                      `dropdown_${value}`
                     );
                     setSelectedLanguage(value);
                   }
@@ -587,7 +587,7 @@ export default function WikiSearch({
               >
                 {enabledLanguages.map((lang) => {
                   const language = COMMON_LANGUAGES.find(
-                    (l) => l.code === lang,
+                    (l) => l.code === lang
                   );
                   return (
                     <option key={lang} value={lang} className="uppercase">

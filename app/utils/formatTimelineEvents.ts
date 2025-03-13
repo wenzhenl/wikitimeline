@@ -118,7 +118,7 @@ function parseDate(dateStr: string): TimelineJSDate {
  */
 export function formatTimelineEventsForInteractive(
   timelines: Record<string, TimelinePageResult>,
-  colorSchemeId = "default",
+  colorSchemeId = "default"
 ): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
   const colorScheme =
@@ -149,7 +149,7 @@ export function formatTimelineEventsForInteractive(
           }),
         };
       });
-    },
+    }
   );
 
   // Sort all events chronologically by start date
@@ -157,7 +157,7 @@ export function formatTimelineEventsForInteractive(
 
   // Check if any dates in the FILTERED timeline events are outside human scale range
   const needsCosmologicalScale = formattedEvents.some((event) =>
-    requiresCosmologicalScale(event.start_date),
+    requiresCosmologicalScale(event.start_date)
   );
 
   logger.debug("Timeline formatting", {
@@ -181,15 +181,23 @@ export function formatTimelineEventsForInteractive(
     title: {
       text: {
         headline: isMultiplePages
-          ? `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">${pageNames.join(" | ")}</span>`
+          ? `<span style="color: ${
+              firstGroupColors.textColor
+            }; font-weight: 600; text-shadow: none;">${pageNames.join(
+              " | "
+            )}</span>`
           : `<span style="color: ${firstGroupColors.textColor}; font-weight: 600; text-shadow: none;">${pageNames[0]}</span>`,
         text: isMultiplePages
-          ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(
-              timelines,
-            )
+          ? `<span style="color: ${
+              firstGroupColors.textColor
+            }; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)
               .map((t) => t.timeline!.title)
               .join("<br/><br/>")}</span>`
-          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline!.title}</span>`,
+          : `<span style="color: ${
+              firstGroupColors.textColor
+            }; font-size: 0.9em; text-shadow: none;">${
+              Object.values(timelines)[0].timeline!.title
+            }</span>`,
       },
       background: {
         color: firstGroupColors.color,
@@ -210,7 +218,7 @@ export function formatTimelineEventsForInteractive(
 
       // Determine if this specific event needs cosmological formatting
       const eventNeedsCosmological = requiresCosmologicalScale(
-        formattedEvent.start_date,
+        formattedEvent.start_date
       );
 
       // Format the display date appropriately

@@ -31,7 +31,7 @@ export function compareDates(dateA: string, dateB: string): number {
  */
 export function formatPageName(
   name: string,
-  pageNameSeparator: string = PAGE_NAME_SEPARATOR,
+  pageNameSeparator: string = PAGE_NAME_SEPARATOR
 ): {
   formattedName: string;
   language: string;
@@ -47,7 +47,7 @@ export function formatPageName(
 
   // Parse language prefix if present (e.g., "zh:PageName")
   const langPrefixMatch = decodedName.match(
-    new RegExp(`^([a-z]{2,3})${pageNameSeparator}(.*)`),
+    new RegExp(`^([a-z]{2,3})${pageNameSeparator}(.*)`)
   );
 
   if (langPrefixMatch) {

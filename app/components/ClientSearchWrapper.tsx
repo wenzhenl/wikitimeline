@@ -44,7 +44,7 @@ export function ClientSearchWrapper() {
             page.language !== "en"
               ? `${page.language}${PAGE_NAME_SEPARATOR}${page.title.replace(
                   / /g,
-                  "_",
+                  "_"
                 )}`
               : page.title.replace(/ /g, "_");
 
@@ -60,7 +60,7 @@ export function ClientSearchWrapper() {
     }
 
     const baseUrl = `/timeline/${encodeURIComponent(
-      pageNames.join(PAGE_DELIMITER),
+      pageNames.join(PAGE_DELIMITER)
     )}`;
     const targetUrl = isMobile() ? `${baseUrl}/text` : baseUrl;
 

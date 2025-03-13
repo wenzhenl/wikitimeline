@@ -16,14 +16,14 @@ export default function LanguageSettings({
   onClose,
 }: LanguageSettingsProps) {
   const [enabledLanguages, setEnabledLanguages] = useState<string[]>(
-    DEFAULT_ENABLED_LANGUAGES,
+    DEFAULT_ENABLED_LANGUAGES
   );
 
   // Load enabled languages from localStorage on mount
   useEffect(() => {
     try {
       const storedLanguages = localStorage.getItem(
-        STORAGE_KEY_ENABLED_LANGUAGES,
+        STORAGE_KEY_ENABLED_LANGUAGES
       );
       if (storedLanguages) {
         const parsedLanguages = JSON.parse(storedLanguages);
@@ -63,14 +63,14 @@ export default function LanguageSettings({
     try {
       localStorage.setItem(
         STORAGE_KEY_ENABLED_LANGUAGES,
-        JSON.stringify(updatedLanguages),
+        JSON.stringify(updatedLanguages)
       );
       // Dispatch storage event for cross-tab communication
       window.dispatchEvent(
         new StorageEvent("storage", {
           key: STORAGE_KEY_ENABLED_LANGUAGES,
           newValue: JSON.stringify(updatedLanguages),
-        }),
+        })
       );
     } catch (error) {
       logger.error("Error saving enabled languages to localStorage:", error);

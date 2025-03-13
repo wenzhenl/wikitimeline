@@ -186,7 +186,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
         };
         return acc;
       },
-      {} as ColorScheme["colors"],
+      {} as ColorScheme["colors"]
     ),
   },
   {
@@ -199,7 +199,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
         };
         return acc;
       },
-      {} as ColorScheme["colors"],
+      {} as ColorScheme["colors"]
     ),
   },
   {
@@ -212,7 +212,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
         };
         return acc;
       },
-      {} as ColorScheme["colors"],
+      {} as ColorScheme["colors"]
     ),
   },
   {
@@ -225,7 +225,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
         };
         return acc;
       },
-      {} as ColorScheme["colors"],
+      {} as ColorScheme["colors"]
     ),
   },
 ];

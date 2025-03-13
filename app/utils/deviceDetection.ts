@@ -9,7 +9,7 @@ export function isMobile(): boolean {
     navigator.userAgent.match(/iPhone|iPad|iPod|Android/i) ||
       (window.matchMedia && window.matchMedia("(max-width: 767px)").matches) ||
       "ontouchstart" in window ||
-      (window.DocumentTouch && document instanceof window.DocumentTouch),
+      (window.DocumentTouch && document instanceof window.DocumentTouch)
   );
 }
 
@@ -52,7 +52,7 @@ export function isTablet(): boolean {
   const isIpad = /ipad/.test(userAgent);
   const isTablet = /tablet/.test(userAgent);
   const isLargeScreen = window.matchMedia(
-    "(min-width: 768px) and (max-width: 1024px)",
+    "(min-width: 768px) and (max-width: 1024px)"
   ).matches;
 
   return isIpad || isTablet || isLargeScreen;

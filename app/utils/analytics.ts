@@ -40,7 +40,7 @@ export const trackEvent = (
   category: (typeof ANALYTICS_CATEGORIES)[keyof typeof ANALYTICS_CATEGORIES],
   action: (typeof ANALYTICS_ACTIONS)[keyof typeof ANALYTICS_ACTIONS],
   label?: string,
-  value?: number,
+  value?: number
 ) => {
   if (
     typeof window !== "undefined" &&
