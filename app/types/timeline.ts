@@ -28,12 +28,13 @@ export interface TimelineWithWikiSummary {
   wikiSummary: WikiSummary;
 }
 
-export type TimelinePageStatus = 'success' | 'not_found';
+export type TimelinePageStatus = 'success' | 'not_found' | 'error';
 
 export interface TimelinePageResult {
   status: TimelinePageStatus;
   timeline?: TimelineWithWikiSummary;
-  message?: string;  // Explains why it's not found: "Page does not exist" or "No dated events found"
+  message?: string;  // Explains status: "Page does not exist", "No dated events found", or error message
+  retryable?: boolean;  // Only present for error status, indicates if the error is temporary
 }
 
 export interface TimelineAPIResponse {

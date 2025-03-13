@@ -598,14 +598,46 @@ export async function GET(
           successfulPages++;
 
         } catch (error) {
-          // Handle individual page errors
+          // Handle individual page errors gracefully
           logger.error(`Error processing ${pageInfo.language}:${pageInfo.pageName}:`, error);
-          throw error; // Let the outer try-catch handle system-level errors
+          
+          // Determine if the error is retryable
+          const isRetryable = error instanceof Error && (
+            error.message.includes('rate limit') ||
+            error.message.includes('timeout') ||
+            error.message.includes('network') ||
+            error.message.toLowerCase().includes('temporary') ||
+            error.message.includes('503') ||
+            error.message.includes('429')
+          );
+          
+          results[pageInfo.original] = {
+            status: 'error',
+            message: error instanceof Error ? error.message : 'Unknown error occurred',
+            retryable: isRetryable
+          };
+          // Don't increment successfulPages for errors
         }
       })
     );
 
-    // Create the successful response
+    // Only return system error if no pages were processed successfully
+    if (successfulPages === 0) {
+      const systemError: TimelineSystemError = {
+        error: 'system_error',
+        message: 'Failed to process any pages successfully',
+        retryable: true
+      };
+
+      return new Response(JSON.stringify(systemError), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Create the successful response with partial results
     const response: TimelineAPIResponse = {
       results,
       metadata: {
@@ -621,13 +653,13 @@ export async function GET(
     });
 
   } catch (error) {
-    // Handle system-level errors
+    // Handle true system-level errors (API keys, Redis connection, etc.)
     logger.error('System error in timeline API:', error);
     
     const systemError: TimelineSystemError = {
       error: 'system_error',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      retryable: true // You might want to make this more specific based on the error type
+      message: error instanceof Error ? error.message : 'An unexpected system error occurred',
+      retryable: true
     };
 
     return new Response(JSON.stringify(systemError), {
