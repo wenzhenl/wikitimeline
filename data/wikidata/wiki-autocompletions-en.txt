@@ -1,0 +1,12 @@
+[
+  "Albert Einstein",
+  "Albert Einstein College of Medicine",
+  "Albert Einstein in popular culture",
+  "Albert Einstein ATV",
+  "Albert Einstein World Award of Science",
+  "Albert Einstein Institution",
+  "Albert Einstein (album)",
+  "Albert Einstein House",
+  "Albert Einstein Israelite Hospital",
+  "Albert Einstein School (Vietnam)"
+]
