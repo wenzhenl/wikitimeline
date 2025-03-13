@@ -595,10 +595,13 @@ export default function WikiSearch({
                     </option>
                   );
                 })}
-                {/* Add settings option if onSettingsClick is provided */}
+                {/* Settings option with improved styling */}
                 {onSettingsClick && (
-                  <option value="settings" className="font-semibold">
-                    +
+                  <option
+                    value="settings"
+                    className="text-blue-500 dark:text-blue-400 border-t border-gray-200 dark:border-gray-700 font-medium"
+                  >
+                    ＋
                   </option>
                 )}
               </select>
