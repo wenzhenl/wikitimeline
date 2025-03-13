@@ -678,10 +678,8 @@ export async function GET(
             const wikiSummary = await getCachedWikiSummary(pageInfo);
             results[pageInfo.original] = {
               status: "success",
-              timeline: {
-                timeline,
-                wikiSummary,
-              },
+              timeline,
+              wikiSummary,
             };
           } else {
             results[pageInfo.original] = {

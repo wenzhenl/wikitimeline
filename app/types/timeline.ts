@@ -32,8 +32,9 @@ export type TimelinePageStatus = "success" | "not_found" | "error";
 
 export interface TimelinePageResult {
   status: TimelinePageStatus;
-  timeline?: TimelineWithWikiSummary;
   message?: string; // Explains status: "Page does not exist", "No dated events found", or error message
+  timeline?: Timeline;
+  wikiSummary?: WikiSummary;
 }
 
 export interface TimelineAPIResponse {
