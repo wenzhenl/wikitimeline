@@ -1,0 +1,49 @@
+{
+    "type": "standard",
+    "title": "Albert Einstein",
+    "displaytitle": "<span class=\"mw-page-title-main\">Albert Einstein</span>",
+    "namespace": {
+        "id": 0,
+        "text": ""
+    },
+    "wikibase_item": "Q937",
+    "titles": {
+        "canonical": "Albert_Einstein",
+        "normalized": "Albert Einstein",
+        "display": "<span class=\"mw-page-title-main\">Albert Einstein</span>"
+    },
+    "pageid": 736,
+    "thumbnail": {
+        "source": "https: //upload.wikimedia.org/wikipedia/commons/thumb/1/14/Albert_Einstein_1947.jpg/320px-Albert_Einstein_1947.jpg",
+        "width": 320,
+        "height": 391
+    },
+    "originalimage": {
+        "source": "https: //upload.wikimedia.org/wikipedia/commons/1/14/Albert_Einstein_1947.jpg",
+        "width": 4517,
+        "height": 5522
+    },
+    "lang": "en",
+    "dir": "ltr",
+    "revision": "1280138439",
+    "tid": "b76654a6-ff74-11ef-9d63-e2e695ee8b4e",
+    "timestamp": "2025-03-12T19: 03: 43Z",
+    "description": "German-born physicist (1879–1955)",
+    "description_source": "local",
+    "content_urls": {
+        "desktop": {
+            "page": "https: //en.wikipedia.org/wiki/Albert_Einstein",
+            "revisions": "https: //en.wikipedia.org/wiki/Albert_Einstein?action=history",
+            "edit": "https: //en.wikipedia.org/wiki/Albert_Einstein?action=edit",
+            "talk": "https: //en.wikipedia.org/wiki/Talk:Albert_Einstein"
+        },
+        "mobile": {
+            "page": "https: //en.m.wikipedia.org/wiki/Albert_Einstein",
+            "revisions": "https: //en.m.wikipedia.org/wiki/Special:History/Albert_Einstein",
+            "edit": "https: //en.m.wikipedia.org/wiki/Albert_Einstein?action=edit",
+            "talk": "https: //en.m.wikipedia.org/wiki/Talk:Albert_Einstein"
+        }
+    },
+    "extract": "`Albert Einstein was a German-born theoretical physicist who is best known for developing the theory of relativity. Einstein also made important contributions to quantum mechanics. His mass–energy equivalence formula E = mc2, which arises from special relativity, has been called \"the world's most famous equation\". He received the 1921 Nobel Prize in Physics for his services to theoretical physics, and especially for his discovery of the law of the photoelectric effect.`",
+    "extract_html": "`<p><b>Albert Einstein</b> was a German-born theoretical physicist who is best known for developing the theory of relativity. Einstein also made important contributions to quantum mechanics. His mass–energy equivalence formula <span class=\"texhtml \"><span><i>E</i> = <i>mc</i><sup>2</sup></span></span>, which arises from special relativity, has been called \"the world's most famous equation\". He received the 1921 Nobel Prize in Physics for <q class=\"inline-quote inline-quote-marks\">his services to theoretical physics, and especially for his discovery of the law of the photoelectric effect</q>.</p>`"
+}

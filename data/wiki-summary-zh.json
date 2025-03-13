@@ -1,0 +1,49 @@
+{
+    "type": "standard",
+    "title": "阿尔伯特·爱因斯坦",
+    "displaytitle": "<span class=\"mw-page-title-main\">阿尔伯特·爱因斯坦</span>",
+    "namespace": {
+        "id": 0,
+        "text": ""
+    },
+    "wikibase_item": "Q937",
+    "titles": {
+        "canonical": "阿尔伯特·爱因斯坦",
+        "normalized": "阿尔伯特·爱因斯坦",
+        "display": "<span class=\"mw-page-title-main\">阿尔伯特·爱因斯坦</span>"
+    },
+    "pageid": 9507,
+    "thumbnail": {
+        "source": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Einstein_1921_by_F_Schmutzer_-_restoration.jpg/320px-Einstein_1921_by_F_Schmutzer_-_restoration.jpg",
+        "width": 320,
+        "height": 420
+    },
+    "originalimage": {
+        "source": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Einstein_1921_by_F_Schmutzer_-_restoration.jpg",
+        "width": 2523,
+        "height": 3313
+    },
+    "lang": "zh",
+    "dir": "ltr",
+    "revision": "86082384",
+    "tid": "3f9e193f-ea00-11ef-823c-204c0df94e4d",
+    "timestamp": "2025-02-13T11:47:06Z",
+    "description": "猶太裔美國物理學家，相對論創立者",
+    "description_source": "central",
+    "content_urls": {
+        "desktop": {
+            "page": "https://zh.wikipedia.org/wiki/%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6",
+            "revisions": "https://zh.wikipedia.org/wiki/%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6?action=history",
+            "edit": "https://zh.wikipedia.org/wiki/%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6?action=edit",
+            "talk": "https://zh.wikipedia.org/wiki/Talk:%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6"
+        },
+        "mobile": {
+            "page": "https://zh.m.wikipedia.org/wiki/%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6",
+            "revisions": "https://zh.m.wikipedia.org/wiki/Special:History/%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6",
+            "edit": "https://zh.m.wikipedia.org/wiki/%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6?action=edit",
+            "talk": "https://zh.m.wikipedia.org/wiki/Talk:%E9%98%BF%E5%B0%94%E4%BC%AF%E7%89%B9%C2%B7%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6"
+        }
+    },
+    "extract": "阿尔伯特·爱因斯坦，德国猶太裔理論物理學家，拥有瑞士和美国国籍。其创立了現代物理學的兩大支柱的相对论及量子力学，也是质能等价的發現者。他在科學哲學領域頗具影響力。因為“對理論物理的貢獻，特別是發現了光電效應的原理”，他榮獲1921年度的諾貝爾物理學獎（1922年頒發）。這一發現為量子理論的建立踏出了關鍵性的一步。",
+    "extract_html": "<p><b>阿尔伯特·爱因斯坦</b>，德国猶太裔理論物理學家，拥有瑞士和美国国籍。其创立了現代物理學的兩大支柱的相对论及量子力学，也是质能等价的發現者。他在科學哲學領域頗具影響力。因為“對理論物理的貢獻，特別是發現了光電效應的原理”，他榮獲1921年度的諾貝爾物理學獎（1922年頒發）。這一發現為量子理論的建立踏出了關鍵性的一步。</p>"
+}
