@@ -544,17 +544,31 @@ export async function GET(
               return;
             }
 
-            timeline = await generateTimeline(
-              pageInfo.pageName, 
-              wikiData.content,
-              wikiData.summary,
-              genAI,
-              pageInfo.language
-            );
+            try {
+              timeline = await generateTimeline(
+                pageInfo.pageName, 
+                wikiData.content,
+                wikiData.summary,
+                genAI,
+                pageInfo.language
+              );
+            } catch (error) {
+              logger.error(`Failed to generate timeline for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+              results[pageInfo.original] = {
+                status: 'error',
+                message: error instanceof Error ? error.message : 'Failed to generate timeline'
+              };
+              return;
+            }
             
             if (timeline) {
               logger.info(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
-              await redis.set(cacheKey, { timeline });
+              try {
+                await redis.set(cacheKey, { timeline });
+              } catch (error) {
+                // If the cache is full, log the error and continue
+                logger.error(`Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`, error);
+              }
             }
 
             // Get wiki summary for successful timeline
