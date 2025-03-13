@@ -582,7 +582,7 @@ export default function WikiSearch({
                     setSelectedLanguage(value);
                   }
                 }}
-                className="py-1 px-2 text-sm rounded border-none bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-blue-500"
+                className="py-1 px-2 text-sm rounded border-none bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 focus:ring-1 focus:ring-blue-500 uppercase"
                 aria-label="Select language"
               >
                 {enabledLanguages.map((lang) => {
@@ -590,7 +590,7 @@ export default function WikiSearch({
                     (l) => l.code === lang
                   );
                   return (
-                    <option key={lang} value={lang}>
+                    <option key={lang} value={lang} className="uppercase">
                       {language ? language.code : lang}
                     </option>
                   );
