@@ -23,11 +23,6 @@ export interface WikiSummary {
   summary?: string;
 }
 
-export interface TimelineWithWikiSummary {
-  timeline: Timeline;
-  wikiSummary: WikiSummary;
-}
-
 export type TimelinePageStatus = "success" | "not_found" | "error";
 
 export interface TimelinePageResult {
