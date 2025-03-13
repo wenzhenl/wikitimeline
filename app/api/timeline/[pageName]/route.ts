@@ -530,7 +530,6 @@ export async function GET(
     );
 
     const results: Record<string, TimelinePageResult> = {};
-    let successfulPages = 0;
 
     await Promise.all(
       canonicalInfos.map(async (pageInfo) => {
@@ -588,7 +587,6 @@ export async function GET(
                 wikiSummary
               }
             };
-            successfulPages++;
           } else {
             results[pageInfo.original] = {
               status: 'not_found',
