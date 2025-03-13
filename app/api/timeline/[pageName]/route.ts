@@ -601,20 +601,9 @@ export async function GET(
           // Handle individual page errors gracefully
           logger.error(`Error processing ${pageInfo.language}:${pageInfo.pageName}:`, error);
           
-          // Determine if the error is retryable
-          const isRetryable = error instanceof Error && (
-            error.message.includes('rate limit') ||
-            error.message.includes('timeout') ||
-            error.message.includes('network') ||
-            error.message.toLowerCase().includes('temporary') ||
-            error.message.includes('503') ||
-            error.message.includes('429')
-          );
-          
           results[pageInfo.original] = {
             status: 'error',
-            message: error instanceof Error ? error.message : 'Unknown error occurred',
-            retryable: isRetryable
+            message: error instanceof Error ? error.message : 'Unknown error occurred'
           };
           // Don't increment successfulPages for errors
         }
@@ -625,8 +614,7 @@ export async function GET(
     if (successfulPages === 0) {
       const systemError: TimelineSystemError = {
         error: 'system_error',
-        message: 'Failed to process any pages successfully',
-        retryable: true
+        message: 'Failed to process any pages successfully'
       };
 
       return new Response(JSON.stringify(systemError), {
@@ -658,8 +646,7 @@ export async function GET(
     
     const systemError: TimelineSystemError = {
       error: 'system_error',
-      message: error instanceof Error ? error.message : 'An unexpected system error occurred',
-      retryable: true
+      message: error instanceof Error ? error.message : 'An unexpected system error occurred'
     };
 
     return new Response(JSON.stringify(systemError), {

@@ -34,7 +34,6 @@ export interface TimelinePageResult {
   status: TimelinePageStatus;
   timeline?: TimelineWithWikiSummary;
   message?: string;  // Explains status: "Page does not exist", "No dated events found", or error message
-  retryable?: boolean;  // Only present for error status, indicates if the error is temporary
 }
 
 export interface TimelineAPIResponse {
@@ -49,7 +48,6 @@ export interface TimelineAPIResponse {
 export interface TimelineSystemError {
   error: 'system_error';
   message: string;
-  retryable: boolean;
 }
 
 // Interface for TimelineJS format
