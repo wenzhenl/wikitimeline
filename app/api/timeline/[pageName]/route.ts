@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import wiki from 'wikipedia';
 import { Redis } from '@upstash/redis';
 import logger from '@/app/utils/logger';
-import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, WikiSummary } from '@/app/types/timeline';
+import { TimelineAPIResponse, Timeline, TimelineWithWikiSummary, TimelineEvent, TimelinePageResult, TimelineSystemError } from '@/app/types/timeline';
 import { 
   PAGE_DELIMITER, 
   PAGE_NAME_SEPARATOR,
@@ -489,15 +489,19 @@ async function fetchWikipediaContent(pageInfo: PageInfo): Promise<{content: stri
   }
 }
 
-// Update the GET handler to remove API version
+// Update the GET handler with new error handling
 export async function GET(
   request: Request,
   { params }: { params: { pageName: string } }
 ): Promise<Response> {
   const clientType = request.headers.get('x-internal-client-type');
-  const genAI = getGeminiClient(clientType);
-    
+  
   try {
+    const genAI = getGeminiClient(clientType);
+    if (!genAI) {
+      throw new Error('Failed to initialize Gemini client');
+    }
+
     // First decode the URL parameters
     const rawPageNames = decodeURIComponent(params.pageName)
       .split(PAGE_DELIMITER)
@@ -525,19 +529,16 @@ export async function GET(
       })
     );
 
-    const failedPages: string[] = [];
-    const noTimelinePages: string[] = [];
-    const timelines: Record<string, TimelineWithWikiSummary> = {};
+    const results: Record<string, TimelinePageResult> = {};
+    let successfulPages = 0;
 
     await Promise.all(
       canonicalInfos.map(async (pageInfo) => {
-        // Use the language and page name for the cache key
         const cacheKey = buildCacheKey(pageInfo);
-        
-        // Try to get cached timeline
         let timeline: Timeline | null = null;
         
         try {
+          // Try to get cached timeline
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === 'object') {
             const cachedData = cached as NewTimelineFormat;
@@ -555,62 +556,62 @@ export async function GET(
             // Fetch Wikipedia content
             const wikiData = await fetchWikipediaContent(pageInfo);
             
-            if (wikiData) {
-              timeline = await generateTimeline(
-                pageInfo.pageName, 
-                wikiData.content,
-                wikiData.summary,
-                genAI,
-                pageInfo.language
-              );
-              
-              if (timeline) {
-                logger.warn(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
-                
-                // Cache with new format
-                await redis.set(cacheKey, {
-                  timeline
-                });
-              }
-            } else {
-              logger.warn(`Failed to fetch Wikipedia content for ${pageInfo.language}:${pageInfo.pageName}`);
-              failedPages.push(pageInfo.original);
+            if (!wikiData) {
+              results[pageInfo.original] = {
+                status: 'not_found',
+                message: 'Page does not exist in Wikipedia'
+              };
+              successfulPages++;
               return;
             }
+
+            timeline = await generateTimeline(
+              pageInfo.pageName, 
+              wikiData.content,
+              wikiData.summary,
+              genAI,
+              pageInfo.language
+            );
+            
+            if (timeline) {
+              logger.info(`Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`);
+              await redis.set(cacheKey, { timeline });
+            }
           }
+
+          // Get wiki summary for successful timeline
+          if (timeline && timeline.events.length > 0) {
+            const wikiSummary = await getCachedWikiSummary(pageInfo);
+            results[pageInfo.original] = {
+              status: 'success',
+              timeline: {
+                timeline,
+                wikiSummary
+              }
+            };
+          } else {
+            results[pageInfo.original] = {
+              status: 'not_found',
+              message: 'No dated events found in the content'
+            };
+          }
+          successfulPages++;
+
         } catch (error) {
+          // Handle individual page errors
           logger.error(`Error processing ${pageInfo.language}:${pageInfo.pageName}:`, error);
-          failedPages.push(pageInfo.original);
-          return;
+          throw error; // Let the outer try-catch handle system-level errors
         }
-
-        if (!timeline) {
-          noTimelinePages.push(pageInfo.original);
-          return;
-        }
-
-        // Get or generate a wiki summary
-        let wikiSummary = await getCachedWikiSummary(pageInfo);
-
-        // Store the timeline and wiki summary
-        timelines[pageInfo.original] = {
-          timeline,
-          wikiSummary
-        };
       })
     );
 
-    // Create the response
+    // Create the successful response
     const response: TimelineAPIResponse = {
-      timelines,
-      errors: failedPages.length > 0 || noTimelinePages.length > 0 ? {
-        message: "Some pages failed to generate timelines",
-        failedPages,
-        details: {
-          noWikipediaData: failedPages,
-          noTimelineGenerated: noTimelinePages
-        }
-      } : undefined
+      results,
+      metadata: {
+        totalPages: pageInfos.length,
+        successfulPages
+      }
     };
 
     return new Response(JSON.stringify(response), {
@@ -620,18 +621,20 @@ export async function GET(
     });
 
   } catch (error) {
-    logger.error('Error in timeline API:', error);
-    return new Response(
-      JSON.stringify({
-        error: 'Failed to generate timeline',
-        message: error instanceof Error ? error.message : String(error)
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+    // Handle system-level errors
+    logger.error('System error in timeline API:', error);
+    
+    const systemError: TimelineSystemError = {
+      error: 'system_error',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      retryable: true // You might want to make this more specific based on the error type
+    };
+
+    return new Response(JSON.stringify(systemError), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json'
       }
-    );
+    });
   }
 } 

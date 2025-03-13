@@ -28,16 +28,27 @@ export interface TimelineWithWikiSummary {
   wikiSummary: WikiSummary;
 }
 
+export type TimelinePageStatus = 'success' | 'not_found';
+
+export interface TimelinePageResult {
+  status: TimelinePageStatus;
+  timeline?: TimelineWithWikiSummary;
+  message?: string;  // Explains why it's not found: "Page does not exist" or "No dated events found"
+}
+
 export interface TimelineAPIResponse {
-  timelines: Record<string, TimelineWithWikiSummary>;
-  errors?: {
-    message: string;
-    failedPages: string[];
-    details?: {
-      noWikipediaData: string[];
-      noTimelineGenerated: string[];
-    };
+  results: Record<string, TimelinePageResult>;
+  metadata: {
+    totalPages: number;
+    successfulPages: number;
   };
+}
+
+// System error response type
+export interface TimelineSystemError {
+  error: 'system_error';
+  message: string;
+  retryable: boolean;
 }
 
 // Interface for TimelineJS format
