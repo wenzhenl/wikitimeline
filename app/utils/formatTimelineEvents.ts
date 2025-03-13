@@ -10,7 +10,7 @@ function formatGroupName(name: string): string {
   if (separatorIndex > 0) {
     // Check if the format matches a language code (2 characters) followed by the separator
     const possibleLangCode = name.substring(0, separatorIndex);
-    if (possibleLangCode.match(/^[a-z]{2}$/)) {
+    if (possibleLangCode.match(/^[a-z]{2,3}$/)) {
       // This is a language prefix, strip it
       name = name.substring(separatorIndex + PAGE_NAME_SEPARATOR.length);
     }

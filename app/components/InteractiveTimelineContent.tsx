@@ -119,7 +119,7 @@ export default function InteractiveTimelineContent({
 
           // Parse language prefix if present (e.g., "zh:::PageName")
           const langPrefixMatch = decodedName.match(
-            new RegExp(`^([a-z]{2})${PAGE_NAME_SEPARATOR}(.*)`)
+            new RegExp(`^([a-z]{2,3})${PAGE_NAME_SEPARATOR}(.*)`)
           );
 
           if (langPrefixMatch) {

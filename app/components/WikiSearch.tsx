@@ -200,7 +200,7 @@ export default function WikiSearch({
       let searchQuery = query;
 
       // Parse language prefix if present (format: "xx:")
-      const langPrefixMatch = query.match(/^([a-z]{2}):(.+)/);
+      const langPrefixMatch = query.match(/^([a-z]{2,3}):(.+)/);
       if (langPrefixMatch) {
         const [, langPrefix, actualQuery] = langPrefixMatch;
         // Only use detected language if it's in enabled languages
@@ -358,7 +358,7 @@ export default function WikiSearch({
   // Handle language prefix in input
   const handleLanguagePrefix = (value: string): boolean => {
     // If there's a language prefix in the format "xx:", update dropdown
-    const langPrefixMatch = value.match(/^([a-z]{2}):(.*)/);
+    const langPrefixMatch = value.match(/^([a-z]{2,3}):(.*)/);
     if (langPrefixMatch) {
       const [, langPrefix] = langPrefixMatch;
       // Only update dropdown if it's an enabled language
