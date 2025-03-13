@@ -194,44 +194,31 @@ async function generateTimeline(
   wikiSummary: string,
   genAI: GoogleGenerativeAI,
   language: string = DEFAULT_LANGUAGE,
-): Promise<Timeline | null> {
-  try {
-    logger.debug(`Generating timeline for ${pageName} (language: ${language})`);
-    
-    const startTime = Date.now();
-    
-    // Make two parallel API calls
-    const [events, metadata] = await Promise.all([
-      extractEventsFromWikiContent(genAI, wikiContent, pageName, language),
-      extractMetadataFromWikiSummary(genAI, wikiSummary, pageName, language)
-    ]);
-    
-    const endTime = Date.now();
-    const processingTime = (endTime - startTime) / 1000; // in seconds
-    
-    logger.info(`Timeline generation for ${pageName} completed in ${processingTime.toFixed(2)} seconds`);
-    
-    if (!events || events.length === 0) {
-      logger.warn(`No events extracted for ${pageName}`);
-      return null;
-    }
-    
-    // Build the timeline
-    const timeline: Timeline = {
-      title: metadata.title || pageName,
-      events: events,
-      birthDate: metadata.birthDate,
-      deathDate: metadata.deathDate,
-    };
-    
-    // Post-process the timeline
-    const processedTimeline = postProcessTimeline(timeline);
-    
-    return processedTimeline.events.length > 0 ? processedTimeline : null;
-  } catch (error) {
-    logger.error(`Failed to generate timeline for ${pageName}:`, error);
-    return null;
-  }
+): Promise<Timeline> {
+  logger.debug(`Generating timeline for ${pageName} (language: ${language})`);
+  
+  const startTime = Date.now();
+  
+  // Make two parallel API calls
+  const [events, metadata] = await Promise.all([
+    extractEventsFromWikiContent(genAI, wikiContent, pageName, language),
+    extractMetadataFromWikiSummary(genAI, wikiSummary, pageName, language)
+  ]);
+  
+  const endTime = Date.now();
+  const processingTime = (endTime - startTime) / 1000; // in seconds
+  
+  logger.debug(`Timeline generation for ${pageName} completed in ${processingTime.toFixed(2)} seconds`);
+  // Build the timeline
+  const timeline: Timeline = {
+    title: metadata.title || pageName,
+    events: events,
+    birthDate: metadata.birthDate,
+    deathDate: metadata.deathDate,
+  };
+  
+  // Post-process the timeline
+  return postProcessTimeline(timeline);
 }
 
 // Helper function to extract metadata from wiki summary
