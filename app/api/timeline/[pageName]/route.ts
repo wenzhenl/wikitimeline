@@ -233,7 +233,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 async function generateTimeline(
   pageName: string,
   wikiContent: string,
-  wikiSummary: string,
+  wikiIntro: string,
   genAI: GoogleGenerativeAI,
   language: string = DEFAULT_LANGUAGE
 ): Promise<Timeline> {
@@ -244,7 +244,7 @@ async function generateTimeline(
   // Make two parallel API calls
   const [events, metadata] = await Promise.all([
     extractEventsFromWikiContent(genAI, wikiContent, pageName, language),
-    extractMetadataFromWikiSummary(genAI, wikiSummary, pageName, language),
+    extractMetadataFromWikiIntro(genAI, wikiIntro, pageName, language),
   ]);
 
   const endTime = Date.now();
@@ -267,10 +267,10 @@ async function generateTimeline(
   return postProcessTimeline(timeline);
 }
 
-// Helper function to extract metadata from wiki summary
-async function extractMetadataFromWikiSummary(
+// Helper function to extract metadata from wiki intro
+async function extractMetadataFromWikiIntro(
   genAI: GoogleGenerativeAI,
-  wikiSummary: string,
+  wikiIntro: string,
   pageName: string,
   language: string
 ): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
@@ -290,8 +290,8 @@ async function extractMetadataFromWikiSummary(
 
     // Create the prompt for metadata extraction
     const userPrompt = `      
-      Extract metadata from the following Wikipedia summary:
-      ${wikiSummary}
+      Extract metadata from the following Wikipedia intro:
+      ${wikiIntro}
     `;
 
     // Call Gemini to extract metadata
@@ -513,7 +513,7 @@ function getGeminiClient(clientType: string | null): GoogleGenerativeAI {
 // Helper function to fetch Wikipedia content
 async function fetchWikipediaContent(
   pageInfo: PageInfo
-): Promise<{ content: string; summary: string }> {
+): Promise<{ content: string; intro: string }> {
   // Set wiki to the correct language
   wiki.setLang(pageInfo.language);
 
@@ -522,14 +522,11 @@ async function fetchWikipediaContent(
   );
 
   const page = await wiki.page(pageInfo.pageName);
-  const [content, summary] = await Promise.all([
-    page.content(),
-    page.summary(),
-  ]);
+  const [content, intro] = await Promise.all([page.content(), page.intro()]);
 
   return {
     content,
-    summary: summary.extract,
+    intro,
   };
 }
 
@@ -637,7 +634,7 @@ export async function GET(
               timeline = await generateTimeline(
                 pageInfo.pageName,
                 wikiData.content,
-                wikiData.summary,
+                wikiData.intro,
                 genAI,
                 pageInfo.language
               );
