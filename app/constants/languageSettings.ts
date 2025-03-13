@@ -25,7 +25,7 @@ export const COMMON_LANGUAGES: LanguageOption[] = [
   { code: "uk", name: "українська" },
   { code: "vi", name: "Tiếng Việt" },
   { code: "war", name: "Winaray" },
-
+  { code: "ko", name: "한국어"},
 ];
 
 // Default enabled language (just English)
