@@ -2,12 +2,12 @@
 
 import MyTimelineComponent from "@/app/components/MyTimelineComponent";
 import { formatTimelineEventsForInteractive } from "@/app/utils/formatTimelineEvents";
-import { TimelineWithWikiSummary } from "@/app/types/timeline";
+import { TimelinePageResult } from "@/app/types/timeline";
 
 export default function EmbeddedTimeline({
   timelines,
 }: {
-  timelines: Record<string, TimelineWithWikiSummary>;
+  timelines: Record<string, TimelinePageResult>;
 }) {
   const formattedData = formatTimelineEventsForInteractive(timelines);
 

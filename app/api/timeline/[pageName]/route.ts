@@ -5,7 +5,6 @@ import logger from "@/app/utils/logger";
 import {
   TimelineAPIResponse,
   Timeline,
-  TimelineWithWikiSummary,
   TimelineEvent,
   TimelinePageResult,
   TimelineSystemError,

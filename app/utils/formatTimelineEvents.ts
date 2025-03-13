@@ -1,4 +1,4 @@
-import { TimelineJSDate, TimelineWithWikiSummary } from "@/app/types/timeline";
+import { TimelineJSDate, TimelinePageResult } from "@/app/types/timeline";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
 import { TimelineJSTimeline } from "@/app/types/timeline";
 import logger from "@/app/utils/logger";
@@ -117,7 +117,7 @@ function parseDate(dateStr: string): TimelineJSDate {
  * @returns Formatted timeline with events, properly scaled and styled
  */
 export function formatTimelineEventsForInteractive(
-  timelines: Record<string, TimelineWithWikiSummary>,
+  timelines: Record<string, TimelinePageResult>,
   colorSchemeId = "default",
 ): TimelineJSTimeline {
   const groupIndices = new Map<string, number>();
@@ -134,7 +134,7 @@ export function formatTimelineEventsForInteractive(
       // Only add group if there are multiple pages
       const hasMultiplePages = Object.keys(timelines).length > 1;
 
-      return pageData.timeline.events.map((event, eventIndex) => {
+      return pageData.timeline!.events.map((event, eventIndex) => {
         const startDate = parseDate(event.startDate);
 
         return {
@@ -187,9 +187,9 @@ export function formatTimelineEventsForInteractive(
           ? `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(
               timelines,
             )
-              .map((t) => t.timeline.title)
+              .map((t) => t.timeline!.title)
               .join("<br/><br/>")}</span>`
-          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline.title}</span>`,
+          : `<span style="color: ${firstGroupColors.textColor}; font-size: 0.9em; text-shadow: none;">${Object.values(timelines)[0].timeline!.title}</span>`,
       },
       background: {
         color: firstGroupColors.color,

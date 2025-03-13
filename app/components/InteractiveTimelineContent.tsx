@@ -218,7 +218,7 @@ export default function InteractiveTimelineContent({
           () =>
             resolve(
               formatTimelineEventsForInteractive(
-                initialData.timelines,
+                initialData.results,
                 selectedColorScheme,
               ),
             ),
@@ -248,9 +248,9 @@ export default function InteractiveTimelineContent({
 
   // Update timeline when color scheme changes
   useEffect(() => {
-    if (initialData.timelines) {
+    if (initialData.results) {
       const formatted = formatTimelineEventsForInteractive(
-        initialData.timelines,
+        initialData.results,
         selectedColorScheme,
       );
 
