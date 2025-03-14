@@ -342,8 +342,6 @@ export default function InteractiveTimelineContent({
         // Sort by score (descending)
         const scoreDiff = scoreB - scoreA;
 
-        logger.debug("Score difference", { scoreA, scoreB, scoreDiff });
-
         // If scores are equal, maintain chronological order
         if (scoreDiff === 0) {
           return sortedEvents.indexOf(a) - sortedEvents.indexOf(b);
