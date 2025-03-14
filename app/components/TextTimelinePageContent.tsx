@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import TextTimelineView from "@/app/components/TextTimelineView";
 import html2canvas from "html2canvas";
 import { SITE_CONFIG } from "@/app/config/site";
@@ -38,7 +39,9 @@ export default function TextTimelinePageContent({
   params,
   initialData,
 }: TextTimelinePageContentProps) {
+  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"combined" | "tabs">("combined");
   const [activePage, setActivePage] = useState("");
@@ -120,6 +123,32 @@ export default function TextTimelinePageContent({
 
   const pageUrl = `${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/text`;
 
+  // Handle navigation to interactive view
+  const handleViewChange = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const href = e.currentTarget.getAttribute("href");
+    if (href) {
+      setIsNavigating(true);
+      logger.debug("Navigating to interactive view", { href });
+      router.push(href);
+    }
+  };
+
+  // Show loading state when navigating
+  if (isNavigating) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <NavigationHeader zIndex="z-[10001]" />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Changing view...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (!isHydrated) {
     return (
       <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900">
@@ -189,6 +218,7 @@ export default function TextTimelinePageContent({
             <Link
               href={`/timeline/${params.pageName}`}
               className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+              onClick={handleViewChange}
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -291,7 +321,7 @@ export default function TextTimelinePageContent({
               <Link
                 href={`/timeline/${params.pageName}`}
                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => setIsOptionsOpen(false)}
+                onClick={handleViewChange}
               >
                 <svg
                   className="w-4 h-4 mr-2"

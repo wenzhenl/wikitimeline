@@ -60,6 +60,7 @@ export default function InteractiveTimelineContent({
 
   const [loading, setLoading] = useState(true);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -510,8 +511,24 @@ export default function InteractiveTimelineContent({
     setTopEventsCount(count);
   };
 
-  // If still loading the timeline data or preferences, show loading state with header
-  if (loading || !preferencesLoaded || !originalTimelineJSTimeline) {
+  // Handle navigation to text view
+  const handleViewChange = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const href = e.currentTarget.getAttribute("href");
+    if (href) {
+      setIsNavigating(true);
+      logger.debug("Navigating to text view", { href });
+      router.push(href);
+    }
+  };
+
+  // If still loading the timeline data or preferences, or navigating between views, show loading state
+  if (
+    loading ||
+    !preferencesLoaded ||
+    !originalTimelineJSTimeline ||
+    isNavigating
+  ) {
     return (
       <div
         className="min-h-screen flex flex-col"
@@ -536,32 +553,45 @@ export default function InteractiveTimelineContent({
         >
           <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-              {/* Timeline placeholder */}
-              <div className="h-[500px] lg:hidden">
-                <div className="h-full flex flex-col">
-                  {/* Timeline navigation placeholder */}
-                  <div className="h-1/2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
-                    <div className="h-full flex items-center justify-center">
-                      <div className="w-3/4 h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+              {isNavigating ? (
+                <div className="h-[500px] flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      Changing view...
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Timeline placeholder */}
+                  <div className="h-[500px] lg:hidden">
+                    <div className="h-full flex flex-col">
+                      {/* Timeline navigation placeholder */}
+                      <div className="h-1/2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
+                        <div className="h-full flex items-center justify-center">
+                          <div className="w-3/4 h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        </div>
+                      </div>
+                      {/* Timeline content placeholder */}
+                      <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
                     </div>
                   </div>
-                  {/* Timeline content placeholder */}
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
-                </div>
-              </div>
-              {/* Desktop placeholder */}
-              <div className="hidden lg:block relative w-full aspect-[16/9]">
-                <div className="absolute inset-0 flex flex-col">
-                  {/* Timeline navigation placeholder */}
-                  <div className="h-1/2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
-                    <div className="h-full flex items-center justify-center">
-                      <div className="w-3/4 h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                  {/* Desktop placeholder */}
+                  <div className="hidden lg:block relative w-full aspect-[16/9]">
+                    <div className="absolute inset-0 flex flex-col">
+                      {/* Timeline navigation placeholder */}
+                      <div className="h-1/2 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
+                        <div className="h-full flex items-center justify-center">
+                          <div className="w-3/4 h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
+                        </div>
+                      </div>
+                      {/* Timeline content placeholder */}
+                      <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
                     </div>
                   </div>
-                  {/* Timeline content placeholder */}
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
         </main>
@@ -600,6 +630,7 @@ export default function InteractiveTimelineContent({
             <Link
               href={`/timeline/${params.pageName}/text`}
               className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg whitespace-nowrap"
+              onClick={handleViewChange}
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -689,6 +720,7 @@ export default function InteractiveTimelineContent({
               <Link
                 href={`/timeline/${params.pageName}/text`}
                 className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={handleViewChange}
               >
                 <svg
                   className="w-4 h-4 mr-2"
