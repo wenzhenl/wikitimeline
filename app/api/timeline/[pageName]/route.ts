@@ -26,7 +26,7 @@ import {
   WIKI_METADATA_EXTRACTION_PROMPT,
 } from "@/app/constants/gemini/systemPrompt";
 import { compareDates, getLanguageName } from "@/app/utils/helper";
-import { WIKI_EVENTS_SCHEMA } from "@/app/constants/gemini/timelineSchema";
+import { WIKI_EVENTS_SCHEMA, WIKI_METADATA_SCHEMA } from "@/app/constants/gemini/timelineSchema";
 
 // Initialize Redis
 const redis = Redis.fromEnv();
@@ -281,6 +281,8 @@ async function extractMetadataFromWikiIntro(
       generationConfig: {
         maxOutputTokens: 8192,
         temperature: TEMPERATURE,
+        responseMimeType: "application/json",
+        responseSchema: WIKI_METADATA_SCHEMA,
       },
       systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT.replace(
         "#LANGUAGE#",
@@ -290,7 +292,7 @@ async function extractMetadataFromWikiIntro(
 
     // Create the prompt for metadata extraction
     const userPrompt = `      
-      Extract metadata from the following Wikipedia intro:
+      Extract metadata from the following article:
       ${wikiIntro}
     `;
 
@@ -441,9 +443,9 @@ async function extractEventsFromWikiContent(
       userPrompt = `
         Extract events from: ${pageName}
         
-        <wikipedia_content>
+        <article>
         ${wikiContent}
-        </wikipedia_content>
+        </article>
 
         You were extracting events but reached the token limit. Continue from where you left off.
         Here are the events you've extracted so far:

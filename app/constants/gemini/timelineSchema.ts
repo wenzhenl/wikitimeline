@@ -13,3 +13,13 @@ export const WIKI_EVENTS_SCHEMA = {
     required: ["headline", "description", "startDate", "score"],
   },
 };
+
+export const WIKI_METADATA_SCHEMA = {
+  type: SchemaType.OBJECT,
+  properties: {
+    title: { type: SchemaType.STRING },
+    birthDate: { type: SchemaType.STRING },
+    deathDate: { type: SchemaType.STRING },
+  },
+  required: ["title"],
+};
