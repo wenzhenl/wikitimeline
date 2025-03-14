@@ -1,0 +1,34 @@
+[
+  [
+    {
+      "title -<small>-(translated)<-/small>": "\"On a Heuristic Viewpoint Concerning the Production and Transformation of Light\"",
+      "<small>AreaOfFocus<-/small>": "Photoelectric effect",
+      "received": "18 March",
+      "published": "9 June",
+      "significance": "Resolved an unsolved puzzle by suggesting that energy is exchanged only in discrete amounts (quantum). This idea was pivotal to the early development of quantum theory."
+    },
+    {
+      "title -<small>-(translated)<-/small>": "\"On the Motion of Small Particles Suspended in a Stationary Liquid, as Required by the Molecular Kinetic Theory of Heat\"",
+      "<small>AreaOfFocus<-/small>": "Brownian motion",
+      "received": "11 May",
+      "published": "18 July",
+      "significance": "Explained empirical evidence for the atomic theory, supporting the application of statistical physics."
+    },
+    {
+      "title -<small>-(translated)<-/small>": "\"On the Electrodynamics of Moving Bodies\"",
+      "<small>AreaOfFocus<-/small>": "Special relativity",
+      "received": "30 June",
+      "published": "26{{nbs}}September",
+      "significance": {
+        "date": "2024-08-01T00:00:00.000Z"
+      }
+    },
+    {
+      "title -<small>-(translated)<-/small>": "\"Does the Inertia of a Body Depend Upon Its Energy Content?\"",
+      "<small>AreaOfFocus<-/small>": "Mass–energy equivalence",
+      "received": "27{{nbs}}September",
+      "published": "21 November",
+      "significance": "Equivalence of matter and energy, E{{nbs}}={{nbs}}mc^2, the existence of \"rest energy\", and the basis of nuclear energy."
+    }
+  ]
+]

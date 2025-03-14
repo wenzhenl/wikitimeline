@@ -1,0 +1,448 @@
+[
+  [
+    {
+      "timePeriod": "2005",
+      "keyDevelopmentsAtReddit": "Reddit's creators help seed Reddit with numerous fake accounts to make Reddit seem more populated than it actually was."
+    },
+    {
+      "timePeriod": "2006",
+      "keyDevelopmentsAtReddit": "Apart from \"reddit.com\", \"NSFW\" is the most popular subreddit at the beginning of 2006. \"Programming\" becomes the second most popular subreddit for most of the year. Then by the end of the year, subreddit \"science\" gets launched and soon becomes the third most popular subreddit."
+    },
+    {
+      "timePeriod": "2007",
+      "keyDevelopmentsAtReddit": "For most of the year, \"science\" and \"programming\" are the most popular subreddits (apart from \"reddit.com\"). They then get displaced by \"politics\" as the most popular non-\"reddit.com\" subreddit towards the end of the year."
+    },
+    {
+      "timePeriod": "2008",
+      "keyDevelopmentsAtReddit": "This year is dominated by the launch of numerous new subreddits. By the end of the year (except for a short-lived blip following the 2008 United States presidential election), not one subreddit (not even \"reddit.com\") would capture more than 50% of Reddit's attention. From the beginning of 2008 (to at least the end of 2012), there is a continual exponential increase in the number of unique subreddits people submitted to each week."
+    },
+    {
+      "timePeriod": "mid-2010",
+      "keyDevelopmentsAtReddit": "Due to a controversial redesign brought on by Digg, disgruntled users declared a \"Quit Digg\" day where they posted links to Reddit and left Digg behind to join Reddit. Reddit subsequently overtook Digg in search popularity."
+    },
+    {
+      "timePeriod": "2010–2012",
+      "keyDevelopmentsAtReddit": "From the beginning to the end of 2010 (and following Reddit's move to Amazon Web Services servers in November 2009), Reddit more than triples in pageviews and bandwidth count."
+    },
+    {
+      "timePeriod": "2012–2014",
+      "keyDevelopmentsAtReddit": "Reddit achieves 37 billion pageviews in 2012, 56 billion pageviews in 2013, and 71.25 billion pageviews in 2014. Yishan Wong serves as Reddit's CEO from March 2012 to November 2014. Wong is replaced by Ellen Pao in November 2014. By September 2014, Reddit raises $50 million in funding in a Series B round, and makes its first app acquisition in October 2014."
+    },
+    {
+      "timePeriod": "2014–2016",
+      "keyDevelopmentsAtReddit": "On July 10, 2015, Pao resigned as CEO and was replaced by Reddit cofounder Steve Huffman."
+    },
+    {
+      "timePeriod": "2020",
+      "keyDevelopmentsAtReddit": "On June 5, 2020, Ohanian resigned from the board and planned to be replaced \"by a Black candidate\". The orange colour of the site emblem was changed to black for few months."
+    }
+  ],
+  [
+    {
+      "year": "2005",
+      "monthAndDate": "June",
+      "eventType": "Company",
+      "details": "Reddit is founded in Medford, Massachusetts by Steve Huffman and Alexis Ohanian. It raises $100k in seed funding from Y Combinator (company)."
+    },
+    {
+      "year": "2005",
+      "monthAndDate": "Late year",
+      "eventType": "Product",
+      "details": "Reddit merges with Aaron Swartz's company Infogami."
+    },
+    {
+      "year": "2005",
+      "monthAndDate": "December",
+      "eventType": "Product",
+      "details": "Reddit adds commenting."
+    },
+    {
+      "year": "2006",
+      "monthAndDate": {
+        "date": "2001-10-18T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "/r/science launches."
+    },
+    {
+      "year": "2006",
+      "monthAndDate": "October",
+      "eventType": "Company",
+      "details": "Condé Nast (the publisher) acquires Reddit for less than $20 million. Team moves to San Francisco."
+    },
+    {
+      "year": "2006",
+      "monthAndDate": "November",
+      "eventType": "Team",
+      "details": "Aaron Swartz blogs complaining about the new corporate environment, criticizing its level of productivity."
+    },
+    {
+      "year": "2007",
+      "monthAndDate": "January",
+      "eventType": "Team",
+      "details": "Aaron Swartz is fired."
+    },
+    {
+      "year": "2008",
+      "monthAndDate": "January",
+      "eventType": "Product",
+      "details": "Reddit decides to let users create their own custom reddits, or subreddits."
+    },
+    {
+      "year": "2008",
+      "monthAndDate": "June",
+      "eventType": "Product",
+      "details": "Reddit becomes open-source."
+    },
+    {
+      "year": "2009",
+      "monthAndDate": "January",
+      "eventType": "Community",
+      "details": "One of the most popular subreddits, \"IAmA\" (I Am A), is created. Many famous people would proceed to participate in AMAs (Ask Me Anything) from the community."
+    },
+    {
+      "year": "2009",
+      "monthAndDate": "October",
+      "eventType": "Team",
+      "details": "Alexis Ohanian and Steve Huffman leave reddit. Steve Huffman helps form Hipmunk, and Alexis helps form Breadpig."
+    },
+    {
+      "year": "2009",
+      "monthAndDate": "November",
+      "eventType": "Product",
+      "details": "Reddit decommissions its last physical servers and moves its hosting to Amazon Web Services."
+    },
+    {
+      "year": "2009",
+      "monthAndDate": "late in year",
+      "eventType": "Product",
+      "details": "The online gift exchange RedditGifts runs for the first time."
+    },
+    {
+      "year": "2010",
+      "monthAndDate": {
+        "date": "2001-06-07T00:00:00.000Z"
+      },
+      "eventType": "Product",
+      "details": "Reddit launches a revamped mobile interface featuring rewritten CSS, a new color scheme, and a multitude of improvements."
+    },
+    {
+      "year": "2010",
+      "monthAndDate": "July",
+      "eventType": "Product",
+      "details": "Reddit introduces Reddit Gold, in order to help raise more money for the site."
+    },
+    {
+      "year": "2010",
+      "monthAndDate": "dts",
+      "eventType": "Product",
+      "details": "The Reddit Enhancement Suite is released."
+    },
+    {
+      "year": "2010",
+      "monthAndDate": {
+        "date": "2001-07-21T00:00:00.000Z"
+      },
+      "eventType": "Product",
+      "details": "Reddit outsourced the Reddit search engine to Flaptor, who used its search product IndexTank."
+    },
+    {
+      "year": "2011",
+      "monthAndDate": {
+        "date": "2001-06-20T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "Alexander Rhodes creates the NoFap subreddit, r/NoFap."
+    },
+    {
+      "year": "2011",
+      "monthAndDate": "September",
+      "eventType": "Company",
+      "details": "Reddit becomes operationally independent of Condé Nast. Reddit is now free to hire a CEO, pick out an ad sales team and figure out its own route to profitability."
+    },
+    {
+      "year": "2011",
+      "monthAndDate": "October",
+      "eventType": "Community",
+      "details": "The jailbait subreddit comes to wider attention outside Reddit when Anderson Cooper condemned the subreddit and criticizes Reddit for hosting it. Following this negative news coverage (and the actual posting of the image of an underage girl), Reddit closes \"jailbait\"."
+    },
+    {
+      "year": "2011",
+      "monthAndDate": "October",
+      "eventType": "Community",
+      "details": "Reddit closes \"/r/reddit.com\" and expands its number of default subreddits to 20."
+    },
+    {
+      "year": "2012",
+      "monthAndDate": "January",
+      "eventType": "Community",
+      "details": "Reddit announces that it will start a 12-hour sitewide blackout protesting the Stop Online Piracy Act."
+    },
+    {
+      "year": "2012",
+      "monthAndDate": "March",
+      "eventType": "Team",
+      "details": "Yishan Wong, a former Facebook employee and PayPal Mafia member, becomes Reddit CEO."
+    },
+    {
+      "year": "2012",
+      "monthAndDate": {
+        "date": "2001-04-28T00:00:00.000Z"
+      },
+      "eventType": "",
+      "details": "The Reddit serial killer hoax is perpetrated by class members of \"George Mason University's historical hoaxes\", a course taught at George Mason University by T. Mills Kelly. The hoax{{snd}}about an alleged serial killer named Joseph Scafe{{snd}}is first debunked in just over an hour after being launched on Reddit."
+    },
+    {
+      "year": "2012",
+      "monthAndDate": "August",
+      "eventType": "Community, Publicity",
+      "details": "Barack Obama does an AmA on Reddit. The increased traffic shut down much of the site."
+    },
+    {
+      "year": "2013",
+      "monthAndDate": "April",
+      "eventType": "Community, Publicity",
+      "details": "Members of subreddit \"findbostonbombers\" wrongly identify a number of people as suspects in the Boston Bombings, including a Suicide of Sunil Tripathi."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": {
+        "date": "2001-01-08T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "Mother Jones publishes a story describing the sale of guns on the site. The report suggests that sellers are doing so to exploit a loophole in U.S. federal law."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "dts",
+      "eventType": "Community",
+      "details": "American chemist Nathan Allen begins the /r/science AMA series with the goal of raising the visibility of scientists who are producing groundbreaking work in their fields but who are not well known outside of their fields."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "February",
+      "eventType": "Company",
+      "details": "Reddit announces it will donate 10% of its annual ad revenue to non-profits voted among by its users."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "dts",
+      "eventType": "Community",
+      "details": "The \"beatingwomen\" subreddit is closed by Reddit administrators. The community, which featured graphic depictions of violence against women, is banned after its moderators are found to be sharing users' personal information online, and collaborating to protect one another from sitewide bans. Following the ban, the community's founder would reboot the subreddit under the name \"beatingwomen2\" in an attempt to circumvent the ban."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "July 23",
+      "eventType": "Product",
+      "details": "Reddit Live is launched."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "dts 31",
+      "eventType": "Community",
+      "details": "Ben Eisenkop's Reddit account Unidan is Stealth banning from Reddit for using alternate (or \"Sockpuppet (Internet)\") accounts to upvote his own posts and downvote posts by other users that were either attracting attention away from his own or downvote posts from people he was arguing with."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "August",
+      "eventType": "Publicity",
+      "details": "Reddit users begin sharing a large number of naked celebrity photos on the subreddit \"Controversial Reddit communities#TheFappening\" in the 2014 celebrity pictures hack. Reddit closes TheFappening a month later."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "September",
+      "eventType": "Company",
+      "details": "Reddit raises $50 million in funding in a Series B round, led by Sam Altman. Also participating in the round: Peter Thiel, Ron Conway, Paul Buchheit, Jared Leto, Jessica Livingston, Kevin and Julia Hartz, Mariam Naficy, Josh Kushner, Snoop Dogg, and Yishan Wong. Reddit plans its own cryptocurrency to give back to the community (later known as \"reddit notes\")."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "dts",
+      "eventType": "Product",
+      "details": "An official mobile application for browsing AMA (Ask Me Anything) threads is released for the iOS and Android platforms under the name Ask me Anything."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "October",
+      "eventType": "Company",
+      "details": "Reddit acquires Alien Blue as its first official mobile app."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": "November",
+      "eventType": "Team",
+      "details": "Yishan Wong resigns as Reddit CEO. Ellen Pao becomes interim CEO and cofounder Alexis Ohanian returns to Reddit and becomes executive chairman."
+    },
+    {
+      "year": "2014",
+      "monthAndDate": {
+        "date": "2001-12-18T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "Reddit takes the unusual step of banning a subreddit; it bans \"SonyGOP\", which was being used to distribute 2014 Sony Pictures hack."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": {
+        "date": "2001-04-01T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "The Button (Reddit), a social experiment, is introduced in a post to the official Reddit blog."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": "May",
+      "eventType": "Community",
+      "details": "Reddit introduces an anti-harassment policy. It intends to rely on users to report bad actors in the community."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": "May",
+      "eventType": "Product",
+      "details": "Reddit announces Reddit Video."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": {
+        "date": "2001-06-10T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "Reddit bans five subreddits, citing an anti-harassment policy. The largest of the banned subreddits, \"fatpeoplehate,\" had an estimated 151,000 subscribers at the times of its banning. The other four subreddits are \"hamplanethatred,\" \"transfags,\" \"neofag,\" and \"shitniggerssay.\""
+    },
+    {
+      "year": "2015",
+      "monthAndDate": "June–July",
+      "eventType": "Team",
+      "details": "Reddit bans multiple subreddits and fires Victoria Taylor, the site's director of talent, who has served on the Reddit team since 2013. Taylor served as a liaison between the moderators of specific subreddits (such as IAmA) and Reddit itself, helping organize and verify interviewees for Reddit's user-led \"AmA\" sessions. As a result of this and other frustrations with Reddit—such as its moderation tools and its new conduct under Pao—numerous subreddits (such as IAmA, todayilearned, pics and science) temporarily shut themselves down in protest."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": "August 18",
+      "eventType": "Team",
+      "details": "Reddit hires Marty Weiner, Founding Engineer at Pinterest, as its first Chief Technology Officer."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": "September",
+      "eventType": "Product",
+      "details": "Reddit launches Upvoted, a news site that digs out interesting content from reddit, but without enabling commenting."
+    },
+    {
+      "year": "2015",
+      "monthAndDate": {
+        "date": "2001-12-15T00:00:00.000Z"
+      },
+      "eventType": "Product",
+      "details": "Reddit announces that it is shutting down reddit.tv."
+    },
+    {
+      "year": "2016",
+      "monthAndDate": "April",
+      "eventType": "Product",
+      "details": "In April 2016, Reddit launches a new blocking tool in an attempt to curb online harassment. The tool allows a user to hide posts and comments from selected redditors in addition to blocking private messages from those redditors. The option to block a redditor is done by clicking a button in the inbox."
+    },
+    {
+      "year": "2016",
+      "monthAndDate": "June",
+      "eventType": "Product",
+      "details": "Standalone image hosting service implemented. Previously, Reddit users primarily relied on Imgur for sharing pictures, screenshots, and graphics."
+    },
+    {
+      "year": "2017",
+      "monthAndDate": "dts",
+      "eventType": "Community",
+      "details": "Reddit bans the \"altright\" subreddit for violating its terms of service, more specifically for attempting to share personal information about the man who attacked alt-right figure Richard B. Spencer."
+    },
+    {
+      "year": "2017",
+      "monthAndDate": "April",
+      "eventType": "Community",
+      "details": "Place (Reddit), another site-wide social experiment, is put into practice."
+    },
+    {
+      "year": "2017",
+      "monthAndDate": {
+        "date": "2001-05-31T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "Reddit stops using default subreddits, centering its new discovery-oriented r/popular landing page."
+    },
+    {
+      "year": "2017",
+      "monthAndDate": "June",
+      "eventType": "Product",
+      "details": "Added ability to attach a video to a post."
+    },
+    {
+      "year": "2017",
+      "monthAndDate": {
+        "date": "2001-09-13T00:00:00.000Z"
+      },
+      "eventType": "Product",
+      "details": "Reddit announces that its main code repositories, backing its desktop and mobile websites, are no longer open source."
+    },
+    {
+      "year": "2018",
+      "monthAndDate": "April",
+      "eventType": "Product",
+      "details": "Reddit announces the rollout of a new design for the site and its logo Snoo."
+    },
+    {
+      "year": "2019",
+      "monthAndDate": "August",
+      "eventType": "Product",
+      "details": "Reddit announces RPAN (Reddit Public Access Network) in August. The official subreddit is r/pan."
+    },
+    {
+      "year": "2020",
+      "monthAndDate": {
+        "date": "2001-06-05T00:00:00.000Z"
+      },
+      "eventType": "Team",
+      "details": "In response to the George Floyd protests, Reddit announces a plan to revise its content policy to combat hate and racism on the site. Alexis Ohanian resigns from the Reddit board of directors and plans to be replaced \"by a Black candidate\"."
+    },
+    {
+      "year": "2020",
+      "monthAndDate": {
+        "date": "2001-06-29T00:00:00.000Z"
+      },
+      "eventType": "Community",
+      "details": "Reddit updates its content policy to bar \"hate based on identity or vulnerability\" and bans some 2000 subreddits, including the long-controversial r/The_Donald."
+    },
+    {
+      "year": "2020",
+      "monthAndDate": "December 13",
+      "eventType": "Company",
+      "details": "Reddit acquires Dubsmash. They intend to integrate its video creation tools into Reddit."
+    },
+    {
+      "year": "2023",
+      "monthAndDate": "",
+      "eventType": "Company",
+      "details": "Reddit moves its headquarters from 455 Market Street to 303 Second Street, both of which are located in San Francisco."
+    },
+    {
+      "year": "2023",
+      "monthAndDate": "June–July",
+      "eventType": "Product",
+      "details": "Reddit announced new changes to its API pricing, effective July 1, that will force many third-party apps to shut down. In response, on June 12, thousands of subreddits 2023 Reddit API controversy in protest of the decision; some for two days, and others indefinitely."
+    },
+    {
+      "year": "2024",
+      "monthAndDate": "March 21",
+      "eventType": "Company",
+      "details": "Reddit begins trading on the New York Stock Exchange with the ticker RDDT."
+    },
+    {
+      "year": "2025",
+      "monthAndDate": "January",
+      "eventType": "Community",
+      "details": "Over 100 subreddits ban links to Twitter over an Elon Musk's arm gesture at the second inauguration of Donald Trump."
+    },
+    {
+      "year": "2025",
+      "monthAndDate": "February 4",
+      "eventType": "Community",
+      "details": "One of Reddit's most popular subreddits, r/WhitePeopleTwitter, was banned for 72 hours for allegedly threatening to Doxing and murder Department of Government Efficiency developers."
+    }
+  ]
+]
