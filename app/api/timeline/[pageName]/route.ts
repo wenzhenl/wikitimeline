@@ -467,14 +467,7 @@ async function fetchWikipediaContent(
   const [content, intro, tables] = await Promise.all([
     wiki.content(pageInfo.pageName),
     wiki.intro(pageInfo.pageName),
-    wiki.tables(pageInfo.pageName).catch((error) => {
-      // Handle tables error gracefully
-      logger.warn(
-        `Could not fetch tables for ${pageInfo.language}:${pageInfo.pageName}:`,
-        error
-      );
-      return []; // Return empty array if tables fail
-    }),
+    wiki.tables(pageInfo.pageName),
   ]);
   return {
     content:
