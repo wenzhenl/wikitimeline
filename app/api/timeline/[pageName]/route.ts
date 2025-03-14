@@ -564,32 +564,30 @@ export async function GET(
       )}`
     );
 
-    // Get canonical names first
-    const canonicalInfos = await Promise.all(
-      pageInfos.map(async (pageInfo) => {
-        const summary = await getCachedWikiSummary(pageInfo);
-        if (summary.canonicalTitle !== pageInfo.pageName) {
-          logger.info(
-            `Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${summary.canonicalTitle}`
-          );
-        }
-
-        return {
-          ...pageInfo,
-          pageName: summary.canonicalTitle,
-        };
-      })
-    );
-
     const results: Record<string, TimelinePageResult> = {};
 
+    // Process each page completely independently
     await Promise.all(
-      canonicalInfos.map(async (pageInfo) => {
-        const cacheKey = buildCacheKey(pageInfo);
-        let timeline: Timeline | null = null;
-
+      pageInfos.map(async (pageInfo) => {
         try {
-          // Try to get cached timeline
+          // Step 1: Get canonical title and wiki summary in one go
+          const wikiSummary = await getCachedWikiSummary(pageInfo);
+
+          // If pageName is different from canonical title, update pageInfo
+          if (wikiSummary.canonicalTitle !== pageInfo.pageName) {
+            logger.info(
+              `Redirecting ${pageInfo.language}:${pageInfo.pageName} to canonical title: ${wikiSummary.canonicalTitle}`
+            );
+            pageInfo = {
+              ...pageInfo,
+              pageName: wikiSummary.canonicalTitle,
+            };
+          }
+
+          // Step 2: Check cache for timeline using updated pageInfo
+          const cacheKey = buildCacheKey(pageInfo);
+          let timeline: Timeline | null = null;
+
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === "object") {
             const cachedData = cached as NewTimelineFormat;
@@ -611,16 +609,37 @@ export async function GET(
             }
           }
 
-          // If not in cache or version mismatch, generate it
+          // Step 3: If no cached timeline, generate a new one
           if (!timeline) {
             logger.info(
               `Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`
             );
 
-            // Fetch Wikipedia content
-            let wikiData;
             try {
-              wikiData = await fetchWikipediaContent(pageInfo);
+              // Fetch Wikipedia content
+              const wikiData = await fetchWikipediaContent(pageInfo);
+
+              // Generate timeline
+              timeline = await generateTimeline(
+                pageInfo.pageName,
+                wikiData.content,
+                wikiData.intro,
+                genAI,
+                pageInfo.language
+              );
+
+              if (timeline) {
+                logger.info(
+                  `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
+                );
+                // Fire and forget Redis set
+                redis.set(cacheKey, { timeline }).catch((error) => {
+                  logger.error(
+                    `Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
+                    error
+                  );
+                });
+              }
             } catch (error) {
               // Handle Wikipedia API errors
               if (
@@ -638,52 +657,15 @@ export async function GET(
                   message:
                     error instanceof Error
                       ? error.message
-                      : "Failed to fetch Wikipedia content",
+                      : "Failed to fetch Wikipedia content or generate timeline",
                 };
               }
               return;
             }
-
-            try {
-              timeline = await generateTimeline(
-                pageInfo.pageName,
-                wikiData.content,
-                wikiData.intro,
-                genAI,
-                pageInfo.language
-              );
-            } catch (error) {
-              logger.error(
-                `Failed to generate timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
-                error
-              );
-              results[pageInfo.original] = {
-                status: "error",
-                message:
-                  error instanceof Error
-                    ? error.message
-                    : "Failed to generate timeline",
-              };
-              return;
-            }
-
-            if (timeline) {
-              logger.info(
-                `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
-              );
-              // Fire and forget Redis set
-              redis.set(cacheKey, { timeline }).catch((error) => {
-                logger.error(
-                  `Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
-                  error
-                );
-              });
-            }
           }
 
-          // Get wiki summary for successful timeline
+          // Step 4: Set the results using the wiki summary we already have
           if (timeline && timeline.events.length > 0) {
-            const wikiSummary = await getCachedWikiSummary(pageInfo);
             results[pageInfo.original] = {
               status: "success",
               timeline,
