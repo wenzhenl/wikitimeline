@@ -657,15 +657,13 @@ export async function GET(
               logger.info(
                 `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
               );
-              try {
-                await redis.set(cacheKey, { timeline });
-              } catch (error) {
-                // If the cache is full, log the error and continue
+              // Fire and forget Redis set
+              redis.set(cacheKey, { timeline }).catch((error) => {
                 logger.error(
                   `Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
                   error
                 );
-              }
+              });
             }
           }
 
