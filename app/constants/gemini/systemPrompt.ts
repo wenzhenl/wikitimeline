@@ -107,18 +107,23 @@ Extract the following metadata from the provided article:
 
 1. OUTPUT REQUIREMENTS
 	• title: A concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.
-	• birthDate: if subject is a person and birth date is known, output the birth date with the most precise date possible, otherwise don't include it.
+	• birthDate: if subject is a SINGLE, INDIVIDUAL person (not a list, group, presidency, or position) and birth date is known, output the birth date with the most precise date possible, otherwise don't include it.
 	Acceptable formats:
 		- YYYY (e.g., 1901)
 		- YYYY-MM (e.g., 1901-09)
 		- YYYY-MM-DD (e.g., 1901-09-10)
 		- For BCE/BC dates, use a negative year (e.g., -0400 for 400 BCE).
-	• deathDate: if subject is a person and death date is known, output the death date with the same format as birthDate, otherwise don't include it.
+	• deathDate: if subject is a SINGLE, INDIVIDUAL person (not a list, group, presidency, or position) and death date is known, output the death date with the same format as birthDate, otherwise don't include it.
 
 2. IMPORTANT INSTRUCTIONS:
 	• Focus ONLY on extracting the title, birthDate, and deathDate from the article.
-	• If the subject is not a person, don't include birthDate or deathDate.
-	• If the subject is a person, but is still not dead or death date is not known, don't include deathDate.
+	• ONLY include birthDate and deathDate if the subject is a specific, individual person.
+	• DO NOT include birthDate or deathDate for:
+		- Lists of people (e.g., "List of United States Presidents")
+		- Positions or terms (e.g., "Presidency of Barack Obama")
+		- Groups, organizations, or institutions
+		- Concepts, events, places, or any non-human entities
+	• If the subject is a person, but is still alive or death date is not known, don't include deathDate.
 	• For the title, create a concise description that clearly identifies the subject. Avoid direct quotes, instead summarize the content in your own words. Please rely on the provided article for reference, don't rely on your training data.
 
 3. LANGUAGE INSTRUCTIONS:
