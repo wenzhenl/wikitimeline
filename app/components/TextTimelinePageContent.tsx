@@ -8,8 +8,10 @@ import html2canvas from "html2canvas";
 import { SITE_CONFIG } from "@/app/config/site";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER } from "@/app/constants";
+import { ERROR_MESSAGES } from "@/app/constants/errorMessages";
 import ReportIssueButton from "@/app/components/ReportIssueButton";
 import NavigationHeader from "@/app/components/NavigationHeader";
+import SkippedPagesModal from "@/app/components/SkippedPagesModal";
 import logger from "@/app/utils/logger";
 import { formatPageName } from "@/app/utils/helper";
 
@@ -32,6 +34,13 @@ interface TextTimelinePageContentProps {
         noTimelineGenerated: string[];
       };
     };
+    results?: Record<
+      string,
+      {
+        status: string;
+        message?: string;
+      }
+    >;
   };
 }
 
@@ -45,6 +54,10 @@ export default function TextTimelinePageContent({
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"combined" | "tabs">("combined");
   const [activePage, setActivePage] = useState("");
+  const [skippedPages, setSkippedPages] = useState<
+    Array<{ pageName: string; reason: string }>
+  >([]);
+  const [showSkippedModal, setShowSkippedModal] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isInitialized = useRef(false);
@@ -61,6 +74,105 @@ export default function TextTimelinePageContent({
       isInitialized.current = true;
     }
   }, []);
+
+  // Process skipped pages from initialData
+  useEffect(() => {
+    // Check if there are any failed pages in the results
+    if (initialData.results) {
+      const failedPages: Array<{ pageName: string; reason: string }> = [];
+
+      // Iterate through all pages in the results
+      Object.entries(initialData.results).forEach(([pageName, result]) => {
+        // If the status is not "success", add to failed pages with appropriate generic message
+        if (result.status !== "success") {
+          let errorMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
+
+          // Map status to appropriate error message
+          if (result.status === "error") {
+            errorMessage = ERROR_MESSAGES.TIMELINE_GENERATION_ERROR;
+          } else if (result.status === "not_found") {
+            errorMessage = ERROR_MESSAGES.PAGE_NOT_FOUND;
+          } else if (result.status === "not_implemented") {
+            errorMessage = ERROR_MESSAGES.NOT_IMPLEMENTED;
+          }
+
+          failedPages.push({
+            pageName,
+            reason: errorMessage,
+          });
+
+          logger.warn(
+            `Page "${pageName}" failed with status: ${result.status}`,
+            {
+              message: result.message,
+            }
+          );
+        }
+      });
+
+      // Update skipped pages state if there are any failed pages
+      if (failedPages.length > 0) {
+        setSkippedPages(failedPages);
+        setShowSkippedModal(true);
+        logger.debug(`Found ${failedPages.length} skipped pages`, {
+          failedPages,
+        });
+      }
+    } else if (
+      initialData.errors?.failedPages &&
+      initialData.errors.failedPages.length > 0
+    ) {
+      // Handle legacy error format
+      const failedPages = initialData.errors.failedPages.map((pageName) => ({
+        pageName,
+        reason: ERROR_MESSAGES.TIMELINE_GENERATION_ERROR,
+      }));
+
+      setSkippedPages(failedPages);
+      setShowSkippedModal(true);
+      logger.debug(
+        `Found ${failedPages.length} skipped pages (legacy format)`,
+        {
+          failedPages,
+        }
+      );
+    }
+  }, [initialData]);
+
+  const handleSkippedModalClose = () => {
+    setShowSkippedModal(false);
+
+    // If there are skipped pages, update the URL to remove them
+    if (skippedPages.length > 0) {
+      // Get all page names from the URL
+      const allPageNames = decodeURIComponent(params.pageName)
+        .split(PAGE_DELIMITER)
+        .map((name) => name.trim())
+        .filter(Boolean);
+
+      // Filter out the skipped pages
+      const validPages = allPageNames
+        .filter(
+          (page) => !skippedPages.some((skipped) => skipped.pageName === page)
+        )
+        .map((page) => encodeURIComponent(page))
+        .join(PAGE_DELIMITER);
+
+      // Only update the URL if there are valid pages left
+      if (validPages) {
+        logger.debug("Updating URL to remove skipped pages", {
+          originalPages: allPageNames,
+          skippedPages: skippedPages.map((p) => p.pageName),
+          validPages: validPages.split(PAGE_DELIMITER),
+        });
+        router.replace(`/timeline/${validPages}/text`, { scroll: false });
+      } else {
+        // If no valid pages left, redirect to home
+        logger.debug("No valid pages left, redirecting to home");
+        router.replace("/");
+      }
+    }
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -418,6 +530,13 @@ export default function TextTimelinePageContent({
           </div>
         </div>
       </main>
+
+      {/* Skipped Pages Modal */}
+      <SkippedPagesModal
+        skippedPages={skippedPages}
+        showModal={showSkippedModal}
+        onClose={handleSkippedModalClose}
+      />
     </div>
   );
 }

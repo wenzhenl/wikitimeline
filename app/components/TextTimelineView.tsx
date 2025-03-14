@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { PAGE_DELIMITER } from "@/app/constants";
 import { COLOR_SCHEMES } from "@/app/constants/colorSchemes";
+import { ERROR_MESSAGES } from "@/app/constants/errorMessages";
 import { formatPageName } from "@/app/utils/helper";
+
 interface TimelineEvent {
   date: string;
   headline: string;
@@ -24,6 +26,13 @@ interface TextTimelineViewProps {
         noTimelineGenerated: string[];
       };
     };
+    results?: Record<
+      string,
+      {
+        status: string;
+        message?: string;
+      }
+    >;
   } | null;
   viewMode?: "combined" | "tabs";
   showSource?: boolean;
@@ -114,6 +123,9 @@ export default function TextTimelineView({
       )
     : [];
 
+  // Check if we have any events to display
+  const hasEvents = filteredTimeline.length > 0;
+
   return (
     <div className="space-y-8 relative">
       {/* Title card at the top */}
@@ -174,140 +186,157 @@ export default function TextTimelineView({
         </p>
       )}
 
-      {/* Timeline events container */}
-      <div className="relative">
-        {/* Continuous vertical line for the timeline events */}
-        <div
-          className="absolute left-[1.45rem] w-0.5 bg-blue-200/50 dark:bg-blue-800/30"
-          style={{
-            top: "1.375rem", // Align with first dot
-            height: `calc(100% - 3.5rem)`, // Span from first to last dot
-          }}
-        ></div>
+      {hasEvents ? (
+        <>
+          {/* Timeline events container */}
+          <div className="relative">
+            {/* Continuous vertical line for the timeline events */}
+            <div
+              className="absolute left-[1.45rem] w-0.5 bg-blue-200/50 dark:bg-blue-800/30"
+              style={{
+                top: "1.375rem", // Align with first dot
+                height: `calc(100% - 3.5rem)`, // Span from first to last dot
+              }}
+            ></div>
 
-        {filteredTimeline.map((event: TimelineEvent, index: number) => {
-          const isNegativeYear = event.date.startsWith("-");
-          const normalizedDate = isNegativeYear
-            ? event.date.slice(1)
-            : event.date;
-          const dateParts = normalizedDate.split("-");
-          const year = parseInt(dateParts[0]) * (isNegativeYear ? -1 : 1);
+            {filteredTimeline.map((event: TimelineEvent, index: number) => {
+              const isNegativeYear = event.date.startsWith("-");
+              const normalizedDate = isNegativeYear
+                ? event.date.slice(1)
+                : event.date;
+              const dateParts = normalizedDate.split("-");
+              const year = parseInt(dateParts[0]) * (isNegativeYear ? -1 : 1);
 
-          const sourceColors = event.source
-            ? sourceColorMap.get(event.source)
-            : null;
+              const sourceColors = event.source
+                ? sourceColorMap.get(event.source)
+                : null;
 
-          const showSourceBadge = showSource && event.source;
-          const isBCE = isNegativeYear;
-          const isFocused = false;
+              const showSourceBadge = showSource && event.source;
+              const isBCE = isNegativeYear;
+              const isFocused = false;
 
-          // Format the display date
-          const displayDate = needsCosmologicalScale
-            ? formatCosmologicalDate(year)
-            : `${Math.abs(year)}${isNegativeYear ? " BCE" : ""}${
-                dateParts[1]
-                  ? ` ${new Date(
-                      2000,
-                      parseInt(dateParts[1]) - 1
-                    ).toLocaleString("default", { month: "short" })}`
-                  : ""
-              }${dateParts[2] ? ` ${parseInt(dateParts[2])}` : ""}`;
+              // Format the display date
+              const displayDate = needsCosmologicalScale
+                ? formatCosmologicalDate(year)
+                : `${Math.abs(year)}${isNegativeYear ? " BCE" : ""}${
+                    dateParts[1]
+                      ? ` ${new Date(
+                          2000,
+                          parseInt(dateParts[1]) - 1
+                        ).toLocaleString("default", { month: "short" })}`
+                      : ""
+                  }${dateParts[2] ? ` ${parseInt(dateParts[2])}` : ""}`;
 
-          return (
-            <div key={index} className="flex mb-8 relative group">
-              {/* Left side time ticker with dot */}
-              <div className="w-10 flex-shrink-0 relative mr-2">
-                {/* Dot */}
-                <div
-                  className={`absolute top-[1.375rem] left-1/2 w-4 h-4 rounded-full -ml-2 z-10 shadow-sm transition-all duration-300 ${
-                    isFocused
-                      ? "bg-blue-500 dark:bg-blue-400"
-                      : "bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-800"
-                  }`}
-                ></div>
-              </div>
-
-              {/* Event card */}
-              <div className="flex-grow relative">
-                {/* Horizontal connector line from dot to card */}
-                <div className="absolute top-[1.875rem] left-[-1.75rem] w-[1.75rem] h-0.5 bg-blue-200 dark:bg-blue-800"></div>
-
-                <div
-                  className={`relative ${
-                    showSourceBadge ? "pt-6" : "pt-4"
-                  } pb-6 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700`}
-                >
-                  {/* Source badge in top-left */}
-                  {showSourceBadge && event.source && (
-                    <div className="absolute -top-2 left-0 z-10">
-                      <div
-                        className="px-2 py-1 text-xs font-medium rounded-md shadow-sm"
-                        style={{
-                          backgroundColor: sourceColors?.color || "#f3f4f6",
-                          color: sourceColors?.textColor || "#4b5563",
-                        }}
-                      >
-                        {formatPageName(event.source || "").formattedName}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Date and Age at the top of the card */}
-                  <div className="flex items-center justify-between mb-3 text-xs text-gray-600 dark:text-gray-300">
+              return (
+                <div key={index} className="flex mb-8 relative group">
+                  {/* Left side time ticker with dot */}
+                  <div className="w-10 flex-shrink-0 relative mr-2">
+                    {/* Dot */}
                     <div
-                      className={`font-mono ${
-                        isBCE
-                          ? "text-amber-700 dark:text-amber-300"
-                          : "text-blue-700 dark:text-blue-300"
+                      className={`absolute top-[1.375rem] left-1/2 w-4 h-4 rounded-full -ml-2 z-10 shadow-sm transition-all duration-300 ${
+                        isFocused
+                          ? "bg-blue-500 dark:bg-blue-400"
+                          : "bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-800"
                       }`}
+                    ></div>
+                  </div>
+
+                  {/* Event card */}
+                  <div className="flex-grow relative">
+                    {/* Horizontal connector line from dot to card */}
+                    <div className="absolute top-[1.875rem] left-[-1.75rem] w-[1.75rem] h-0.5 bg-blue-200 dark:bg-blue-800"></div>
+
+                    <div
+                      className={`relative ${
+                        showSourceBadge ? "pt-6" : "pt-4"
+                      } pb-6 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700`}
                     >
-                      {displayDate}
-                    </div>
-                    {event.age !== undefined && <div>Age: {event.age}</div>}
-                  </div>
+                      {/* Source badge in top-left */}
+                      {showSourceBadge && event.source && (
+                        <div className="absolute -top-2 left-0 z-10">
+                          <div
+                            className="px-2 py-1 text-xs font-medium rounded-md shadow-sm"
+                            style={{
+                              backgroundColor: sourceColors?.color || "#f3f4f6",
+                              color: sourceColors?.textColor || "#4b5563",
+                            }}
+                          >
+                            {formatPageName(event.source || "").formattedName}
+                          </div>
+                        </div>
+                      )}
 
-                  <h3
-                    className={`text-lg font-semibold mb-2 ${
-                      isBCE
-                        ? "text-black dark:text-white"
-                        : "text-black dark:text-white"
-                    }`}
-                  >
-                    {event.headline}
-                  </h3>
-                  <div className="prose dark:prose-invert prose-sm max-w-none">
-                    <p className="text-gray-700 dark:text-gray-100">
-                      {event.text}
-                    </p>
-                  </div>
-                  {showSource && event.source && !showSourceBadge && (
-                    <div className="mt-3 text-xs text-gray-600 dark:text-gray-200">
-                      Source: {formatPageName(event.source).formattedName}
+                      {/* Date and Age at the top of the card */}
+                      <div className="flex items-center justify-between mb-3 text-xs text-gray-600 dark:text-gray-300">
+                        <div
+                          className={`font-mono ${
+                            isBCE
+                              ? "text-amber-700 dark:text-amber-300"
+                              : "text-blue-700 dark:text-blue-300"
+                          }`}
+                        >
+                          {displayDate}
+                        </div>
+                        {event.age !== undefined && <div>Age: {event.age}</div>}
+                      </div>
+
+                      <h3
+                        className={`text-lg font-semibold mb-2 ${
+                          isBCE
+                            ? "text-black dark:text-white"
+                            : "text-black dark:text-white"
+                        }`}
+                      >
+                        {event.headline}
+                      </h3>
+                      <div className="prose dark:prose-invert prose-sm max-w-none">
+                        <p className="text-gray-700 dark:text-gray-100">
+                          {event.text}
+                        </p>
+                      </div>
+                      {showSource && event.source && !showSourceBadge && (
+                        <div className="mt-3 text-xs text-gray-600 dark:text-gray-200">
+                          Source: {formatPageName(event.source).formattedName}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      {/* Error message */}
-      {data.errors?.failedPages && data.errors.failedPages.length > 0 && (
-        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-100 dark:border-yellow-900/50">
-          <p className="text-yellow-800 dark:text-yellow-200">
-            Note: Could not include data from:{" "}
-            {data.errors.failedPages
-              .map((page) => decodeURIComponent(page))
-              .join(PAGE_DELIMITER)}
+          {/* End of Timeline */}
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400 text-sm">
+            ● End of Timeline ●
+          </div>
+        </>
+      ) : (
+        // No events to display
+        <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
+          <div className="mb-4 text-yellow-500">
+            <svg
+              className="h-12 w-12 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            No timeline events available
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            {ERROR_MESSAGES.TIMELINE_GENERATION_ERROR}
           </p>
         </div>
       )}
-
-      {/* End of Timeline */}
-      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400 text-sm">
-        ● End of Timeline ●
-      </div>
     </div>
   );
 }

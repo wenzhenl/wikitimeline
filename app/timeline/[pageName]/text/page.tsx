@@ -2,7 +2,7 @@ import TextTimelinePageContent from "@/app/components/TextTimelinePageContent";
 import ErrorPage from "@/app/components/ErrorPage";
 import logger from "@/app/utils/logger";
 import { SITE_CONFIG } from "@/app/config/site";
-
+import { ERROR_MESSAGES } from "@/app/constants/errorMessages";
 import { TimelineAPIResponse } from "@/app/types/timeline";
 import { PAGE_DELIMITER } from "@/app/constants";
 import { compareDates } from "@/app/utils/helper";
@@ -31,11 +31,19 @@ async function getTimelineData(pageName: string) {
 
     logger.debug(`Fetched timeline data for ${decodeURIComponent(pageName)}`);
 
+    // Filter successful results
+    const successfulResults: Record<string, any> = {};
+    Object.entries(data.results || {}).forEach(([pageName, result]) => {
+      if (result.status === "success" && result.timeline) {
+        successfulResults[pageName] = result;
+      }
+    });
+
     // Transform and sort all data
     const transformedData = {
-      timeline: Object.entries(data.results)
+      timeline: Object.entries(successfulResults)
         .flatMap(([pageName, page]) =>
-          page.timeline!.events.map((event) => ({
+          (page.timeline?.events || []).map((event: any) => ({
             date: event.startDate,
             headline: event.headline,
             text: event.description,
@@ -45,11 +53,13 @@ async function getTimelineData(pageName: string) {
         )
         .sort((a, b) => compareDates(a.date, b.date)),
       titles: Object.fromEntries(
-        Object.entries(data.results).map(([pageName, page]) => [
+        Object.entries(successfulResults).map(([pageName, page]) => [
           pageName,
-          page.timeline!.title,
+          page.timeline?.title || "",
         ])
       ),
+      // Pass the original results for error handling in the client component
+      results: data.results,
     };
 
     return transformedData;
@@ -72,7 +82,7 @@ export default async function TimelineTextPage({
     const data = await getTimelineData(decodedPageName);
 
     // Show 404 if no timeline data or empty timeline
-    if (!data || !data.timeline || data.timeline.length === 0) {
+    if (!data || !data.timeline) {
       notFound();
     }
 
