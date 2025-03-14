@@ -1,9 +1,15 @@
 "use client";
 
 import { PAGE_DELIMITER } from "@/app/constants";
+import { formatPageName } from "@/app/utils/helper";
+
+interface SkippedPageInfo {
+  pageName: string;
+  reason: string;
+}
 
 interface SkippedPagesModalProps {
-  skippedPages: string[];
+  skippedPages: string[] | SkippedPageInfo[];
   showModal: boolean;
   onClose: () => void;
 }
@@ -16,6 +22,9 @@ export default function SkippedPagesModal({
   if (!showModal || skippedPages.length === 0) {
     return null;
   }
+
+  // Check if we have detailed info or just page names
+  const hasDetailedInfo = typeof skippedPages[0] !== "string";
 
   return (
     <div
@@ -55,12 +64,36 @@ export default function SkippedPagesModal({
                   Some pages were skipped
                 </h3>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    No timeline data could be extracted from:{" "}
-                    {skippedPages
-                      .map((page) => decodeURIComponent(page))
-                      .join(PAGE_DELIMITER)}
-                  </p>
+                  {hasDetailedInfo ? (
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="mb-2">
+                        The following pages could not be processed:
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        {(skippedPages as SkippedPageInfo[]).map(
+                          (page, index) => (
+                            <li key={index}>
+                              <span className="font-medium">
+                                {formatPageName(page.pageName).formattedName}
+                              </span>
+                              : {page.reason}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No timeline data could be extracted from:{" "}
+                      {(skippedPages as string[])
+                        .map(
+                          (page) =>
+                            formatPageName(decodeURIComponent(page))
+                              .formattedName
+                        )
+                        .join(", ")}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -16,6 +16,7 @@ import {
   TimelineAPIResponse,
   TimelineJSTimeline,
   TimelineJSEvent,
+  TimelinePageResult,
 } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
@@ -74,7 +75,9 @@ export default function InteractiveTimelineContent({
       const savedPercentage = safeGetItem("timeline-timenav-height");
       return savedPercentage ? parseInt(savedPercentage, 10) : 50;
     });
-  const [skippedPages, setSkippedPages] = useState<string[]>([]);
+  const [skippedPages, setSkippedPages] = useState<
+    Array<{ pageName: string; reason: string }>
+  >([]);
   const [showSkippedModal, setShowSkippedModal] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -223,13 +226,39 @@ export default function InteractiveTimelineContent({
     }
   };
 
-  /*
+  // Process skipped pages from initialData
   useEffect(() => {
-    if (initialData.errors?.failedPages) {
-      setSkippedPages(initialData.errors.failedPages);
+    // Check if there are any failed pages in the results
+    if (initialData.results) {
+      const failedPages: Array<{ pageName: string; reason: string }> = [];
+
+      // Iterate through all pages in the results
+      Object.entries(initialData.results).forEach(([pageName, result]) => {
+        // If the status is not "success", add to failed pages
+        if (result.status !== "success") {
+          failedPages.push({
+            pageName,
+            reason: result.message || "Unknown reason",
+          });
+          logger.warn(
+            `Page "${pageName}" failed with status: ${result.status}`,
+            {
+              message: result.message,
+            }
+          );
+        }
+      });
+
+      // Update skipped pages state if there are any failed pages
+      if (failedPages.length > 0) {
+        setSkippedPages(failedPages);
+        setShowSkippedModal(true);
+        logger.debug(`Found ${failedPages.length} skipped pages`, {
+          failedPages,
+        });
+      }
     }
   }, [initialData]);
-  */
 
   // Consolidated useEffect for timeline data initialization and updates
   useEffect(() => {
@@ -262,8 +291,27 @@ export default function InteractiveTimelineContent({
         const formatEventsAsync = async () => {
           const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
             setTimeout(() => {
+              // Filter out unsuccessful timelines
+              const successfulResults: Record<string, TimelinePageResult> = {};
+              Object.entries(initialData.results).forEach(
+                ([pageName, result]) => {
+                  if (result.status === "success") {
+                    successfulResults[pageName] = result;
+                  }
+                }
+              );
+
+              // Log the filtering results
+              logger.debug("Filtered timeline results", {
+                totalPages: Object.keys(initialData.results).length,
+                successfulPages: Object.keys(successfulResults).length,
+                skippedPages:
+                  Object.keys(initialData.results).length -
+                  Object.keys(successfulResults).length,
+              });
+
               const result = formatTimelineEventsForInteractive(
-                initialData.results,
+                successfulResults,
                 selectedColorScheme
               );
 
@@ -292,8 +340,16 @@ export default function InteractiveTimelineContent({
         formatEventsAsync();
       } else {
         // For subsequent updates (like color scheme changes), process synchronously
+        // Filter out unsuccessful timelines
+        const successfulResults: Record<string, TimelinePageResult> = {};
+        Object.entries(initialData.results).forEach(([pageName, result]) => {
+          if (result.status === "success") {
+            successfulResults[pageName] = result;
+          }
+        });
+
         const formatted = formatTimelineEventsForInteractive(
-          initialData.results,
+          successfulResults,
           selectedColorScheme
         );
 
@@ -469,14 +525,36 @@ export default function InteractiveTimelineContent({
 
   const handleSkippedModalClose = () => {
     setShowSkippedModal(false);
-    const validPages = decodeURIComponent(params.pageName)
-      .split(PAGE_DELIMITER)
-      .filter((page) => !skippedPages.includes(page))
-      .map((page) => encodeURIComponent(page))
-      .join(encodeURIComponent(PAGE_DELIMITER));
 
-    if (validPages) {
-      router.replace(`/timeline/${validPages}`, { scroll: false });
+    // If there are skipped pages, update the URL to remove them
+    if (skippedPages.length > 0) {
+      // Get all page names from the URL
+      const allPageNames = decodeURIComponent(params.pageName)
+        .split(PAGE_DELIMITER)
+        .map((name) => name.trim())
+        .filter(Boolean);
+
+      // Filter out the skipped pages
+      const validPages = allPageNames
+        .filter(
+          (page) => !skippedPages.some((skipped) => skipped.pageName === page)
+        )
+        .map((page) => encodeURIComponent(page))
+        .join(PAGE_DELIMITER);
+
+      // Only update the URL if there are valid pages left
+      if (validPages) {
+        logger.debug("Updating URL to remove skipped pages", {
+          originalPages: allPageNames,
+          skippedPages: skippedPages.map((p) => p.pageName),
+          validPages: validPages.split(PAGE_DELIMITER),
+        });
+        router.replace(`/timeline/${validPages}`, { scroll: false });
+      } else {
+        // If no valid pages left, redirect to home
+        logger.debug("No valid pages left, redirecting to home");
+        router.replace("/");
+      }
     }
   };
 
