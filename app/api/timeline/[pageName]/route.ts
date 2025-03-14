@@ -16,6 +16,7 @@ import {
   DEFAULT_LANGUAGE,
   DEFAULT_MODEL,
   DEFAULT_TIMELINE_VERSION,
+  MIN_NUM_EVENTS_FOR_TIMELINE,
 } from "@/app/constants";
 import { unstable_cache } from "next/cache";
 import { SITE_CONFIG } from "@/app/config/site";
@@ -665,7 +666,7 @@ export async function GET(
           }
 
           // Step 4: Set the results using the wiki summary we already have
-          if (timeline && timeline.events.length > 0) {
+          if (timeline && timeline.events.length > MIN_NUM_EVENTS_FOR_TIMELINE) {
             results[pageInfo.original] = {
               status: "success",
               timeline,
