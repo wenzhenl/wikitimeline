@@ -21,7 +21,7 @@ import {
 import { unstable_cache } from "next/cache";
 import { SITE_CONFIG } from "@/app/config/site";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
-import { TEMPERATURE } from "@/app/constants/gemini";
+import { MAX_OUTPUT_TOKENS, PRESENCE_PENALTY, TEMPERATURE, TOP_K, TOP_P } from "@/app/constants/gemini";
 import {
   WIKI_EVENTS_EXTRACTION_PROMPT,
   WIKI_METADATA_EXTRACTION_PROMPT,
@@ -196,8 +196,11 @@ async function extractMetadataFromWikiIntro(
       model: DEFAULT_MODEL,
       safetySettings: SAFETY_SETTINGS,
       generationConfig: {
-        maxOutputTokens: 8192,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
         temperature: TEMPERATURE,
+        topP: TOP_P,
+        topK: TOP_K,
+        presencePenalty: PRESENCE_PENALTY,
         responseMimeType: "application/json",
         responseSchema: WIKI_METADATA_SCHEMA,
       },
@@ -279,8 +282,11 @@ async function extractEventsFromWikiContent(
     model: DEFAULT_MODEL,
     safetySettings: SAFETY_SETTINGS,
     generationConfig: {
-      maxOutputTokens: 8192,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
       temperature: TEMPERATURE,
+      topP: TOP_P,
+      topK: TOP_K,
+      presencePenalty: PRESENCE_PENALTY,
       responseMimeType: "application/json",
       responseSchema: WIKI_EVENTS_SCHEMA,
     },
