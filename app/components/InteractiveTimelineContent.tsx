@@ -20,6 +20,7 @@ import {
 } from "@/app/types/timeline";
 import ShareButtons from "@/app/components/ShareButtons";
 import { PAGE_DELIMITER, PAGE_NAME_SEPARATOR } from "@/app/constants";
+import { ERROR_MESSAGES } from "@/app/constants/errorMessages";
 import logger from "@/app/utils/logger";
 import NavigationHeader from "@/app/components/NavigationHeader";
 import InteractiveTimelineTour from "@/app/components/InteractiveTimelineTour";
@@ -234,12 +235,24 @@ export default function InteractiveTimelineContent({
 
       // Iterate through all pages in the results
       Object.entries(initialData.results).forEach(([pageName, result]) => {
-        // If the status is not "success", add to failed pages
+        // If the status is not "success", add to failed pages with appropriate generic message
         if (result.status !== "success") {
+          let errorMessage = ERROR_MESSAGES.UNKNOWN_ERROR;
+
+          // Map status to appropriate error message
+          if (result.status === "error") {
+            errorMessage = ERROR_MESSAGES.TIMELINE_GENERATION_ERROR;
+          } else if (result.status === "not_found") {
+            errorMessage = ERROR_MESSAGES.PAGE_NOT_FOUND;
+          } else if (result.status === "not_implemented") {
+            errorMessage = ERROR_MESSAGES.NOT_IMPLEMENTED;
+          }
+
           failedPages.push({
             pageName,
-            reason: result.message || "Unknown reason",
+            reason: errorMessage,
           });
+
           logger.warn(
             `Page "${pageName}" failed with status: ${result.status}`,
             {
