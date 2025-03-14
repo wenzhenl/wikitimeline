@@ -596,7 +596,7 @@ export default function InteractiveTimelineContent({
 
           <div className="flex justify-center">
             <ShareButtons
-              url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+              url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/share`}
               title={`Timeline of ${decodeURIComponent(params.pageName).replace(
                 /_/g,
                 " "
@@ -682,7 +682,7 @@ export default function InteractiveTimelineContent({
                 Reader View
               </Link>
               <ShareButtons
-                url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}`}
+                url={`${SITE_CONFIG.DOMAIN}/timeline/${params.pageName}/share`}
                 title={`Timeline of ${decodeURIComponent(
                   params.pageName
                 ).replace(/_/g, " ")}`}

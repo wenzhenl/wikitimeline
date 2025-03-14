@@ -207,7 +207,7 @@ export default function TextTimelinePageContent({
             </Link>
 
             <ShareButtons
-              url={pageUrl}
+              url={`${SITE_CONFIG.DOMAIN}/timeline/${pageNames}/share`}
               title={`Timeline of ${pageNames
                 .map((name) => formatPageName(name).formattedName)
                 .join(" | ")}`}
@@ -310,7 +310,7 @@ export default function TextTimelinePageContent({
               </Link>
 
               <ShareButtons
-                url={pageUrl}
+                url={`${SITE_CONFIG.DOMAIN}/timeline/${pageNames}/share`}
                 title={`Timeline of ${pageNames
                   .map((name) => formatPageName(name).formattedName)
                   .join(" | ")}`}
