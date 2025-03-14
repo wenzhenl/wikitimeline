@@ -161,7 +161,12 @@ export default function WikiSearch({
       if (urlObj.hostname.includes("wikipedia.org")) {
         // Get the path parts
         const pathParts = urlObj.pathname.split("/");
-        // Find the title part (usually after /wiki/)
+
+        // Handle different URL patterns:
+        // 1. Standard wiki URLs: /wiki/Title
+        // 2. Language variant URLs: /zh-hans/Title or similar patterns
+
+        // First check for standard /wiki/ pattern
         const wikiIndex = pathParts.findIndex((part) => part === "wiki");
         if (wikiIndex >= 0 && wikiIndex < pathParts.length - 1) {
           return {
@@ -171,9 +176,39 @@ export default function WikiSearch({
             language: langCode,
           };
         }
+
+        // If not found, check for language variant pattern (e.g., /zh-hans/)
+        if (pathParts.length >= 3) {
+          // Check if the second path part is a language variant (contains a hyphen and the base language code)
+          const potentialLangVariant = pathParts[1];
+          if (
+            potentialLangVariant &&
+            potentialLangVariant.includes("-") &&
+            potentialLangVariant.startsWith(langCode)
+          ) {
+            return {
+              title: decodeURIComponent(pathParts[2].replace(/_/g, " ")),
+              language: langCode,
+            };
+          }
+
+          // If the second path part exists and isn't 'wiki', it might be the title
+          // This handles other non-standard URL patterns
+          if (
+            potentialLangVariant &&
+            potentialLangVariant !== "wiki" &&
+            pathParts[2]
+          ) {
+            return {
+              title: decodeURIComponent(pathParts[2].replace(/_/g, " ")),
+              language: langCode,
+            };
+          }
+        }
       }
     } catch (e) {
       // Invalid URL, continue with title detection
+      logger.error("Error parsing Wikipedia URL:", e);
     }
     return null;
   };
