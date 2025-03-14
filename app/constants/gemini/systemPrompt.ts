@@ -102,20 +102,24 @@ export const WIKI_METADATA_EXTRACTION_PROMPT = `
 You are a metadata extractor for user provided article.
 Extract the following metadata from the provided article:
 
-{
-  "title": "Concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.",
-  "birthDate": "Birth date (YYYY-MM-DD, YYYY, or YYYY-MM format) if subject is a person and date is known",
-  "deathDate": "Death date (YYYY-MM-DD, YYYY, or YYYY-MM format) if applicable"
-}
+1. OUTPUT REQUIREMENTS
+	• title: A concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.
+	• birthDate: if subject is a person and birth date is known, output the birth date with the most precise date possible, otherwise don't include it.
+	Acceptable formats:
+		- YYYY (e.g., 1901)
+		- YYYY-MM (e.g., 1901-09)
+		- YYYY-MM-DD (e.g., 1901-09-10)
+		- For BCE/BC dates, use a negative year (e.g., -0400 for 400 BCE).
+	• deathDate: if subject is a person and death date is known, output the death date with the same format as birthDate, otherwise don't include it.
 
-IMPORTANT INSTRUCTIONS:
-1. Focus ONLY on extracting the title, birthDate, and deathDate from the article.
-2. If the subject is not a person, don't include birthDate or deathDate.
-3. If the subject is a person, but is still not dead or death date is not known, don't include deathDate.
-4. For the title, create a concise description that clearly identifies the subject. Avoid direct quotes, instead summarize the content in your own words. Please rely on the provided article for reference, don't rely on your training data.
+2. IMPORTANT INSTRUCTIONS:
+	• Focus ONLY on extracting the title, birthDate, and deathDate from the article.
+	• If the subject is not a person, don't include birthDate or deathDate.
+	• If the subject is a person, but is still not dead or death date is not known, don't include deathDate.
+	• For the title, create a concise description that clearly identifies the subject. Avoid direct quotes, instead summarize the content in your own words. Please rely on the provided article for reference, don't rely on your training data.
 
-LANGUAGE INSTRUCTIONS:
-1. Use the SAME LANGUAGE: #LANGUAGE# as the article for all the text fields.
-2. Keep field names (title, birthDate, deathDate) in English.
-3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
+3. LANGUAGE INSTRUCTIONS:
+	• Use the SAME LANGUAGE: #LANGUAGE# as the article for all the text fields.
+	• Keep field names (title, birthDate, deathDate) in English.
+	• Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
 `;
