@@ -527,20 +527,42 @@ async function fetchWikipediaContent(
     `Fetching wiki page for ${pageInfo.language}:${pageInfo.pageName}`
   );
 
-  const page = await wiki.page(pageInfo.pageName);
-  const [content, intro, tables] = await Promise.all([
-    page.content(),
-    page.intro(),
-    page.tables(),
-  ]);
+  try {
+    const page = await wiki.page(pageInfo.pageName);
 
-  return {
-    content:
-      content +
-      "\n\n" +
-      tables.map((table) => JSON.stringify(table, null, 2)).join("\n\n"),
-    intro: intro,
-  };
+    // Get content and intro first
+    const [content, intro] = await Promise.all([page.content(), page.intro()]);
+
+    // Try to get tables, but don't let it fail the whole request
+    let tableContent = "";
+    try {
+      const tables = await page.tables();
+      if (tables && tables.length > 0) {
+        tableContent =
+          "\n\n" +
+          tables.map((table) => JSON.stringify(table, null, 2)).join("\n\n");
+        logger.debug(`Found ${tables.length} tables for ${pageInfo.pageName}`);
+      }
+    } catch (tableError) {
+      // Just log the error and continue without tables
+      logger.warn(
+        `Could not fetch tables for ${pageInfo.language}:${pageInfo.pageName}:`,
+        tableError
+      );
+    }
+
+    return {
+      content: content + tableContent,
+      intro: intro,
+    };
+  } catch (error) {
+    // Rethrow the main error so it can be handled by the caller
+    logger.error(
+      `Failed to fetch Wikipedia content for ${pageInfo.language}:${pageInfo.pageName}:`,
+      error
+    );
+    throw error;
+  }
 }
 
 // Update the GET handler with new error handling
