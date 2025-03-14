@@ -74,5 +74,4 @@ export interface TimelineJSEvent {
 export interface TimelineJSTimeline {
   events: TimelineJSEvent[];
   title?: TimelineJSEvent;
-  scale?: "human" | "cosmological";
 }

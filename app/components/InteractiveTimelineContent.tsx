@@ -367,40 +367,9 @@ export default function InteractiveTimelineContent({
       );
     }
 
-    // Check if the scale has changed due to filtering
-    const needsCosmologicalScale = finalFilteredEvents.some((event) =>
-      requiresCosmologicalScale(event.start_date)
-    );
-
-    // Update the timeline scale if needed
-    if (
-      (needsCosmologicalScale &&
-        timelineJSTimeline?.scale !== "cosmological") ||
-      (!needsCosmologicalScale && timelineJSTimeline?.scale === "cosmological")
-    ) {
-      logger.debug("Scale change detected due to filtering", {
-        oldScale: timelineJSTimeline?.scale || "human",
-        newScale: needsCosmologicalScale ? "cosmological" : "human",
-      });
-
-      setTimelineJSTimeline({
-        ...originalTimelineJSTimeline,
-        scale: needsCosmologicalScale ? "cosmological" : undefined,
-        events: originalTimelineJSTimeline.events, // Keep all events, just update the scale
-      });
-    }
-
     // Update filtered events for display
     setFilteredEvents(finalFilteredEvents);
   }, [originalTimelineJSTimeline, dateRangeFilter, topEventsCount]);
-
-  // Helper function to check if a date requires cosmological scale
-  function requiresCosmologicalScale(date: any): boolean {
-    if (!date || !date.year) return false;
-
-    const absYear = Math.abs(date.year);
-    return date.year < 0 ? absYear > 271821 : absYear > 275760;
-  }
 
   const handleTimelineRefresh = () => {
     const pageNames = selectedPages
@@ -734,7 +703,6 @@ export default function InteractiveTimelineContent({
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
                   events={filteredEvents}
-                  scale={timelineJSTimeline.scale}
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
                   timenavMobileHeightPercentage={timenavHeightPercentage}
@@ -745,7 +713,6 @@ export default function InteractiveTimelineContent({
                 <MyTimelineComponent
                   title={timelineJSTimeline.title}
                   events={filteredEvents}
-                  scale={timelineJSTimeline.scale}
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
                   timenavHeightPercentage={timenavHeightPercentage}

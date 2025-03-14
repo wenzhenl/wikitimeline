@@ -253,6 +253,5 @@ export function formatTimelineEventsForInteractive(
         score: event.score,
       };
     }),
-    ...(needsCosmologicalScale && { scale: "cosmological" as const }),
   };
 }

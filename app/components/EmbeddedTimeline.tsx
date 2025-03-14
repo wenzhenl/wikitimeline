@@ -17,7 +17,6 @@ export default function EmbeddedTimeline({
         <MyTimelineComponent
           title={formattedData.title}
           events={formattedData.events}
-          scale={formattedData.scale}
           font="default"
         />
       )}

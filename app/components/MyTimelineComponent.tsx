@@ -9,7 +9,6 @@ interface MyTimelineComponentProps {
   title?: TimelineJSEvent;
   events: TimelineJSEvent[];
   font: string;
-  scale?: "human" | "cosmological";
   timenavPosition?: "top" | "bottom";
   timenavHeightPercentage?: number;
   timenavMobileHeightPercentage?: number;
@@ -27,7 +26,6 @@ const MyTimelineComponent = ({
   title,
   events,
   font,
-  scale,
   timenavPosition = "bottom",
   timenavHeightPercentage = 50, // Default to 50% for desktop
   timenavMobileHeightPercentage = 50, // Default to 50% for mobile
@@ -36,12 +34,33 @@ const MyTimelineComponent = ({
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
 
+  // Helper function to determine if cosmological scale is needed
+  function requiresCosmologicalScale(events: TimelineJSEvent[]): boolean {
+    return events.some((event) => {
+      const date = event.start_date;
+      if (!date || !date.year) return false;
+
+      const absYear = Math.abs(date.year);
+      return date.year < 0 ? absYear > 271821 : absYear > 275760;
+    });
+  }
+
   useEffect(() => {
     if (typeof window !== "undefined" && timelineRef.current) {
       import("@knight-lab/timelinejs").then(({ Timeline }) => {
         if (timelineInstance && timelineRef.current) {
           timelineRef.current.innerHTML = "";
         }
+
+        // Determine if cosmological scale is needed based on the events
+        const needsCosmologicalScale = requiresCosmologicalScale(events);
+        const timelineScale = needsCosmologicalScale ? "cosmological" : "human";
+
+        logger.debug("Timeline scale auto-determined", {
+          scale: timelineScale,
+          eventsCount: events.length,
+          hasAncientDates: needsCosmologicalScale,
+        });
 
         const options = {
           initial_zoom: 5,
@@ -57,7 +76,7 @@ const MyTimelineComponent = ({
 
         const timeline = new Timeline(
           timelineRef.current!,
-          { title: title, events: events, scale: scale },
+          { title: title, events: events, scale: timelineScale },
           options
         );
 
@@ -203,7 +222,6 @@ const MyTimelineComponent = ({
     title,
     events,
     font,
-    scale,
     timenavPosition,
     timenavHeightPercentage,
     timenavMobileHeightPercentage,
