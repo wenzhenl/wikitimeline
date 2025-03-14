@@ -26,7 +26,10 @@ import {
   WIKI_METADATA_EXTRACTION_PROMPT,
 } from "@/app/constants/gemini/systemPrompt";
 import { compareDates, getLanguageName } from "@/app/utils/helper";
-import { WIKI_EVENTS_SCHEMA, WIKI_METADATA_SCHEMA } from "@/app/constants/gemini/timelineSchema";
+import {
+  WIKI_EVENTS_SCHEMA,
+  WIKI_METADATA_SCHEMA,
+} from "@/app/constants/gemini/timelineSchema";
 
 // Initialize Redis
 const redis = Redis.fromEnv();
@@ -590,16 +593,25 @@ export async function GET(
           const cached = await redis.get(cacheKey);
           if (cached && typeof cached === "object") {
             const cachedData = cached as NewTimelineFormat;
-            timeline = cachedData.timeline;
+            const cachedTimeline = cachedData.timeline;
 
-            if (timeline) {
+            // Check if cached timeline exists and version matches
+            if (
+              cachedTimeline &&
+              cachedTimeline.version === DEFAULT_TIMELINE_VERSION
+            ) {
+              timeline = cachedTimeline;
               logger.info(
                 `Using cached timeline for ${pageInfo.language}:${pageInfo.pageName}`
+              );
+            } else if (cachedTimeline) {
+              logger.info(
+                `Cached timeline version mismatch for ${pageInfo.language}:${pageInfo.pageName} (cached: ${cachedTimeline.version}, current: ${DEFAULT_TIMELINE_VERSION}), regenerating...`
               );
             }
           }
 
-          // If not in cache, generate it
+          // If not in cache or version mismatch, generate it
           if (!timeline) {
             logger.info(
               `Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`
