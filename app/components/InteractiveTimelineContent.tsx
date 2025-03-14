@@ -59,6 +59,7 @@ export default function InteractiveTimelineContent({
   };
 
   const [loading, setLoading] = useState(true);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -160,28 +161,46 @@ export default function InteractiveTimelineContent({
     );
   }, [params.pageName]);
 
+  // Load user preferences from localStorage on mount
   useEffect(() => {
-    const savedFont = safeGetItem("timeline-font");
-    if (savedFont) {
-      setSelectedFont(savedFont as FontId);
-    }
-  }, []);
+    // Load all preferences in a single effect to avoid multiple renders
+    const loadPreferences = () => {
+      logger.debug("Loading user preferences from localStorage");
 
-  useEffect(() => {
-    const savedColorScheme = safeGetItem("timeline-color-scheme");
-    if (
-      savedColorScheme &&
-      COLOR_SCHEMES.some((scheme) => scheme.id === savedColorScheme)
-    ) {
-      setSelectedColorScheme(savedColorScheme as ColorSchemeId);
-    }
-  }, []);
+      // Load font preference
+      const savedFont = safeGetItem("timeline-font");
+      if (savedFont) {
+        setSelectedFont(savedFont as FontId);
+      }
 
-  useEffect(() => {
-    const savedTimenavPosition = safeGetItem("timeline-timenav-position");
-    if (savedTimenavPosition === "top" || savedTimenavPosition === "bottom") {
-      setSelectedTimenavPosition(savedTimenavPosition as TimenavPosition);
-    }
+      // Load color scheme preference
+      const savedColorScheme = safeGetItem("timeline-color-scheme");
+      if (
+        savedColorScheme &&
+        COLOR_SCHEMES.some((scheme) => scheme.id === savedColorScheme)
+      ) {
+        setSelectedColorScheme(savedColorScheme as ColorSchemeId);
+      }
+
+      // Load timenav position preference
+      const savedTimenavPosition = safeGetItem("timeline-timenav-position");
+      if (savedTimenavPosition === "top" || savedTimenavPosition === "bottom") {
+        setSelectedTimenavPosition(savedTimenavPosition as TimenavPosition);
+      }
+
+      // Height percentage is already loaded in the state initialization
+
+      // Mark preferences as loaded
+      setPreferencesLoaded(true);
+      logger.debug("User preferences loaded", {
+        font: savedFont || "default",
+        colorScheme: savedColorScheme || "default",
+        timenavPosition: savedTimenavPosition || "bottom",
+      });
+    };
+
+    // Load preferences immediately
+    loadPreferences();
   }, []);
 
   const handleCopyEmbedCode = async () => {
@@ -213,7 +232,14 @@ export default function InteractiveTimelineContent({
 
   // Consolidated useEffect for timeline data initialization and updates
   useEffect(() => {
-    if (!initialData.results) return;
+    // Only process timeline data after preferences are loaded
+    if (!preferencesLoaded || !initialData.results) return;
+
+    logger.debug("Processing timeline data after preferences loaded", {
+      colorScheme: selectedColorScheme,
+      font: selectedFont,
+      timenavPosition: selectedTimenavPosition,
+    });
 
     // Create a function to process the timeline data
     const processTimelineData = (isInitialLoad: boolean) => {
@@ -289,7 +315,7 @@ export default function InteractiveTimelineContent({
 
     // Process the data based on loading state
     processTimelineData(loading);
-  }, [initialData, selectedColorScheme]); // Removed loading from dependencies
+  }, [initialData, selectedColorScheme, preferencesLoaded]); // Added preferencesLoaded dependency
 
   // Add a listener for when the timeline is fully initialized
   const handleTimelineInitialized = useCallback(() => {
@@ -484,8 +510,8 @@ export default function InteractiveTimelineContent({
     setTopEventsCount(count);
   };
 
-  // If still loading the timeline data, show loading state with header
-  if (loading || !originalTimelineJSTimeline) {
+  // If still loading the timeline data or preferences, show loading state with header
+  if (loading || !preferencesLoaded || !originalTimelineJSTimeline) {
     return (
       <div
         className="min-h-screen flex flex-col"
@@ -730,6 +756,7 @@ export default function InteractiveTimelineContent({
             >
               <div className="h-[500px] lg:hidden">
                 <MyTimelineComponent
+                  key={`mobile-${selectedFont}-${selectedTimenavPosition}-${timenavHeightPercentage}`}
                   title={originalTimelineJSTimeline.title}
                   events={filteredEvents}
                   font={selectedFont}
@@ -740,6 +767,7 @@ export default function InteractiveTimelineContent({
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
                 <MyTimelineComponent
+                  key={`desktop-${selectedFont}-${selectedTimenavPosition}-${timenavHeightPercentage}`}
                   title={originalTimelineJSTimeline.title}
                   events={filteredEvents}
                   font={selectedFont}
