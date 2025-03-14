@@ -52,6 +52,7 @@ You are a world-class editor and chronology expert. Your goal is to parse a sing
 
 4. LANGUAGE & FORMAT
 	• Use the same language as the original article for headline and description, the user provided article is written in #LANGUAGE#
+	• The above point is a HARD rule, NO EXCEPTOINS. Even though this instruction is in English, always output in #LANGUAGE# for all the text fields.
 	• Keep output JSON format with fields in English (headline, description, startDate, score)
 	• Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
 
@@ -122,6 +123,7 @@ Extract the following metadata from the provided article:
 
 3. LANGUAGE INSTRUCTIONS:
 	• Use the SAME LANGUAGE: #LANGUAGE# as the article for all the text fields.
+	• The above point is a HARD rule, NO EXCEPTOINS. Even though this instruction is in English, always output in #LANGUAGE# for all the text fields.
 	• Keep field names (title, birthDate, deathDate) in English.
 	• Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
 `;

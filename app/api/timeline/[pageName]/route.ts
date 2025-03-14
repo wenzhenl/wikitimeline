@@ -184,6 +184,13 @@ async function extractMetadataFromWikiIntro(
   pageName: string,
   language: string
 ): Promise<{ title: string; birthDate?: string; deathDate?: string }> {
+  const systemPrompt = WIKI_METADATA_EXTRACTION_PROMPT.replaceAll(
+    "#LANGUAGE#",
+    getLanguageName(language)
+  );
+
+  logger.debug("WIKI_METADATA_EXTRACTION_PROMPT", systemPrompt);
+
   try {
     const model = genAI.getGenerativeModel({
       model: DEFAULT_MODEL,
@@ -194,16 +201,17 @@ async function extractMetadataFromWikiIntro(
         responseMimeType: "application/json",
         responseSchema: WIKI_METADATA_SCHEMA,
       },
-      systemInstruction: WIKI_METADATA_EXTRACTION_PROMPT.replace(
-        "#LANGUAGE#",
-        getLanguageName(language)
-      ),
+      systemInstruction: systemPrompt,
     });
 
     // Create the prompt for metadata extraction
     const userPrompt = `      
       Extract metadata from the following article:
       ${wikiIntro}
+
+      Please output all the metadata in the same language as the article: ${getLanguageName(
+        language
+      )}
     `;
 
     // Call Gemini to extract metadata
@@ -261,6 +269,12 @@ async function extractEventsFromWikiContent(
   pageName: string,
   language: string
 ): Promise<TimelineEvent[]> {
+  const systemPrompt = WIKI_EVENTS_EXTRACTION_PROMPT.replaceAll(
+    "#LANGUAGE#",
+    getLanguageName(language)
+  );
+
+  logger.debug("WIKI_EVENTS_EXTRACTION_PROMPT", systemPrompt);
   const model = genAI.getGenerativeModel({
     model: DEFAULT_MODEL,
     safetySettings: SAFETY_SETTINGS,
@@ -270,10 +284,7 @@ async function extractEventsFromWikiContent(
       responseMimeType: "application/json",
       responseSchema: WIKI_EVENTS_SCHEMA,
     },
-    systemInstruction: WIKI_EVENTS_EXTRACTION_PROMPT.replace(
-      "#LANGUAGE#",
-      getLanguageName(language)
-    ),
+    systemInstruction: systemPrompt,
   });
 
   // Track accumulated events
@@ -288,6 +299,10 @@ async function extractEventsFromWikiContent(
     <wikipedia_content>
     ${wikiContent}
     </wikipedia_content>
+
+    Please output all the events in the same language as the article: ${getLanguageName(
+      language
+    )}
   `;
 
   while (iterations < MAX_ITERATIONS) {
@@ -362,6 +377,9 @@ async function extractEventsFromWikiContent(
         ${JSON.stringify(accumulatedEvents, null, 2)}
         
         Continue extracting events from: ${pageName}, but only extract events that are not already in the events list above.
+        Please output all the events in the same language as the article: ${getLanguageName(
+          language
+        )}
       `;
 
       iterations++;
