@@ -551,13 +551,7 @@ export async function GET(
                 logger.info(
                   `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
                 );
-                // Fire and forget Redis set
-                redis.set(cacheKey, { timeline }).catch((error) => {
-                  logger.error(
-                    `Failed to cache timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
-                    error
-                  );
-                });
+                await redis.set(cacheKey, { timeline });
               }
             } catch (error) {
               // Handle Wikipedia API errors
