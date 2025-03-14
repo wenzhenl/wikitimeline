@@ -6,7 +6,6 @@ Return a JSON array of events. Each event must have these fields:
 - headline: Concise, self-contained title describing the event
 - description: Clear, concise summary that provides context. Avoid direct Wikipedia quotes, instead summarize the event in your own words. Please rely on the provided wikipedia content for reference, don't rely on your training data.
 - startDate: Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)
-- endDate: End date for ranges, using same format as startDate. Use null if not applicable
 - score: Numeric value from 1-100 representing the importance/relevance of this event
 
 Example of the expected format:
@@ -15,14 +14,12 @@ Example of the expected format:
     "headline": "Birth of Albert Einstein",
     "description": "Albert Einstein was born in Ulm, in the Kingdom of Württemberg in the German Empire, on March 14, 1879.",
     "startDate": "1879-03-14",
-    "endDate": null,
     "score": 100
   },
   {
     "headline": "Publication of Special Relativity",
     "description": "Einstein published his paper on Special Relativity titled 'On the Electrodynamics of Moving Bodies' in the journal Annalen der Physik on September 26, 1905.",
     "startDate": "1905-09-26",
-    "endDate": null,
     "score": 95
   }
 ]
@@ -45,7 +42,7 @@ IMPORTANT INSTRUCTIONS:
 
 LANGUAGE INSTRUCTIONS:
 1. Use the SAME LANGUAGE: #LANGUAGE# as the Wikipedia article for all text fields (headline, description).
-2. Keep field names (headline, description, startDate, endDate, score) in English.
+2. Keep field names (headline, description, startDate, score) in English.
 3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
 4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT consistently throughout all events, matching the variant used in the Wikipedia article.
 
@@ -55,7 +52,7 @@ ACCURACY IS THE TOP PRIORITY:
 - Do not include events or dates from your training data - only use what's in the provided article
 - If a date appears in the text but is ambiguous or seems incorrect, exclude it
 - If the Wikipedia article contains no dated events, output []
-- For date ranges, set the startDate to the start of the range and the endDate to the end of the range
+- For date ranges, set the startDate to the start of the range and include the end date in the description
 - Always include the full date in the event description for context
 
 ASSIGNING IMPORTANCE SCORES:

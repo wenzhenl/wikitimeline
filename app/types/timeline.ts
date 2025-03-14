@@ -2,7 +2,6 @@ export interface TimelineEvent {
   headline: string;
   description: string;
   startDate: string;
-  endDate?: string;
   age?: number;
   score: number; // Importance/relevance score from 1-100
 }
