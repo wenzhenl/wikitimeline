@@ -528,11 +528,18 @@ async function fetchWikipediaContent(
   );
 
   const page = await wiki.page(pageInfo.pageName);
-  const [content, intro] = await Promise.all([page.content(), page.intro()]);
+  const [content, intro, tables] = await Promise.all([
+    page.content(),
+    page.intro(),
+    page.tables(),
+  ]);
 
   return {
-    content,
-    intro,
+    content:
+      content +
+      "\n\n" +
+      tables.map((table) => JSON.stringify(table, null, 2)).join("\n\n"),
+    intro: intro,
   };
 }
 
@@ -666,7 +673,10 @@ export async function GET(
           }
 
           // Step 4: Set the results using the wiki summary we already have
-          if (timeline && timeline.events.length > MIN_NUM_EVENTS_FOR_TIMELINE) {
+          if (
+            timeline &&
+            timeline.events.length > MIN_NUM_EVENTS_FOR_TIMELINE
+          ) {
             results[pageInfo.original] = {
               status: "success",
               timeline,
