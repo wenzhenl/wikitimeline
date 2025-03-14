@@ -33,25 +33,94 @@ const MyTimelineComponent = ({
 }: MyTimelineComponentProps) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineInstance, setTimelineInstance] = useState<any>(null);
+  // Add a ref to store the detected scale to prevent it from changing unexpectedly
+  const detectedScaleRef = useRef<string | null>(null);
 
   // Helper function to determine if cosmological scale is needed
   function requiresCosmologicalScale(events: TimelineJSEvent[]): boolean {
-    return events.some((event) => {
+    // Log the events we're checking
+    logger.debug("Checking for cosmological scale", {
+      eventCount: events?.length || 0,
+      hasEvents: !!events && events.length > 0,
+      sampleEvent: events?.[0]
+        ? {
+            hasStartDate: !!events[0].start_date,
+            year: events[0].start_date?.year,
+            headline: events[0].text?.headline,
+          }
+        : null,
+    });
+
+    // If we've already detected the scale, use that value
+    if (detectedScaleRef.current) {
+      const needsCosmological = detectedScaleRef.current === "cosmological";
+      logger.debug(
+        `Using previously detected scale: ${detectedScaleRef.current}`
+      );
+      return needsCosmological;
+    }
+
+    if (!events || events.length === 0) {
+      logger.warn("No events provided to check for cosmological scale");
+      return false;
+    }
+
+    // Check each event for cosmological dates
+    const cosmologicalEvents = events.filter((event) => {
       const date = event.start_date;
       if (!date || !date.year) return false;
 
       const absYear = Math.abs(date.year);
-      return date.year < 0 ? absYear > 271821 : absYear > 275760;
+      const needsCosmological =
+        date.year < 0 ? absYear > 271821 : absYear > 275760;
+
+      if (needsCosmological) {
+        logger.debug("Found cosmological date", {
+          year: date.year,
+          absYear,
+          headline: event.text?.headline,
+        });
+      }
+
+      return needsCosmological;
     });
+
+    const needsCosmological = cosmologicalEvents.length > 0;
+
+    // Store the detected scale in the ref to prevent it from changing
+    detectedScaleRef.current = needsCosmological ? "cosmological" : "human";
+
+    logger.debug("Cosmological scale detection result", {
+      needsCosmological,
+      cosmologicalEventCount: cosmologicalEvents.length,
+      totalEventCount: events.length,
+    });
+
+    return needsCosmological;
   }
 
   useEffect(() => {
+    // Reset the detected scale when the events change
+    detectedScaleRef.current = null;
+
     if (typeof window !== "undefined" && timelineRef.current) {
       // Ensure we have events before initializing
       if (!events || events.length === 0) {
         logger.warn("No events provided to MyTimelineComponent");
         return;
       }
+
+      // Log the events we're initializing with
+      logger.debug("Initializing timeline with events", {
+        eventCount: events.length,
+        firstEvent: events[0]
+          ? {
+              hasStartDate: !!events[0].start_date,
+              year: events[0].start_date?.year,
+              headline: events[0].text?.headline,
+            }
+          : null,
+      });
 
       import("@knight-lab/timelinejs")
         .then(({ Timeline }) => {
@@ -66,7 +135,7 @@ const MyTimelineComponent = ({
               ? "cosmological"
               : "human";
 
-            logger.debug("Timeline scale auto-determined", {
+            logger.debug("Timeline scale determined", {
               scale: timelineScale,
               eventsCount: events.length,
               hasAncientDates: needsCosmologicalScale,
@@ -84,14 +153,22 @@ const MyTimelineComponent = ({
               font,
             };
 
+            // Create a deep copy of the events to prevent any modifications
+            const eventsCopy = JSON.parse(JSON.stringify(events));
+
             const timeline = new Timeline(
               timelineRef.current!,
-              { title: title, events: events, scale: timelineScale },
+              {
+                title: title,
+                events: eventsCopy,
+                scale: timelineScale,
+              },
               options
             );
 
             // Listen for the timeline's 'loaded' event to notify parent
             (timeline as any).on("loaded", () => {
+              logger.debug("Timeline loaded event fired");
               if (onInitialized) {
                 onInitialized();
               }
@@ -108,6 +185,8 @@ const MyTimelineComponent = ({
                   logger.warn("Could not access TimeNav component");
                   return;
                 }
+
+                logger.debug("Setting up timeline scroll handlers");
 
                 // Universal scroll handler for all browsers
                 // Supports horizontal scroll, shift+scroll, and regular vertical scroll in timenav area
@@ -217,52 +296,78 @@ const MyTimelineComponent = ({
                   return element.closest(".tl-timenav") !== null;
                 };
 
-                // Attach scroll handler to timenav elements
-                const timenavContainer = document.querySelector(".tl-timenav");
-                if (timenavContainer) {
-                  timenavContainer.addEventListener(
-                    "wheel",
-                    handleUniversalScroll,
-                    {
-                      passive: false,
-                    }
-                  );
-                }
-
-                // Also attach to the slider for redundancy
-                const slider = document.querySelector(".tl-timenav-slider");
-                if (slider) {
-                  slider.addEventListener("wheel", handleUniversalScroll, {
-                    passive: false,
-                  });
-                }
-
-                // Add event listener to the timeline container but check if the event target is within the timenav area
-                if (timelineRef.current) {
-                  timelineRef.current.addEventListener(
-                    "wheel",
-                    (e: Event) => {
-                      try {
-                        const target = e.target as HTMLElement;
-
-                        // Only handle scrolls when in the timenav area
-                        if (isInTimenavArea(target)) {
-                          handleUniversalScroll(e);
+                // Use a small delay to ensure DOM elements are fully rendered
+                setTimeout(() => {
+                  try {
+                    // Attach scroll handler to timenav elements
+                    const timenavContainer =
+                      document.querySelector(".tl-timenav");
+                    if (timenavContainer) {
+                      logger.debug(
+                        "Attaching scroll handler to timenav container"
+                      );
+                      timenavContainer.addEventListener(
+                        "wheel",
+                        handleUniversalScroll,
+                        {
+                          passive: false,
                         }
-                      } catch (error) {
-                        logger.error("Error in wheel event handler:", error);
-                      }
-                    },
-                    { passive: false }
-                  );
-                }
+                      );
+                    } else {
+                      logger.warn("Could not find timenav container element");
+                    }
+
+                    // Also attach to the slider for redundancy
+                    const slider = document.querySelector(".tl-timenav-slider");
+                    if (slider) {
+                      logger.debug(
+                        "Attaching scroll handler to timenav slider"
+                      );
+                      slider.addEventListener("wheel", handleUniversalScroll, {
+                        passive: false,
+                      });
+                    } else {
+                      logger.warn("Could not find timenav slider element");
+                    }
+
+                    // Add event listener to the timeline container but check if the event target is within the timenav area
+                    if (timelineRef.current) {
+                      logger.debug(
+                        "Attaching scroll handler to timeline container"
+                      );
+                      timelineRef.current.addEventListener(
+                        "wheel",
+                        (e: Event) => {
+                          try {
+                            const target = e.target as HTMLElement;
+
+                            // Only handle scrolls when in the timenav area
+                            if (isInTimenavArea(target)) {
+                              handleUniversalScroll(e);
+                            }
+                          } catch (error) {
+                            logger.error(
+                              "Error in wheel event handler:",
+                              error
+                            );
+                          }
+                        },
+                        { passive: false }
+                      );
+                    }
+
+                    logger.debug("Timeline scroll handlers setup complete");
+                  } catch (error) {
+                    logger.error("Error attaching scroll handlers:", error);
+                  }
+                }, 500); // Additional delay for DOM elements to be ready
               } catch (error) {
                 logger.error(
                   "Error setting up timeline scroll handlers:",
                   error
                 );
               }
-            }, 1500); // Increased wait time for timeline to fully initialize
+            }, 2000); // Increased wait time for timeline to fully initialize
           } catch (error) {
             logger.error("Error initializing timeline:", error);
           }

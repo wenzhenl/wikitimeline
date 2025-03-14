@@ -215,51 +215,81 @@ export default function InteractiveTimelineContent({
   useEffect(() => {
     if (!initialData.results) return;
 
-    // Set loading state for initial load
-    if (loading) {
-      // Use async approach with setTimeout for initial loading to prevent UI blocking
-      const formatEventsAsync = async () => {
-        const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
-          setTimeout(
-            () =>
-              resolve(
-                formatTimelineEventsForInteractive(
-                  initialData.results,
-                  selectedColorScheme
-                )
-              ),
-            0
-          );
+    // Create a function to process the timeline data
+    const processTimelineData = (isInitialLoad: boolean) => {
+      // Log the processing attempt
+      logger.debug(
+        `Processing timeline data ${
+          isInitialLoad ? "(initial load)" : "(update)"
+        }`,
+        {
+          colorScheme: selectedColorScheme,
+          hasEvents: !!initialData.results,
+          loading: isInitialLoad,
+        }
+      );
+
+      // Process the data (with or without async depending on if it's initial load)
+      if (isInitialLoad) {
+        // Use async approach with setTimeout for initial loading to prevent UI blocking
+        const formatEventsAsync = async () => {
+          const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
+            setTimeout(() => {
+              const result = formatTimelineEventsForInteractive(
+                initialData.results,
+                selectedColorScheme
+              );
+
+              // Log the formatted data for debugging
+              logger.debug("Formatted timeline data (async)", {
+                eventCount: result.events?.length || 0,
+                hasEvents: !!result.events,
+                firstEventYear: result.events?.[0]?.start_date?.year,
+              });
+
+              resolve(result);
+            }, 0);
+          });
+
+          // Store the original timeline
+          setOriginalTimelineJSTimeline(formatted);
+
+          // Initialize filtered events with all events to ensure the timeline has data
+          if (formatted && formatted.events) {
+            setFilteredEvents(formatted.events);
+          }
+
+          // Mark timeline data as ready
+          setLoading(false);
+        };
+        formatEventsAsync();
+      } else {
+        // For subsequent updates (like color scheme changes), process synchronously
+        const formatted = formatTimelineEventsForInteractive(
+          initialData.results,
+          selectedColorScheme
+        );
+
+        // Log the formatted data for debugging
+        logger.debug("Formatted timeline data (sync)", {
+          eventCount: formatted.events?.length || 0,
+          hasEvents: !!formatted.events,
+          firstEventYear: formatted.events?.[0]?.start_date?.year,
         });
 
-        // Store the original timeline
+        // Update the original timeline
         setOriginalTimelineJSTimeline(formatted);
 
-        // Initialize filtered events with all events to ensure the timeline has data
+        // Reset filtered events when color scheme changes to ensure consistency
         if (formatted && formatted.events) {
           setFilteredEvents(formatted.events);
         }
-
-        // Mark timeline data as ready
-        setLoading(false);
-      };
-      formatEventsAsync();
-    } else {
-      // For subsequent updates (like color scheme changes), process synchronously
-      const formatted = formatTimelineEventsForInteractive(
-        initialData.results,
-        selectedColorScheme
-      );
-
-      // Update the original timeline
-      setOriginalTimelineJSTimeline(formatted);
-
-      // Reset filtered events when color scheme changes to ensure consistency
-      if (formatted && formatted.events) {
-        setFilteredEvents(formatted.events);
       }
-    }
-  }, [initialData, selectedColorScheme, loading]);
+    };
+
+    // Process the data based on loading state
+    processTimelineData(loading);
+  }, [initialData, selectedColorScheme]); // Removed loading from dependencies
 
   // Add a listener for when the timeline is fully initialized
   const handleTimelineInitialized = useCallback(() => {
