@@ -59,8 +59,6 @@ export default function InteractiveTimelineContent({
   };
 
   const [loading, setLoading] = useState(true);
-  const [timelineJSTimeline, setTimelineJSTimeline] =
-    useState<TimelineJSTimeline | null>(null);
   const [selectedPages, setSelectedPages] = useState<SelectedPage[]>([]);
   const [selectedFont, setSelectedFont] = useState<FontId>(
     AVAILABLE_FONTS[0].value
@@ -230,7 +228,6 @@ export default function InteractiveTimelineContent({
 
       // Store both the original timeline and the current timeline
       setOriginalTimelineJSTimeline(formatted);
-      setTimelineJSTimeline(formatted);
 
       // Initialize filtered events with all events
       if (formatted && formatted.events) {
@@ -258,7 +255,6 @@ export default function InteractiveTimelineContent({
 
       // Update both the original and current timeline
       setOriginalTimelineJSTimeline(formatted);
-      setTimelineJSTimeline(formatted);
 
       // Reset filters when color scheme changes
       setFilteredEvents(formatted.events);
@@ -454,7 +450,7 @@ export default function InteractiveTimelineContent({
   };
 
   // If still loading the timeline data, show loading state with header
-  if (loading || !timelineJSTimeline) {
+  if (loading || !originalTimelineJSTimeline) {
     return (
       <div
         className="min-h-screen flex flex-col"
@@ -692,14 +688,14 @@ export default function InteractiveTimelineContent({
         }}
       >
         <div className="flex-1 w-full max-w-3xl lg:max-w-4xl xl:max-w-[min(90vw,calc((100vh-200px)*16/9))] 2xl:max-w-[min(90vw,calc((100vh-200px)*16/9))]">
-          {timelineJSTimeline.events.length > 0 && (
+          {originalTimelineJSTimeline.events.length > 0 && (
             <div
               ref={timelineContainerRef}
               className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4"
             >
               <div className="h-[500px] lg:hidden">
                 <MyTimelineComponent
-                  title={timelineJSTimeline.title}
+                  title={originalTimelineJSTimeline.title}
                   events={filteredEvents}
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
@@ -709,7 +705,7 @@ export default function InteractiveTimelineContent({
               </div>
               <div className="hidden lg:block relative w-full aspect-[16/9]">
                 <MyTimelineComponent
-                  title={timelineJSTimeline.title}
+                  title={originalTimelineJSTimeline.title}
                   events={filteredEvents}
                   font={selectedFont}
                   timenavPosition={selectedTimenavPosition}
@@ -723,7 +719,7 @@ export default function InteractiveTimelineContent({
                 onRefresh={handleTimelineRefresh}
                 isExpanded={isControlsExpanded}
                 onExpandedChange={setIsControlsExpanded}
-                events={timelineJSTimeline.events}
+                events={originalTimelineJSTimeline.events}
                 onDateRangeChange={handleDateRangeChange}
                 activeModal={activeControlsModal}
                 setActiveModal={setActiveControlsModal}
