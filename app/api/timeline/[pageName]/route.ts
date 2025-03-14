@@ -21,7 +21,13 @@ import {
 import { unstable_cache } from "next/cache";
 import { SITE_CONFIG } from "@/app/config/site";
 import { SAFETY_SETTINGS } from "@/app/constants/gemini/safetySettings";
-import { MAX_OUTPUT_TOKENS, PRESENCE_PENALTY, TEMPERATURE, TOP_K, TOP_P } from "@/app/constants/gemini";
+import {
+  MAX_OUTPUT_TOKENS,
+  PRESENCE_PENALTY,
+  TEMPERATURE,
+  TOP_K,
+  TOP_P,
+} from "@/app/constants/gemini";
 import {
   WIKI_EVENTS_EXTRACTION_PROMPT,
   WIKI_METADATA_EXTRACTION_PROMPT,
