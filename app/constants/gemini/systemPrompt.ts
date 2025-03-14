@@ -110,8 +110,9 @@ Extract the following metadata from the provided article:
 
 IMPORTANT INSTRUCTIONS:
 1. Focus ONLY on extracting the title, birthDate, and deathDate from the article.
-2. If the subject is not a person, leave birthDate and deathDate as null.
-3. For the title, create a concise description that clearly identifies the subject. Avoid direct quotes, instead summarize the content in your own words. Please rely on the provided article for reference, don't rely on your training data.
+2. If the subject is not a person, don't include birthDate or deathDate.
+3. If the subject is a person, but is still not dead or death date is not known, don't include deathDate.
+4. For the title, create a concise description that clearly identifies the subject. Avoid direct quotes, instead summarize the content in your own words. Please rely on the provided article for reference, don't rely on your training data.
 
 LANGUAGE INSTRUCTIONS:
 1. Use the SAME LANGUAGE: #LANGUAGE# as the article for all the text fields.
