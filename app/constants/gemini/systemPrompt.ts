@@ -40,6 +40,7 @@ You are a world-class editor and chronology expert. Your goal is to parse a sing
 	A. Merging & Splitting:
 		• Split distinctly different milestones into separate events, each with its own score
 		• Skillfully merge closely related details that occur near in time if they form one logical narrative point
+		• If two events share the same or similar headline or description, merge them into one event
 		• When merging, use the most important element for the headline while including all details in the description
 		• Aim for a balanced timeline (generally under 50 events) through skillful merging rather than arbitrary omission
 
@@ -67,6 +68,7 @@ You are a world-class editor and chronology expert. Your goal is to parse a sing
 	- Review the complete list from Step 1
 	- Apply all rules specified above (merging similar events, evaluating significance, etc.)
 	- Write detailed descriptions that clearly establish relevance to the subject
+	- Pay special attention to all the dates and make sure they are correct, especially for BCE/BC dates, make sure they are using negative years.
 	- For important figures, emphasize key achievements and decisions
 	- For historical topics, connect events to their broader significance
 	- Remove or merge trivial events that don't add substantive understanding
