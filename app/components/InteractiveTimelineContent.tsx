@@ -211,55 +211,60 @@ export default function InteractiveTimelineContent({
   }, [initialData]);
   */
 
+  // Consolidated useEffect for timeline data initialization and updates
   useEffect(() => {
-    const formatEventsAsync = async () => {
-      const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
-        setTimeout(
-          () =>
-            resolve(
-              formatTimelineEventsForInteractive(
-                initialData.results,
-                selectedColorScheme
-              )
-            ),
-          0
-        );
-      });
+    if (!initialData.results) return;
 
-      // Store both the original timeline and the current timeline
-      setOriginalTimelineJSTimeline(formatted);
+    // Set loading state for initial load
+    if (loading) {
+      // Use async approach with setTimeout for initial loading to prevent UI blocking
+      const formatEventsAsync = async () => {
+        const formatted = await new Promise<TimelineJSTimeline>((resolve) => {
+          setTimeout(
+            () =>
+              resolve(
+                formatTimelineEventsForInteractive(
+                  initialData.results,
+                  selectedColorScheme
+                )
+              ),
+            0
+          );
+        });
 
-      // Initialize filtered events with all events
-      if (formatted && formatted.events) {
-        setFilteredEvents(formatted.events);
-      }
+        // Store the original timeline
+        setOriginalTimelineJSTimeline(formatted);
 
-      // Mark timeline data as ready
-      setLoading(false);
-    };
-    formatEventsAsync();
-  }, [initialData, selectedColorScheme]);
+        // Initialize filtered events with all events to ensure the timeline has data
+        if (formatted && formatted.events) {
+          setFilteredEvents(formatted.events);
+        }
 
-  // Add a listener for when the timeline is fully initialized
-  const handleTimelineInitialized = useCallback(() => {
-    setIsTimelineInitialized(true);
-  }, []);
-
-  // Update timeline when color scheme changes
-  useEffect(() => {
-    if (initialData.results) {
+        // Mark timeline data as ready
+        setLoading(false);
+      };
+      formatEventsAsync();
+    } else {
+      // For subsequent updates (like color scheme changes), process synchronously
       const formatted = formatTimelineEventsForInteractive(
         initialData.results,
         selectedColorScheme
       );
 
-      // Update both the original and current timeline
+      // Update the original timeline
       setOriginalTimelineJSTimeline(formatted);
 
-      // Reset filters when color scheme changes
-      setFilteredEvents(formatted.events);
+      // Reset filtered events when color scheme changes to ensure consistency
+      if (formatted && formatted.events) {
+        setFilteredEvents(formatted.events);
+      }
     }
-  }, [selectedColorScheme, initialData]);
+  }, [initialData, selectedColorScheme, loading]);
+
+  // Add a listener for when the timeline is fully initialized
+  const handleTimelineInitialized = useCallback(() => {
+    setIsTimelineInitialized(true);
+  }, []);
 
   // Simplified filtering - directly filter events from the original timeline
   useEffect(() => {
