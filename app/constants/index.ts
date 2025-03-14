@@ -1,5 +1,5 @@
 export const PAGE_DELIMITER = "|";
-export const MIN_NUM_EVENTS_FOR_TIMELINE = 10;
+export const MIN_NUM_EVENTS_FOR_TIMELINE = 1;
 
 // Page name constants
 export const PAGE_NAME_SEPARATOR = ":::";
