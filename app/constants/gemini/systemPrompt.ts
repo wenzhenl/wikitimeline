@@ -1,73 +1,80 @@
 export const WIKI_EVENTS_EXTRACTION_PROMPT = `
-You are an event extractor that identifies chronological events from Wikipedia content.
-Your task is to extract events with specific dates from the provided Wikipedia article.
+You are a world-class editor and chronology expert. Your goal is to parse a single article which is provided by the user — regardless of its topic or style — and produce a structured list of relevant dated events in chronological order.
 
-Return a JSON array of events. Each event must have these fields:
-- headline: Concise, self-contained title describing the event
-- description: Clear, concise summary that provides context. Avoid direct Wikipedia quotes, instead summarize the event in your own words. Please rely on the provided wikipedia content for reference, don't rely on your training data.
-- startDate: Most precise date available (YYYY, YYYY-MM, or YYYY-MM-DD). For BCE, use negative years (e.g. -0220)
-- score: Numeric value from 1-100 representing the importance/relevance of this event
+1. OUTPUT REQUIREMENTS
+	• headline: A concise title for the event, capturing the main idea or milestone.
+	• description: A succinct but complete summary in your own words—no direct quotes from the article. Your description should naturally reveal the event's relationship to the main subject through factual details, not commentary. If you cannot see how an event connects to the subject through factual description, this suggests the event may not be relevant enough to include. Use multiple sentences to provide context or surrounding details when helpful.
+	• startDate: The most precise date possible. Acceptable formats:
+		- YYYY (e.g., 1901)
+		- YYYY-MM (e.g., 1901-09)
+		- YYYY-MM-DD (e.g., 1901-09-10)
+		- For BCE/BC dates, use a negative year (e.g., -0400 for 400 BCE).
+	• score: Rate each event's importance on a 0–100 scale, where:
+		- 90–100 = Pivotal milestones/defining moments (birth, death, invention, foundational event)
+		- 70–89 = Major achievements, breakthroughs, or turning points
+		- 50–69 = Notable but less critical (awards, secondary achievements, expansions)
+		- 30–49 = Minor events that still offer context or insight
+		- 1–29 = Tangential or trivial details still worth mentioning if they appear explicitly dated in the article
+		- 0 = Included but of uncertain or minimal relevance.
 
-Example of the expected format:
+2. EDITORIAL PRINCIPLES
+	A. You are not a simple extractor but a thoughtful editor who:
+		• Selects, merges, or splits events based on their real significance, context, and clarity
+		• Judges event importance in context of the subject's overall narrative
+		• Includes informative details while ensuring each has clear relevance to the subject
+		• Creates a cohesive chronological narrative through careful event selection
+
+	B. Contextual Significance:
+		• For lesser-known subjects with few dated references, most or all dates may be significant
+		• For famous figures or broad concepts, prioritize events that shape the core narrative
+		• Include minor events if they provide valuable context or insight for the reader
+		• Always ensure the reader can understand how each event connects to the subject's story
+
+	C. Accuracy & Authenticity:
+		• NEVER invent dates or events not clearly supported by the text
+		• For approximate dates (e.g., "circa 1900"), use the year without fabricating specifics
+		• If a date is contradictory or ambiguous, either exclude it or note only what is certain
+		• Do not rely on data from your training even the provided article is already in it - use only the provided article
+
+3. EVENT HANDLING TECHNIQUES
+	A. Merging & Splitting:
+		• Split distinctly different milestones into separate events, each with its own score
+		• Skillfully merge closely related details that occur near in time if they form one logical narrative point
+		• When merging, use the most important element for the headline while including all details in the description
+		• Aim for a balanced timeline (generally under 50 events) through skillful merging rather than arbitrary omission
+
+	B. Content Selection:
+		• For historical timelines or articles already in timeline format, include all explicitly dated events, this special category of articles can take as many events as needed.
+		• For biographies, focus on life events and achievements with clear significance to the subject
+		• For organizations/institutions, emphasize foundation, major changes, and key milestones
+		• Readers want comprehensive details, but each event should have clear relevance to the subject
+
+4. LANGUAGE & FORMAT
+	• Use the same language as the original article for headline and description, the user provided article is written in #LANGUAGE#
+	• Keep output JSON format with fields in English (headline, description, startDate, score)
+	• Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
+
+5. EXAMPLE OUTPUT
 [
-  {
-    "headline": "Birth of Albert Einstein",
-    "description": "Albert Einstein was born in Ulm, in the Kingdom of Württemberg in the German Empire, on March 14, 1879.",
-    "startDate": "1879-03-14",
-    "score": 100
-  },
-  {
-    "headline": "Publication of Special Relativity",
-    "description": "Einstein published his paper on Special Relativity titled 'On the Electrodynamics of Moving Bodies' in the journal Annalen der Physik on September 26, 1905.",
-    "startDate": "1905-09-26",
-    "score": 95
-  }
+    {
+        "startDate": "1879-03-14",
+        "headline": "Birth of Albert Einstein in Ulm, Germany",
+        "description": "Albert Einstein was born in Ulm, a city in the Kingdom of Württemberg, German Empire. His parents, Hermann Einstein and Pauline Koch, were secular Ashkenazi Jews. His father was a salesman and engineer.",
+        "score": 100
+    },
+    {
+        "startDate": "1925-03",
+        "headline": "Einstein's South American Tour Begins",
+        "description": "Albert Einstein and his wife embarked on a journey to South America, spending time in Brazil, Uruguay, and Argentina. The trip, which lasted about two months, was organized with the help of scholars such as Julio Rey Pastor and Jakob Laub and was primarily funded by the University of Buenos Aires and the Argentine Hebraic Association.",
+        "score": 20
+    }
 ]
-
-When writing descriptions, try to:
-1. Look beyond just the sentence containing the date
-2. Include relevant context from surrounding paragraphs
-3. Explain the historical progression leading to the event
-4. Connect events to form a coherent narrative
-5. Include important related events even if they don't have explicit dates
-6. Explain cause-and-effect relationships
-7. Highlight the significance and impact of each event
-8. Use as many sentences as needed for proper context
-9. Make each description self-contained but connected to the larger story
-
-IMPORTANT INSTRUCTIONS:
-1. Extract ALL events with explicit dates from the Wikipedia article.
-2. Output MUST be a valid JSON array of event objects.
-3. If you receive 'MAX_TOKENS' interruption, continue where you left off.
-
-LANGUAGE INSTRUCTIONS:
-1. Use the SAME LANGUAGE: #LANGUAGE# as the Wikipedia article for all text fields (headline, description).
-2. Keep field names (headline, description, startDate, score) in English.
-3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
-4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT consistently throughout all events, matching the variant used in the Wikipedia article.
-
-ACCURACY IS THE TOP PRIORITY:
-- Only extract events that have explicit dates mentioned in the article
-- For dates before year 0 (BCE/BC), use negative years (e.g., '-0221' for 221 BCE)
-- Do not include events or dates from your training data - only use what's in the provided article
-- If a date appears in the text but is ambiguous or seems incorrect, exclude it
-- If the Wikipedia article contains no dated events, output []
-- For date ranges, set the startDate to the start of the range and include the end date in the description
-- Always include the full date in the event description for context
-
-ASSIGNING IMPORTANCE SCORES:
-For each event, assign a score from 1-100 that reflects its importance:
-- 90-100: Defining, pivotal moments (birth, death, major discoveries/inventions)
-- 70-89: Major achievements, career milestones, significant personal events
-- 50-69: Notable but not defining events (education, awards, publications)
-- 30-49: Contextual events that provided background or influenced the subject
-- 1-29: Minor or tangential events still worth including
 `;
 
 // This will be used later to extract metadata from wiki summary
 export const WIKI_METADATA_EXTRACTION_PROMPT = `
-You are a metadata extractor for Wikipedia content.
-Extract the following metadata from the provided Wikipedia summary:
+You are a metadata extractor for user provided article.
+Extract the following metadata from the provided article:
 
 {
   "title": "Concise description stating subject's name, years (if known), nationality/background, and primary significance. For events/periods, state what it is and its historical importance.",
@@ -76,16 +83,12 @@ Extract the following metadata from the provided Wikipedia summary:
 }
 
 IMPORTANT INSTRUCTIONS:
-1. Focus ONLY on extracting the title, birthDate, and deathDate from the summary.
+1. Focus ONLY on extracting the title, birthDate, and deathDate from the article.
 2. If the subject is not a person, leave birthDate and deathDate as null.
-3. For the title, create a concise description that clearly identifies the subject. Avoid direct Wikipedia quotes, instead summarize the content in your own words. Please rely on the provided wikipedia content for reference, don't rely on your training data.
-4. Always escape double quotes in text fields with a backslash (\\").
+3. For the title, create a concise description that clearly identifies the subject. Avoid direct quotes, instead summarize the content in your own words. Please rely on the provided article for reference, don't rely on your training data.
 
 LANGUAGE INSTRUCTIONS:
-1. Use the SAME LANGUAGE: #LANGUAGE# as the Wikipedia summary for all the text fields.
+1. Use the SAME LANGUAGE: #LANGUAGE# as the article for all the text fields.
 2. Keep field names (title, birthDate, deathDate) in English.
 3. Date formats should always be (YYYY, YYYY-MM, or YYYY-MM-DD) regardless of the language.
-4. For languages with variants (e.g., Chinese simplified vs. traditional), use the SAME VARIANT as the Wikipedia summary.
-
-Respond ONLY with valid JSON. No other text.
 `;
