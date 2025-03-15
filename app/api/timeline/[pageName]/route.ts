@@ -118,6 +118,10 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     };
   }
 
+  // Log the initial count of events
+  const initialEventCount = timeline.events.length;
+  logger.debug(`Processing timeline with ${initialEventCount} events`);
+
   // Sort events by date using compareDates function to properly handle negative years
   const sortedEvents = [...timeline.events].sort((a, b) => {
     const aDate = a.startDate || "";
@@ -130,6 +134,11 @@ function postProcessTimeline(timeline: Timeline): Timeline {
   const seenHeadlines = new Set<string>();
   const seenDateHeadlinePairs = new Set<string>();
 
+  // Counters for different types of duplicates
+  let exactDuplicates = 0;
+  let similarHeadlineDuplicates = 0;
+  let similarWordingDuplicates = 0;
+
   for (const event of sortedEvents) {
     // Skip events without a start date
     if (!event.startDate) continue;
@@ -139,6 +148,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 
     // Check for exact duplicates (same date and headline)
     if (seenDateHeadlinePairs.has(dateHeadlineKey)) {
+      exactDuplicates++;
       continue;
     }
 
@@ -168,6 +178,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
 
           if (Math.abs(existingYear - currentYear) <= 1) {
             isDuplicate = true;
+            similarHeadlineDuplicates++;
             break;
           }
         }
@@ -198,6 +209,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
             matchingWords.length / currentWords.length > 0.5
           ) {
             isDuplicate = true;
+            similarWordingDuplicates++;
             break;
           }
         }
@@ -210,6 +222,25 @@ function postProcessTimeline(timeline: Timeline): Timeline {
       seenDateHeadlinePairs.add(dateHeadlineKey);
     }
   }
+
+  // Log deduplication results
+  const totalDuplicates =
+    exactDuplicates + similarHeadlineDuplicates + similarWordingDuplicates;
+  const finalEventCount = uniqueEvents.length;
+  const percentReduction =
+    initialEventCount > 0
+      ? (
+          ((initialEventCount - finalEventCount) / initialEventCount) *
+          100
+        ).toFixed(1)
+      : "0";
+
+  logger.info(
+    `Deduplication results: ${initialEventCount} → ${finalEventCount} events (${percentReduction}% reduction)`
+  );
+  logger.info(
+    `Duplicates removed: ${totalDuplicates} total (${exactDuplicates} exact, ${similarHeadlineDuplicates} similar headline, ${similarWordingDuplicates} similar wording)`
+  );
 
   // Add age information for person timelines
   if (timeline.birthDate) {
