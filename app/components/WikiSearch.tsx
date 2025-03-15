@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import logger from "@/app/utils/logger";
 import wiki from "wikipedia";
 import {
@@ -667,12 +666,10 @@ export default function WikiSearch({
                     >
                       <div className="flex-shrink-0 w-16 h-16 relative rounded overflow-hidden bg-gray-100 dark:bg-gray-600">
                         {result.thumbnail ? (
-                          <Image
+                          <img
                             src={result.thumbnail.source}
                             alt={result.title}
-                            fill
-                            sizes="64px"
-                            className="object-cover"
+                            className="object-cover w-full h-full"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400">
