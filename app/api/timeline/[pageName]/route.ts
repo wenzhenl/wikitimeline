@@ -734,6 +734,12 @@ export async function GET(
                   await redis.set(cacheKey, { timeline });
                 }
               } catch (error) {
+                // Log detailed error information
+                logger.error(
+                  `Error generating timeline for ${pageInfo.language}:${pageInfo.pageName}:`,
+                  error
+                );
+
                 // Handle Wikipedia API errors
                 if (
                   error instanceof Error &&
