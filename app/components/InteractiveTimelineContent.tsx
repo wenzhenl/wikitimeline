@@ -530,8 +530,21 @@ export default function InteractiveTimelineContent({
       );
 
       if (newPath !== `/timeline/${params.pageName}`) {
+        // Set loading state to true to show the loading indicator
         setLoading(true);
-        router.push(newPath, { scroll: false });
+
+        // Log that we're starting to fetch a new timeline
+        logger.debug(`Fetching new timeline data for updated pages`, {
+          previousPages: params.pageName,
+          newPages: pageNames.join(PAGE_DELIMITER),
+        });
+
+        // Instead of using client-side navigation, force a full page reload
+        // This will trigger the Suspense boundary and show the LoadingUI component
+        window.location.href = newPath;
+      } else {
+        // If the path hasn't changed, inform the user
+        logger.debug(`Timeline path unchanged, no refresh needed`);
       }
     }
   };
