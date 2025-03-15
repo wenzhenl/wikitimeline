@@ -216,11 +216,13 @@ async function extractMetadataFromWikiIntro(
     // Create the prompt for metadata extraction
     const userPrompt = `      
       Extract metadata from the following article:
+      <article>
       ${wikiIntro}
+      </article>
 
-      Please output all the metadata in the same language as the article: ${getLanguageName(
+      Please use your FULL capabilities to extract all the metadata in the same language as the article: ${getLanguageName(
         language
-      )}
+      )}, you only have only ONE chance to get it right, the data is stored permanently and will be used by millions of people.
     `;
 
     // Call Gemini to extract metadata
@@ -312,9 +314,9 @@ async function extractEventsFromWikiContent(
     ${wikiContent}
     </wikipedia_content>
 
-    Please output all the events in the same language as the article: ${getLanguageName(
+    Please use your FULL capabilities to extract all the events in the same language as the article: ${getLanguageName(
       language
-    )}
+    )}, you only have only ONE chance to get it right, the data is stored permanently and will be used by millions of people.
   `;
 
   while (iterations < MAX_ITERATIONS) {
@@ -389,9 +391,10 @@ async function extractEventsFromWikiContent(
         ${JSON.stringify(accumulatedEvents, null, 2)}
         
         Continue extracting events from: ${pageName}, but only extract events that are not already in the events list above.
-        Please output all the events in the same language as the article: ${getLanguageName(
+        
+        Please use your FULL capabilities to extract all the events in the same language as the article: ${getLanguageName(
           language
-        )}
+        )}, you only have only ONE chance to get it right, the data is stored permanently and will be used by millions of people.
       `;
 
       iterations++;
