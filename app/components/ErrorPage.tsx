@@ -38,7 +38,7 @@ export default function ErrorPage() {
           </h1>
           <p className="text-xl mb-8 text-gray-600 dark:text-gray-300">
             We encountered an error while generating your timeline. Please try
-            again.
+            again later. Someone might be generating the same timeline right now.
           </p>
           <div className="flex gap-4 justify-center">
             <RetryButton />

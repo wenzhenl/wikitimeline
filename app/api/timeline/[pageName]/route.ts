@@ -118,9 +118,102 @@ function postProcessTimeline(timeline: Timeline): Timeline {
     };
   }
 
+  // Sort events by date using compareDates function to properly handle negative years
+  const sortedEvents = [...timeline.events].sort((a, b) => {
+    const aDate = a.startDate || "";
+    const bDate = b.startDate || "";
+    return compareDates(aDate, bDate);
+  });
+
+  // Deduplicate events - more robust approach for events from multiple chunks
+  const uniqueEvents: TimelineEvent[] = [];
+  const seenHeadlines = new Set<string>();
+  const seenDateHeadlinePairs = new Set<string>();
+
+  for (const event of sortedEvents) {
+    // Skip events without a start date
+    if (!event.startDate) continue;
+
+    // Create a unique key combining date and headline
+    const dateHeadlineKey = `${event.startDate}|${event.headline}`;
+
+    // Check for exact duplicates (same date and headline)
+    if (seenDateHeadlinePairs.has(dateHeadlineKey)) {
+      continue;
+    }
+
+    // Check for similar headlines (fuzzy matching)
+    let isDuplicate = false;
+    if (seenHeadlines.has(event.headline)) {
+      // If we've seen this exact headline before, check if the dates are close
+      for (const existingEvent of uniqueEvents) {
+        if (existingEvent.headline === event.headline) {
+          // If dates are within 1 year, consider it a duplicate
+          const existingDate = existingEvent.startDate;
+          const currentDate = event.startDate;
+
+          // Use a simple year comparison for dates that might be BCE
+          const existingYear =
+            parseInt(
+              existingDate.startsWith("-")
+                ? existingDate.slice(1)
+                : existingDate.split("-")[0]
+            ) * (existingDate.startsWith("-") ? -1 : 1);
+          const currentYear =
+            parseInt(
+              currentDate.startsWith("-")
+                ? currentDate.slice(1)
+                : currentDate.split("-")[0]
+            ) * (currentDate.startsWith("-") ? -1 : 1);
+
+          if (Math.abs(existingYear - currentYear) <= 1) {
+            isDuplicate = true;
+            break;
+          }
+        }
+      }
+    } else {
+      // Check for similar headlines with different wording
+      for (const existingEvent of uniqueEvents) {
+        // If dates are exactly the same, check for similar headlines
+        if (existingEvent.startDate === event.startDate) {
+          // Simple similarity check - if headlines share significant words
+          const existingWords = new Set(
+            existingEvent.headline
+              .toLowerCase()
+              .split(/\s+/)
+              .filter((w) => w.length > 3)
+          );
+          const currentWords = event.headline
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((w) => w.length > 3);
+
+          // If more than 50% of significant words match, consider it a duplicate
+          const matchingWords = currentWords.filter((word) =>
+            existingWords.has(word)
+          );
+          if (
+            matchingWords.length > 0 &&
+            matchingWords.length / currentWords.length > 0.5
+          ) {
+            isDuplicate = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!isDuplicate) {
+      uniqueEvents.push(event);
+      seenHeadlines.add(event.headline);
+      seenDateHeadlinePairs.add(dateHeadlineKey);
+    }
+  }
+
   // Add age information for person timelines
   if (timeline.birthDate) {
-    timeline.events.forEach((event) => {
+    uniqueEvents.forEach((event) => {
       // Only calculate age if event date is after birth date
       if (compareDates(event.startDate, timeline.birthDate!) >= 0) {
         // If death date exists, only calculate age if event date is before or equal to death date
@@ -141,6 +234,7 @@ function postProcessTimeline(timeline: Timeline): Timeline {
   // Return the processed timeline with version
   return {
     ...timeline,
+    events: uniqueEvents,
     version: DEFAULT_TIMELINE_VERSION,
     lastUpdatedAt: Date.now(),
   };
