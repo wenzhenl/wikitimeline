@@ -37,6 +37,7 @@ import {
   WIKI_EVENTS_SCHEMA,
   WIKI_METADATA_SCHEMA,
 } from "@/app/constants/gemini/timelineSchema";
+import { ERROR_MESSAGES } from "@/app/constants/errorMessages";
 
 // Initialize Redis
 const redis = Redis.fromEnv();
@@ -556,49 +557,84 @@ export async function GET(
 
           // Step 3: If no cached timeline, generate a new one
           if (!timeline) {
-            logger.info(
-              `Generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`
+            // Create a lock key specific to this page
+            const lockKey = `lock:${cacheKey}`;
+            const lockTimeout = 300; // 5 minutes lock timeout
+
+            // Try to acquire a lock with an expiration
+            const lockAcquired = await redis.set(
+              lockKey,
+              Date.now().toString(),
+              {
+                nx: true, // Only set if key doesn't exist
+                ex: lockTimeout, // Expire after timeout seconds
+              }
             );
 
-            try {
-              // Fetch Wikipedia content
-              const wikiData = await fetchWikipediaContent(pageInfo);
-
-              // Generate timeline
-              timeline = await generateTimeline(
-                pageInfo.pageName,
-                wikiData.content,
-                wikiData.intro,
-                genAI,
-                pageInfo.language
+            if (lockAcquired) {
+              // We acquired the lock, so we'll generate the timeline
+              logger.info(
+                `Acquired lock and generating new timeline for ${pageInfo.language}:${pageInfo.pageName}`
               );
 
-              if (timeline) {
-                logger.info(
-                  `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
+              try {
+                // Fetch Wikipedia content
+                const wikiData = await fetchWikipediaContent(pageInfo);
+
+                // Generate timeline
+                timeline = await generateTimeline(
+                  pageInfo.pageName,
+                  wikiData.content,
+                  wikiData.intro,
+                  genAI,
+                  pageInfo.language
                 );
-                await redis.set(cacheKey, { timeline });
+
+                if (timeline) {
+                  logger.info(
+                    `Caching timeline for ${pageInfo.language}:${pageInfo.pageName} (${timeline.events.length} events)`
+                  );
+                  await redis.set(cacheKey, { timeline });
+                }
+              } catch (error) {
+                // Handle Wikipedia API errors
+                if (
+                  error instanceof Error &&
+                  "statusCode" in error &&
+                  (error as any).statusCode === 404
+                ) {
+                  results[pageInfo.original] = {
+                    status: "not_found",
+                    message: "Page does not exist in Wikipedia",
+                  };
+                } else {
+                  results[pageInfo.original] = {
+                    status: "error",
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Failed to fetch Wikipedia content or generate timeline",
+                  };
+                }
+                return;
+              } finally {
+                // Always release the lock when done, whether successful or not
+                await redis.del(lockKey);
+                logger.info(
+                  `Released lock for ${pageInfo.language}:${pageInfo.pageName}`
+                );
               }
-            } catch (error) {
-              // Handle Wikipedia API errors
-              if (
-                error instanceof Error &&
-                "statusCode" in error &&
-                (error as any).statusCode === 404
-              ) {
-                results[pageInfo.original] = {
-                  status: "not_found",
-                  message: "Page does not exist in Wikipedia",
-                };
-              } else {
-                results[pageInfo.original] = {
-                  status: "error",
-                  message:
-                    error instanceof Error
-                      ? error.message
-                      : "Failed to fetch Wikipedia content or generate timeline",
-                };
-              }
+            } else {
+              // Someone else is already generating this timeline
+              logger.info(
+                `Another process is already generating timeline for ${pageInfo.language}:${pageInfo.pageName}`
+              );
+
+              // Return a message indicating the timeline is being generated
+              results[pageInfo.original] = {
+                status: "error",
+                message: ERROR_MESSAGES.TIMELINE_IN_PROGRESS,
+              };
               return;
             }
           }
