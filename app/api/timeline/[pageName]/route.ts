@@ -593,24 +593,65 @@ async function fetchWikipediaContent(
   );
 
   // Fetch content, intro, and tables all in parallel
-  const [content, intro, tables] = await Promise.all([
+  const [contentPromise, introPromise, tablesPromise] = [
     wiki.content(pageInfo.pageName),
-    wiki.intro(pageInfo.pageName),
+    wiki.intro(pageInfo.pageName).catch((error) => {
+      logger.warn(
+        `Could not fetch intro for ${pageInfo.language}:${pageInfo.pageName}:`,
+        error
+      );
+      return null; // Return null to indicate intro fetch failed
+    }),
     wiki.tables(pageInfo.pageName).catch((error) => {
-      // Handle tables error gracefully
       logger.warn(
         `Could not fetch tables for ${pageInfo.language}:${pageInfo.pageName}:`,
         error
       );
       return []; // Return empty array if tables fail
     }),
+  ];
+
+  // Wait for all promises to resolve
+  const [content, introResult, tables] = await Promise.all([
+    contentPromise,
+    introPromise,
+    tablesPromise,
   ]);
+
+  logger.debug(
+    `Successfully fetched content for ${pageInfo.language}:${pageInfo.pageName}`
+  );
+
+  // If intro fetch failed, use first paragraph of content as fallback
+  let intro = introResult;
+  if (intro === null) {
+    // Extract first paragraph from content as fallback
+    intro = content.split("\n\n")[0].trim();
+
+    logger.warn(
+      `Using first paragraph of content as intro for ${pageInfo.language}:${pageInfo.pageName}`
+    );
+  } else {
+    logger.debug(
+      `Successfully fetched intro for ${pageInfo.language}:${pageInfo.pageName}`
+    );
+  }
 
   // Only process tables if they exist and have content
   const tablesContent =
     Array.isArray(tables) && tables.length > 0
       ? tables.map((table) => JSON.stringify(table, null, 2)).join("\n\n")
       : "";
+
+  if (tables.length > 0) {
+    logger.debug(
+      `Successfully fetched ${tables.length} tables for ${pageInfo.language}:${pageInfo.pageName}`
+    );
+  } else {
+    logger.debug(
+      `No tables found for ${pageInfo.language}:${pageInfo.pageName}`
+    );
+  }
 
   return {
     content: content + (tablesContent ? "\n\n" + tablesContent : ""),
