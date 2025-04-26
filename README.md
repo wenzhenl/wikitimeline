@@ -9,6 +9,9 @@
   </p>
 </div>
 
+## Architecture
+Can be found with [deepwiki/wikitimeline](https://deepwiki.com/wenzhenl/wikitimeline)
+
 ## ✨ Features
 
 - 🔄 **Instant Conversion**: Transform any Wikipedia article into a timeline in seconds
